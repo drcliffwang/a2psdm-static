@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-key="pageTitle">關鍵思考與創新 PSDM + AI 課程</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Be Vietnam Pro', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc; /* A lighter gray background */
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #eef2ff;
+            color: #3b82f6;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+            padding: 2rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.75rem; text-align: left; }
+        .ai-output th { background-color: #f9fafb; font-weight: 600; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .ai-output h4 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        /* Language Switcher Styles */
+        .lang-switcher button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background-color: #fff;
+            color: #374151;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .lang-switcher button:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+        .lang-switcher button:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+        .lang-switcher button {
+            border-left-width: 0;
+        }
+        .lang-switcher button:first-child {
+            border-left-width: 1px;
+        }
+        .lang-switcher button.active {
+            background-color: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+        .lang-switcher button:not(.active):hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-blue-600 mb-2" data-lang-key="headerTitle">關鍵思考與創新 PSDM + AI</h1>
+            <p class="text-md md:text-lg text-gray-600" data-lang-key="headerSubtitle">一門為您打造的系統性思維PSDM與 AI 協作實戰課程</p>
+            <div class="mt-4 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-16 h-16 object-cover shadow-md">
+                <div>
+                    <p class="text-md font-semibold text-gray-700 text-left" data-lang-key="authorName">Cliff Wang, Ph.D. 王啟岳博士</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+            
+            <!-- Language Switcher -->
+            <div class="mt-6 flex justify-center">
+                <div class="lang-switcher inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button" id="lang-tw-btn" onclick="switchLanguage('zh-TW')">
+                        繁體中文
+                    </button>
+                    <button type="button" id="lang-cn-btn" onclick="switchLanguage('zh-CN')">
+                        简体中文
+                    </button>
+                    <button type="button" id="lang-vi-btn" onclick="switchLanguage('vi')">
+                        Tiếng Việt
+                    </button>
+                    <button type="button" id="lang-en-btn" onclick="switchLanguage('en')">
+                        English
+                    </button>
+                </div>
+            </div>
+
+            <!-- Podcast V21 Style -->
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2" data-lang-key="podcastTitle">課程 Podcast</h4>
+                <audio controls controlslist="nodownload" src="https://github.com/drcliffwang/course-material/raw/refs/heads/main/freecompress%20Critical%20Thinking%20and%20Innovation%20with%20AI.mp3" type="audio/mpeg">
+                    <span data-lang-key="audioNotSupported">您的瀏覽器不支援聲音播放功能。</span>
+                </audio>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8" id="tab-nav">
+            <button class="tab-button active" onclick="showSection('overview')" data-lang-key="navOverview">課程概覽</button>
+            <button class="tab-button" onclick="showSection('ai-setup')" data-lang-key="navAiSetup">AI 設定</button>
+            <button class="tab-button" onclick="showSection('sa')" data-lang-key="navSa">SA 狀況評估</button>
+            <button class="tab-button" onclick="showSection('pa')" data-lang-key="navPa">PA 問題分析</button>
+            <button class="tab-button" onclick="showSection('ppa')" data-lang-key="navPpa">PPA 潛在問題分析</button>
+            <button class="tab-button" onclick="showSection('da')" data-lang-key="navDa">DA 決策分析</button>
+            <button class="tab-button" onclick="showSection('ca')" data-lang-key="navCa">CA 創意分析</button>
+            <button class="tab-button" onclick="showSection('conclusion')" data-lang-key="navConclusion">結論與討論</button>
+        </nav>
+
+        <main>
+            <!-- Overview Section -->
+            <section id="overview" class="content-section active">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2" data-lang-key="overviewTitle">五大系統思考應用模塊</h2>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                    <div class="p-6 bg-white rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <h3 class="font-bold text-xl mb-2 text-blue-600" data-lang-key="saTitle">SA 狀況評估</h3>
+                        <p class="text-5xl font-bold mb-2 text-blue-500" data-lang-key="saChar">廣!</p><p class="text-gray-500" data-lang-key="saDesc">掌握大局</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <h3 class="font-bold text-xl mb-2 text-green-600" data-lang-key="paTitle">PA 問題分析</h3>
+                        <p class="text-5xl font-bold mb-2 text-green-500" data-lang-key="paChar">細!</p><p class="text-gray-500" data-lang-key="paDesc">問題解決</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <h3 class="font-bold text-xl mb-2 text-purple-600" data-lang-key="ppaTitle">PPA 潛在問題分析</h3>
+                        <p class="text-5xl font-bold mb-2 text-purple-500" data-lang-key="ppaChar">遠!</p><p class="text-gray-500" data-lang-key="ppaDesc">超前部署</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <h3 class="font-bold text-xl mb-2 text-yellow-600" data-lang-key="daTitle">DA 決策分析</h3>
+                        <p class="text-5xl font-bold mb-2 text-yellow-500" data-lang-key="daChar">準!</p><p class="text-gray-500" data-lang-key="daDesc">正確決策</p>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                        <h3 class="font-bold text-xl mb-2 text-red-600" data-lang-key="caTitle">CA 創意分析</h3>
+                        <p class="text-5xl font-bold mb-2 text-red-500" data-lang-key="caChar">變!</p><p class="text-gray-500" data-lang-key="caDesc">突破框架</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Setup Section -->
+            <section id="ai-setup" class="content-section">
+                <div class="max-w-2xl mx-auto p-6 bg-blue-50 border-2 border-blue-200 rounded-lg card">
+                    <h3 class="text-xl font-bold text-blue-800 text-center mb-4 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        <span data-lang-key="aiSetupTitle">啟動 AI 互動功能</span>
+                    </h3>
+                    <p class="text-center text-blue-700 mb-4" data-lang-key="aiSetupDesc">為了使用課程中的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                    
+                    <div class="mb-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="aiSetupStep1">1. 選擇 AI 服務提供商:</span>
+                        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="aiSetupStep2">2. 輸入您的 API 金鑰:</span>
+                        <div class="flex items-center">
+                            <input type="password" id="api-key-input" class="w-full p-2 border border-blue-300 rounded-l-md focus:ring-2 focus:ring-blue-500" data-lang-key-placeholder="apiKeyPlaceholder">
+                            <button onclick="saveApiKey()" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-r-md hover:bg-blue-600" data-lang-key="saveButton">儲存</button>
+                        </div>
+                    </div>
+                    
+                    <div id="copilot-endpoint-container" class="hidden mt-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="aiSetupStep3">3. 輸入您的 Azure Endpoint:</span>
+                        <div class="flex items-center">
+                            <input type="text" id="endpoint-url-input" class="w-full p-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500" data-lang-key-placeholder="endpointPlaceholder">
+                        </div>
+                         <p class="text-xs text-center text-blue-600 mt-1" data-lang-key="endpointNote">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                    </div>
+
+                    <div class="text-xs text-center text-blue-600 mt-2 space-y-1">
+                        <p data-lang-key="keyStorageInfo">您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-blue-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-blue-800">OpenAI/Azure</a> 免費取得。</p>
+                        <p class="font-bold" data-lang-key="paymentNotice">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SA Section -->
+            <section id="sa" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center" data-lang-key="saSectionTitle">SA: Situation Appraisal (狀況評估)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center" data-lang-key="saSectionSubtitle">掌握大局，理清頭緒</h3>
+                
+                <div class="content-block">
+                    <h4 data-lang-key="coreConcept">核心理念</h4>
+                    <p data-lang-key="saConceptText">當面對一團混亂、千頭萬緒的狀況時，SA 提供一個系統性的方法來拆解複雜情境，確立優先順序，並決定下一步的行動方向。它是所有分析的起點，幫助我們從「見樹不見林」的困境中跳脫，看清全局。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4 data-lang-key="keySteps">關鍵步驟解析</h4>
+                    <ul data-lang-key="saSteps">
+                        <li><b>1. 規劃議題 (Plan - 審問):</b> 將腦中所有待辦事項、擔憂、問題全部列出。接著運用 <b>MECE 原則 (相互獨立，完全窮盡)</b> 進行分類與歸納，將雜亂的關注點整理成幾個清晰、獨立的議題大項。</li>
+                        <li><b>2. 輕重緩急 (Do - 慎思):</b> 資源有限，不可能所有事都做。針對每個議題，從<b>嚴重性(S)</b>、<b>緊急性(U)</b>、<b>未來性(G)</b>三個維度進行評估，找出真正需要優先處理的關鍵少數。</li>
+                        <li><b>3. 決定流程 (Check - 明辨):</b> 針對高優先級的議題，判斷其問題屬性。這一步是關鍵的「分流站」：
+                            <ul class="my-2">
+                                <li>- 如果是「原因不明的偏差」，則進入 <b>PA (問題分析)</b>。</li>
+                                <li>- 如果是「需要做出選擇」，則進入 <b>DA (決策分析)</b>。</li>
+                                <li>- 如果是「未來可能發生的風險」，則進入 <b>PPA (潛在問題分析)</b>。</li>
+                            </ul>
+                        </li>
+                        <li><b>4. 當責行動 (Action - 篤行):</b> 將分析轉化為行動。明確定義「誰(Who)」、「在何時(When)」、「做什麼(What)」，並啟動對應的分析流程。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for SA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quizTitleSA">SA 學習成效測驗</h3>
+                    <div id="quiz-sa" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="c">
+                            <p class="font-semibold mb-2" data-lang-key="saQ1">1. 狀況評估(SA)最主要的核心目的是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-sa" value="a" class="mr-2"><span data-lang-key="saQ1A">A. 找到問題的唯一真因</span></label>
+                                <label class="block"><input type="radio" name="q1-sa" value="b" class="mr-2"><span data-lang-key="saQ1B">B. 預防所有未來可能發生的風險</span></label>
+                                <label class="block"><input type="radio" name="q1-sa" value="c" class="mr-2"><span data-lang-key="saQ1C">C. 拆解複雜情況，理清頭緒並決定優先順序</span></label>
+                                <label class="block"><input type="radio" name="q1-sa" value="d" class="mr-2"><span data-lang-key="saQ1D">D. 產生最多樣化的創意點子</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="a">
+                            <p class="font-semibold mb-2" data-lang-key="saQ2">2. 在SA中，使用MECE原則是為了達成什麼效果？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-sa" value="a" class="mr-2"><span data-lang-key="saQ2A">A. 確保議題的劃分不重疊、不遺漏</span></label>
+                                <label class="block"><input type="radio" name="q2-sa" value="b" class="mr-2"><span data-lang-key="saQ2B">B. 確保每個議題都同樣重要</span></label>
+                                <label class="block"><input type="radio" name="q2-sa" value="c" class="mr-2"><span data-lang-key="saQ2C">C. 確保只找出最緊急的議題</span></label>
+                                <label class="block"><input type="radio" name="q2-sa" value="d" class="mr-2"><span data-lang-key="saQ2D">D. 確保所有議題都有解決方案</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('sa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="submitAnswers">提交答案</button>
+                        <div id="score-sa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for SA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4" data-lang-key="saExerciseTitle">SA 實戰演練</h3>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="sa-input" class="font-semibold text-gray-700" data-lang-key="saExercisePrompt">請在此描述您面臨的複雜情況：</label>
+                            <button onclick="loadExample('sa-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" data-lang-key="loadExample">載入範例</button>
+                        </div>
+                        <textarea id="sa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" rows="5" data-lang-key-placeholder="saExample"></textarea>
+                        <button onclick="handleAI('sa')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                            <span data-lang-key="runSA">✨ 啟動 AI 狀況評估</span>
+                        </button>
+                        <div id="sa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PA Section -->
+            <section id="pa" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center" data-lang-key="paSectionTitle">PA: Problem Analysis (問題分析)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center" data-lang-key="paSectionSubtitle">追根究柢，找到真因</h3>
+
+                <div class="content-block">
+                    <h4 data-lang-key="coreConcept">核心理念</h4>
+                    <p data-lang-key="paConceptText">當發生「實際」與「應有」的偏差 (Deviation)，且原因不明時，PA 提供一套嚴謹的邏輯工具。其精髓在於「比較」，透過系統性地比對「是(IS)」與「不是(IS NOT)」之間的差異，從而找出導致問題的「獨特變化」，鎖定真因。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="keySteps">關鍵步驟解析</h4>
+                    <ul data-lang-key="paSteps">
+                        <li><b>1. 定義問題 (Plan - 審問):</b> 精準描述問題（物件＋偏差），並利用 <b>IS/IS NOT 表格</b>，從 What, Where, When, Extent 四個構面，鉅細靡遺地收集「事實」，而非意見或猜測。</li>
+                        <li><b>2. 推理原因 (Do - 慎思):</b> 雙管齊下尋找可能原因。<b>演繹法</b>：從經驗出發，使用魚骨圖等工具發想。<b>歸納法</b>：專注於 IS/IS NOT 表格中的「差異點」和「變化點」，這是最客觀的線索來源。</li>
+                        <li><b>3. 辯證原因 (Check - 明辨):</b> 這是最關鍵的驗證步驟。將上一步找出的「最可能原因(MPC)」，拿來解釋 IS/IS NOT 表格中的每一項事實。如果這個原因能完美解釋「為何發生在 IS，而未發生在 IS NOT」，那它很可能就是真因。</li>
+                        <li><b>4. 決策執行 (Act - 篤行):</b> 透過實驗或觀察來最終確認真因。確認後，立即採取<b>治標行動 (Containment)</b> 防止災情擴大，並規劃<b>治本行動 (Corrective)</b> 根除問題。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for PA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quizTitlePA">PA 學習成效測驗</h3>
+                    <div id="quiz-pa" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="b">
+                            <p class="font-semibold mb-2" data-lang-key="paQ1">1. 在問題分析(PA)中，「IS / IS NOT」分析的主要作用是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-pa" value="a" class="mr-2"><span data-lang-key="paQ1A">A. 評估問題的嚴重性</span></label>
+                                <label class="block"><input type="radio" name="q1-pa" value="b" class="mr-2"><span data-lang-key="paQ1B">B. 透過比較來縮小可能原因的範圍</span></label>
+                                <label class="block"><input type="radio" name="q1-pa" value="c" class="mr-2"><span data-lang-key="paQ1C">C. 決定由誰來負責解決問題</span></label>
+                                <label class="block"><input type="radio" name="q1-pa" value="d" class="mr-2"><span data-lang-key="paQ1D">D. 提出創新的解決方案</span></label>
+                            </div>
+                             <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="d">
+                            <p class="font-semibold mb-2" data-lang-key="paQ2">2. 當你找到一個「最可能原因(MPC)」時，下一步應該做什麼來驗證它？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-pa" value="a" class="mr-2"><span data-lang-key="paQ2A">A. 馬上投入資源解決它</span></label>
+                                <label class="block"><input type="radio" name="q2-pa" value="b" class="mr-2"><span data-lang-key="paQ2B">B. 尋找更多可能的原因</span></label>
+                                <label class="block"><input type="radio" name="q2-pa" value="c" class="mr-2"><span data-lang-key="paQ2C">C. 忽略它，專注於治標行動</span></label>
+                                <label class="block"><input type="radio" name="q2-pa" value="d" class="mr-2"><span data-lang-key="paQ2D">D. 用它來解釋IS/IS NOT表格中的所有事實，看是否吻合</span></label>
+                            </div>
+                             <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('pa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="submitAnswers">提交答案</button>
+                        <div id="score-pa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for PA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-green-700 mb-4" data-lang-key="paExerciseTitle">PA 實戰演練</h3>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700" data-lang-key="selectMethod">請選擇分析方法：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="isisnot" checked> IS/IS NOT 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="whywhy"> Why-Why 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="pmanalysis"> PM 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="datadriven"> Data Driven 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="8dreport"> 8D 報告</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="pa-input" class="font-semibold text-gray-700" data-lang-key="paExercisePrompt">請在此描述您遇到的問題與相關數據：</label>
+                            <button onclick="loadExample('pa-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" data-lang-key="loadExample">載入範例</button>
+                        </div>
+                        <textarea id="pa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" rows="5" data-lang-key-placeholder="paExample"></textarea>
+                        <button onclick="handleAI('pa')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
+                           <span data-lang-key="runPA">✨ 啟動 AI 問題分析</span>
+                        </button>
+                        <div id="pa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PPA Section -->
+            <section id="ppa" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center" data-lang-key="ppaSectionTitle">PPA: Potential Problem Analysis (潛在問題分析)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center" data-lang-key="ppaSectionSubtitle">超前部署，防範未然</h3>
+
+                <div class="content-block">
+                    <h4 data-lang-key="coreConcept">核心理念</h4>
+                    <p data-lang-key="ppaConceptText">任何計畫或行動都伴隨著風險。PPA 是一套將「被動救火」轉為「主動防災」の系統化方法。它讓我們在行動前，先系統性地思考「哪裡可能出錯？」，並預先制定「預防」與「應變」計畫，大幅提高計畫の成功率。</p>
+                </div>
+                 <div class="content-block">
+                    <h4 data-lang-key="keySteps">關鍵步驟解析</h4>
+                    <ul data-lang-key="ppaSteps">
+                        <li><b>1. 識別風險 (Plan):</b> 針對計畫的每個步驟，腦力激盪所有可能發生的潛在問題。</li>
+                        <li><b>2. 優先次序 (Do):</b> 對每個風險進行量化評估。<b>RPN (風險優先數) = S (嚴重性) x O (發生率) x D (難檢測度)</b>。這個分數能幫助我們客觀地找出最需要關注的高風險項目。</li>
+                        <li><b>3. 分析原因 (Check):</b> 針對 RPN 最高的風險，進一步分析可能導致它發生的原因 (Likely Causes)。</li>
+                        <li><b>4. 制定對策 (Action):</b> 這是 PPA 的行動核心，分為兩個層面：
+                            <ul class="my-2">
+                                <li>- <b>預防行動 (Prevention - Plan A):</b> 針對「原因」下手，採取措施來降低風險的「發生率(O)」。例如：增加教育訓練、建立防呆機制。</li>
+                                <li>- <b>應變行動 (Contingency - Plan B):</b> 假設風險不幸發生，預先準備好對策以降低「嚴重性(S)」。同時也要思考如何提高「檢測度(D)」，例如增加警報器。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for PPA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quizTitlePPA">PPA 學習成效測驗</h3>
+                    <div id="quiz-ppa" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="d">
+                            <p class="font-semibold mb-2" data-lang-key="ppaQ1">1. 在PPA中，RPN (風險優先數) 是由哪三個因素相乘得出的？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-ppa" value="a" class="mr-2"><span data-lang-key="ppaQ1A">A. 嚴重性、緊急性、未來性</span></label>
+                                <label class="block"><input type="radio" name="q1-ppa" value="b" class="mr-2"><span data-lang-key="ppaQ1B">B. 成本、時間、品質</span></label>
+                                <label class="block"><input type="radio" name="q1-ppa" value="c" class="mr-2"><span data-lang-key="ppaQ1C">C. 可能性、影響力、可控性</span></label>
+                                <label class="block"><input type="radio" name="q1-ppa" value="d" class="mr-2"><span data-lang-key="ppaQ1D">D. 嚴重性(S)、發生率(O)、難檢測度(D)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="a">
+                            <p class="font-semibold mb-2" data-lang-key="ppaQ2">2. 「為新設備準備備用零件」是屬於PPA中的哪一種行動？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-ppa" value="a" class="mr-2"><span data-lang-key="ppaQ2A">A. 應變行動 (Contingency - Plan B)</span></label>
+                                <label class="block"><input type="radio" name="q2-ppa" value="b" class="mr-2"><span data-lang-key="ppaQ2B">B. 預防行動 (Prevention - Plan A)</span></label>
+                                <label class="block"><input type="radio" name="q2-ppa" value="c" class="mr-2"><span data-lang-key="ppaQ2C">C. 治本行動 (Corrective Action)</span></label>
+                                <label class="block"><input type="radio" name="q2-ppa" value="d" class="mr-2"><span data-lang-key="ppaQ2D">D. 治標行動 (Containment Action)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('ppa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="submitAnswers">提交答案</button>
+                        <div id="score-ppa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for PPA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-purple-700 mb-4" data-lang-key="ppaExerciseTitle">PPA 實戰演練</h3>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                           <label for="ppa-input" class="font-semibold text-gray-700" data-lang-key="ppaExercisePrompt">請在此描述您的計畫或專案：</label>
+                           <button onclick="loadExample('ppa-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" data-lang-key="loadExample">載入範例</button>
+                        </div>
+                        <textarea id="ppa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500" rows="5" data-lang-key-placeholder="ppaExample"></textarea>
+                        <button onclick="handleAI('ppa')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700">
+                            <span data-lang-key="runPPA">✨ 啟動 AI 風險分析</span>
+                        </button>
+                        <div id="ppa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DA Section -->
+            <section id="da" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center" data-lang-key="daSectionTitle">DA: Decision Analysis (決策分析)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center" data-lang-key="daSectionSubtitle">權衡利弊，做出最佳選擇</h3>
+                
+                <div class="content-block">
+                    <h4 data-lang-key="coreConcept">核心理念</h4>
+                    <p data-lang-key="daConceptText">將決策過程從「直覺」和「感覺」提升到「系統」和「計算」。DA 提供了一個結構化、透明化的流程，將複雜的選擇題拆解為可評估的標準，讓團隊或個人能客觀地權衡利弊，並對最終選擇的風險有清晰的認識。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="keySteps">關鍵步驟解析</h4>
+                    <ul data-lang-key="daSteps">
+                        <li><b>1. 規劃需求 (Plan):</b> 這是決策的基礎。清楚定義決策的目的，並將評估標準分為兩類：
+                            <ul class="my-2">
+                                <li>- <b>Musts (必要條件):</b> 非有不可的門檻，用來「篩選」選項，不滿足者直接淘汰。</li>
+                                <li>- <b>Wants (想要條件):</b> 多多益善的加分項，用來「評分」。必須給予每個 Want 不同的「權重(Weight)」，以體現其相對重要性。</li>
+                            </ul>
+                        </li>
+                        <li><b>2. 發展選項 (Do):</b> 進行評分與計算。先用 Musts 篩掉不合格的選項。然後為剩下的選項，根據 Wants 逐項評分 (1-10分)，再將分數乘以權重，得出每個選項的加權總分。</li>
+                        <li><b>3. 了解風險 (Check):</b> 分數不是一切。針對分數最高的幾個選項，必須冷靜地分析其潛在的負面風險 (Adverse Consequences)。一個高分但風險極大的選項，未必是最佳選擇。</li>
+                        <li><b>4. 執行決策 (Action):</b> 做出最終選擇。理想的選擇是「加權分數最高」且「風險可控」的選項。一旦做出決定，就要為可能的風險制定應對計畫。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for DA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quizTitleDA">DA 學習成效測驗</h3>
+                    <div id="quiz-da" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="c">
+                            <p class="font-semibold mb-2" data-lang-key="daQ1">1. 在決策分析(DA)中，「Musts (必要條件)」的主要作用是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-da" value="a" class="mr-2"><span data-lang-key="daQ1A">A. 用來為選項加權計分</span></label>
+                                <label class="block"><input type="radio" name="q1-da" value="b" class="mr-2"><span data-lang-key="daQ1B">B. 評估選項的潛在風險</span></label>
+                                <label class="block"><input type="radio" name="q1-da" value="c" class="mr-2"><span data-lang-key="daQ1C">C. 作為篩選門檻，快速淘汰不合格的選項</span></label>
+                                <label class="block"><input type="radio" name="q1-da" value="d" class="mr-2"><span data-lang-key="daQ1D">D. 比較不同選項的優點</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="b">
+                            <p class="font-semibold mb-2" data-lang-key="daQ2">2. 為何在DA中要為「Wants (想要條件)」設定權重(Weight)？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-da" value="a" class="mr-2"><span data-lang-key="daQ2A">A. 讓計算過程更複雜</span></label>
+                                <label class="block"><input type="radio" name="q2-da" value="b" class="mr-2"><span data-lang-key="daQ2B">B. 體現不同標準的相對重要性</span></label>
+                                <label class="block"><input type="radio" name="q2-da" value="c" class="mr-2"><span data-lang-key="daQ2C">C. 確保所有選項得分都一樣</span></label>
+                                <label class="block"><input type="radio" name="q2-da" value="d" class="mr-2"><span data-lang-key="daQ2D">D. 這是隨機設定的數字</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('da')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="submitAnswers">提交答案</button>
+                        <div id="score-da" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for DA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-yellow-700 mb-4" data-lang-key="daExerciseTitle">DA 實戰演練</h3>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                           <label for="da-input" class="font-semibold text-gray-700" data-lang-key="daExercisePrompt">請在此描述您需要做的決策 (包含選項、評估標準 Wants 及權重)：</label>
+                           <button onclick="loadExample('da-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" data-lang-key="loadExample">載入範例</button>
+                        </div>
+                        <textarea id="da-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500" rows="5" data-lang-key-placeholder="daExample"></textarea>
+                        <button onclick="handleAI('da')" class="mt-4 px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600">
+                           <span data-lang-key="runDA">✨ 啟動 AI 決策分析</span>
+                        </button>
+                        <div id="da-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CA Section -->
+            <section id="ca" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center" data-lang-key="caSectionTitle">CA: Creativity Analysis (創意分析)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center" data-lang-key="caSectionSubtitle">突破框架，系統創新</h3>
+
+                <div class="content-block">
+                    <h4 data-lang-key="coreConcept">核心理念</h4>
+                    <p data-lang-key="caConceptText">創新並非少數天才的專利，而是人人皆可學習的方法。CA 提供了一套系統化的 IDEA 框架，引導我們將發散的「點子(Idea)」轉化為有市場價值的「創新(Innovation)」。它教我們如何從客戶需求出發，透過系統工具演化點子，並最終打造出成功的商業模式。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="ideaFramework">IDEA 創新框架解析</h4>
+                    <ul data-lang-key="caSteps">
+                        <li><b>I - Imagination / Input / Insight (想像/輸入/洞見):</b> 創新的起點。透過同理心(Empathy)觀察，深入了解客戶的痛點(Pains)與爽點(Gains)，從中發掘未被滿足的需求。</li>
+                        <li><b>D - Domain Application (運用場景):</b> 尋找創新的「空隙」。思考將現有的技術或產品，應用到新的時間、空間或物件上。例如，將工業用纖維棉應用到個人衛生領域，誕生了衛生棉。</li>
+                        <li><b>E - Evolution / Evaluation (連接演化):</b> 系統性地讓點子「進化」。運用 <b>SCAMPER</b> (替代/結合/調整/修改/他用/消除/重排) 或 <b>TRIZ (發明性問題解決理論)</b> 等工具，對現有方案進行破壞式重組，產生新的可能性。</li>
+                        <li><b>A - Action (創新行動方案):</b> 將成熟的創意落地。使用<b>設計思維(Design Thinking)</b>來快速迭代原型，透過<b>價值主張圖(VPC)</b>確保產品與市場契合，最後用<b>商業模式圖(BMC)</b>規劃出可持續獲利的模式。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for CA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quizTitleCA">CA 學習成效測驗</h3>
+                    <div id="quiz-ca" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="d">
+                            <p class="font-semibold mb-2" data-lang-key="caQ1">1. 在IDEA創新框架中，哪一個階段最著重於透過同理心來了解客戶的痛點與爽點？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-ca" value="a" class="mr-2"><span data-lang-key="caQ1A">A. D (Domain Application)</span></label>
+                                <label class="block"><input type="radio" name="q1-ca" value="b" class="mr-2"><span data-lang-key="caQ1B">B. E (Evolution)</span></label>
+                                <label class="block"><input type="radio" name="q1-ca" value="c" class="mr-2"><span data-lang-key="caQ1C">C. A (Action)</span></label>
+                                <label class="block"><input type="radio" name="q1-ca" value="d" class="mr-2"><span data-lang-key="caQ1D">D. I (Insight)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="b">
+                            <p class="font-semibold mb-2" data-lang-key="caQ2">2. SCAMPER工具中的「C」代表什麼意思？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-ca" value="a" class="mr-2"><span data-lang-key="caQ2A">A. 複製 (Copy)</span></label>
+                                <label class="block"><input type="radio" name="q2-ca" value="b" class="mr-2"><span data-lang-key="caQ2B">B. 結合 (Combine)</span></label>
+                                <label class="block"><input type="radio" name="q2-ca" value="c" class="mr-2"><span data-lang-key="caQ2C">C. 挑戰 (Challenge)</span></label>
+                                <label class="block"><input type="radio" name="q2-ca" value="d" class="mr-2"><span data-lang-key="caQ2D">D. 改變 (Change)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('ca')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="submitAnswers">提交答案</button>
+                        <div id="score-ca" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for CA -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-red-700 mb-4" data-lang-key="caExerciseTitle">CA 實戰演練</h3>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700" data-lang-key="selectMethod">請選擇分析方法：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="scamper" checked> SCAMPER</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="triz"> TRIZ</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="sixhats" data-lang-key="sixHats">六頂思考帽</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="designthinking" data-lang-key="designThinking">設計思維</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="vpc" data-lang-key="vpc">價值主張圖 (VPC)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="bmc" data-lang-key="bmc">商業模式圖 (BMC)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="pyramid" data-lang-key="pyramid">金字塔原理</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="ca-input" class="font-semibold text-gray-700" data-lang-key="caExercisePrompt">請在此輸入您想創新的主題或產品：</label>
+                            <button onclick="loadExample('ca-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300" data-lang-key="loadExample">載入範例</button>
+                        </div>
+                        <textarea id="ca-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500" rows="5" data-lang-key-placeholder="caExample"></textarea>
+                        <button onclick="handleAI('ca')" class="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">
+                           <span data-lang-key="runCA">✨ 啟動 AI 創意分析</span>
+                        </button>
+                        <div id="ca-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Conclusion Section -->
+            <section id="conclusion" class="content-section card">
+                 <h2 class="text-2xl font-bold mb-6 text-center" data-lang-key="conclusionTitle">結論與討論</h2>
+                 <div class="max-w-4xl mx-auto">
+                    <div class="mb-6">
+                        <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/Mermaid%20PSDM.png" target="_blank" title="點擊放大">
+                            <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Mermaid%20PSDM.png" alt="課程總結心智圖" class="w-full rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300">
+                        </a>
+                        <p class="text-center text-sm text-gray-500 mt-2" data-lang-key="mindmapCaption">課程總結心智圖 (點擊放大)</p>
+                    </div>
+                    <ul class="list-none space-y-4 text-left text-lg" data-lang-key="summaryList">
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>一個關鍵思考整合：</b>邏輯思維 (左腦) 與創意思維 (右腦) 的交互運作。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>二個邏輯必須兼具：</b>演繹法與歸納法。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>三個層次檢視：</b>議題層、論證邏輯層、結論行動層。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>四個步驟循環：</b>以 PDCA 處理邏輯問題，以 IDEA 框架激發創新。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>五個 AI 應用場景：</b>在 SA, PA, PPA, DA, CA 中，善用 AI 作為輔助工具。</span></li>
+                    </ul>
+                    
+                    <div class="mt-8 text-center">
+                        <a href="https://github.com/drcliffwang/course-material/raw/main/PSDM%20Excel%20Template.xlsx" 
+                           download="PSDM Excel Template.xlsx"
+                           class="inline-block px-8 py-3 bg-green-600 text-white font-bold text-lg rounded-lg shadow-lg hover:bg-green-700 transition-transform transform hover:-translate-y-1 duration-300"
+                           data-lang-key="downloadButton">
+                           下載練習檔 (PSDM Excel Template.xlsx)
+                        </a>
+                    </div>
+    
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <p class="font-bold text-xl text-center text-gray-800" data-lang-key="finalGoal"><b>最終目標：</b>以人腦的智慧與判斷力為主導，駕馭 AI 的強大算力與知識庫，成為未來職場中無可取代的關鍵人才。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+    // --- Language Translation Data ---
+    const translations = {
+        "zh-TW": {
+            "pageTitle": "關鍵思考與創新 PSDM + AI 課程",
+            "headerTitle": "關鍵思考與創新 PSDM + AI",
+            "headerSubtitle": "一門為您打造的系統性思維PSDM與 AI 協作實戰課程",
+            "authorName": "Cliff Wang, Ph.D. 王啟岳博士",
+            "podcastTitle": "課程 Podcast",
+            "audioNotSupported": "您的瀏覽器不支援聲音播放功能。",
+            "navOverview": "課程概覽",
+            "navAiSetup": "AI 設定",
+            "navSa": "SA 狀況評估",
+            "navPa": "PA 問題分析",
+            "navPpa": "PPA 潛在問題分析",
+            "navDa": "DA 決策分析",
+            "navCa": "CA 創意分析",
+            "navConclusion": "結論與討論",
+            "overviewTitle": "五大系統思考應用模塊",
+            "saTitle": "SA 狀況評估", "saChar": "廣!", "saDesc": "掌握大局",
+            "paTitle": "PA 問題分析", "paChar": "細!", "paDesc": "問題解決",
+            "ppaTitle": "PPA 潛在問題分析", "ppaChar": "遠!", "ppaDesc": "超前部署",
+            "daTitle": "DA 決策分析", "daChar": "準!", "daDesc": "正確決策",
+            "caTitle": "CA 創意分析", "caChar": "變!", "caDesc": "突破框架",
+            "aiSetupTitle": "啟動 AI 互動功能",
+            "aiSetupDesc": "為了使用課程中的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。",
+            "aiSetupStep1": "1. 選擇 AI 服務提供商:",
+            "aiSetupStep2": "2. 輸入您的 API 金鑰:",
+            "apiKeyPlaceholder": "在此貼上您選擇的服務金鑰...",
+            "saveButton": "儲存",
+            "aiSetupStep3": "3. 輸入您的 Azure Endpoint:",
+            "endpointPlaceholder": "例如: https://your-resource.openai.azure.com/",
+            "endpointNote": "請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`",
+            "keyStorageInfo": "您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href='https://aistudio.google.com/app/apikey' target='_blank' class='underline hover:text-blue-800'>Google AI Studio</a>, <a href='https://platform.deepseek.com/api_keys' target='_blank' class='underline hover:text-blue-800'>Deepseek</a>, 或 <a href='https://platform.openai.com/api-keys' target='_blank' class='underline hover:text-blue-800'>OpenAI/Azure</a> 免費取得。",
+            "paymentNotice": "請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。",
+            "saSectionTitle": "SA: Situation Appraisal (狀況評估)",
+            "saSectionSubtitle": "掌握大局，理清頭緒",
+            "coreConcept": "核心理念",
+            "keySteps": "關鍵步驟解析",
+            "saConceptText": "當面對一團混亂、千頭萬緒的狀況時，SA 提供一個系統性的方法來拆解複雜情境，確立優先順序，並決定下一步的行動方向。它是所有分析的起點，幫助我們從「見樹不見林」的困境中跳脫，看清全局。",
+            "saSteps": `<li><b>1. 規劃議題 (Plan - 審問):</b> 將腦中所有待辦事項、擔憂、問題全部列出。接著運用 <b>MECE 原則 (相互獨立，完全窮盡)</b> 進行分類與歸納，將雜亂的關注點整理成幾個清晰、獨立的議題大項。</li><li><b>2. 輕重緩急 (Do - 慎思):</b> 資源有限，不可能所有事都做。針對每個議題，從<b>嚴重性(S)</b>、<b>緊急性(U)</b>、<b>未來性(G)</b>三個維度進行評估，找出真正需要優先處理的關鍵少數。</li><li><b>3. 決定流程 (Check - 明辨):</b> 針對高優先級的議題，判斷其問題屬性。這一步是關鍵的「分流站」：<ul class="my-2"><li>- 如果是「原因不明的偏差」，則進入 <b>PA (問題分析)</b>。</li><li>- 如果是「需要做出選擇」，則進入 <b>DA (決策分析)</b>。</li><li>- 如果是「未來可能發生的風險」，則進入 <b>PPA (潛在問題分析)</b>。</li></ul></li><li><b>4. 當責行動 (Action - 篤行):</b> 將分析轉化為行動。明確定義「誰(Who)」、「在何時(When)」、「做什麼(What)」，並啟動對應的分析流程。</li>`,
+            "quizTitleSA": "SA 學習成效測驗",
+            "saQ1": "1. 狀況評估(SA)最主要的核心目的是什麼？",
+            "saQ1A": "A. 找到問題的唯一真因",
+            "saQ1B": "B. 預防所有未來可能發生的風險",
+            "saQ1C": "C. 拆解複雜情況，理清頭緒並決定優先順序",
+            "saQ1D": "D. 產生最多樣化的創意點子",
+            "saQ2": "2. 在SA中，使用MECE原則是為了達成什麼效果？",
+            "saQ2A": "A. 確保議題的劃分不重疊、不遺漏",
+            "saQ2B": "B. 確保每個議題都同樣重要",
+            "saQ2C": "C. 確保只找出最緊急的議題",
+            "saQ2D": "D. 確保所有議題都有解決方案",
+            "submitAnswers": "提交答案",
+            "saExerciseTitle": "SA 實戰演練",
+            "saExercisePrompt": "請在此描述您面臨的複雜情況：",
+            "loadExample": "載入範例",
+            "saExample": "例如：我們公司最近面臨多個挑戰：客戶投訴增加了30%，主要集中在產品品質和客服回應時間；員工流失率從5%上升到15%，特別是技術部門；新產品開發進度落後原計畫2個月；競爭對手推出類似產品，搶佔了我們20%的市場份額；同時，供應鏈成本上漲15%，影響獲利能力。管理層對於應該優先處理哪個問題意見分歧。",
+            "runSA": "✨ 啟動 AI 狀況評估",
+            "paSectionTitle": "PA: Problem Analysis (問題分析)",
+            "paSectionSubtitle": "追根究柢，找到真因",
+            "paConceptText": "當發生「實際」與「應有」的偏差 (Deviation)，且原因不明時，PA 提供一套嚴謹的邏輯工具。其精髓在於「比較」，透過系統性地比對「是(IS)」與「不是(IS NOT)」之間的差異，從而找出導致問題的「獨特變化」，鎖定真因。",
+            "paSteps": `<li><b>1. 定義問題 (Plan - 審問):</b> 精準描述問題（物件＋偏差），並利用 <b>IS/IS NOT 表格</b>，從 What, Where, When, Extent 四個構面，鉅細靡遺地收集「事實」，而非意見或猜測。</li><li><b>2. 推理原因 (Do - 慎思):</b> 雙管齊下尋找可能原因。<b>演繹法</b>：從經驗出發，使用魚骨圖等工具發想。<b>歸納法</b>：專注於 IS/IS NOT 表格中的「差異點」和「變化點」，這是最客觀的線索來源。</li><li><b>3. 辯證原因 (Check - 明辨):</b> 這是最關鍵的驗證步驟。將上一步找出的「最可能原因(MPC)」，拿來解釋 IS/IS NOT 表格中的每一項事實。如果這個原因能完美解釋「為何發生在 IS，而未發生在 IS NOT」，那它很可能就是真因。</li><li><b>4. 決策執行 (Act - 篤行):</b> 透過實驗或觀察來最終確認真因。確認後，立即採取<b>治標行動 (Containment)</b> 防止災情擴大，並規劃<b>治本行動 (Corrective)</b> 根除問題。</li>`,
+            "quizTitlePA": "PA 學習成效測驗",
+            "paQ1": "1. 在問題分析(PA)中，「IS / IS NOT」分析的主要作用是什麼？",
+            "paQ1A": "A. 評估問題的嚴重性",
+            "paQ1B": "B. 透過比較來縮小可能原因的範圍",
+            "paQ1C": "C. 決定由誰來負責解決問題",
+            "paQ1D": "D. 提出創新的解決方案",
+            "paQ2": "2. 當你找到一個「最可能原因(MPC)」時，下一步應該做什麼來驗證它？",
+            "paQ2A": "A. 馬上投入資源解決它",
+            "paQ2B": "B. 尋找更多可能的原因",
+            "paQ2C": "C. 忽略它，專注於治標行動",
+            "paQ2D": "D. 用它來解釋IS/IS NOT表格中的所有事實，看是否吻合",
+            "paExerciseTitle": "PA 實戰演練",
+            "selectMethod": "請選擇分析方法：",
+            "paExercisePrompt": "請在此描述您遇到的問題與相關數據：",
+            "paExample": "例如：A款手機外殼塗漆出現裂縫。問題只發生在台中廠的A產線 (Location: 大地點)，且集中在外殼的右上角 (Position: 小位置)。問題是從昨天(Time: 時間點)開始，呈現週期性發生(Pattern: 模式)，且通常在早上10點的班次(Life Cycle: 生命週期)出現。高雄廠的A產線、B款手機、或昨天以前則正常。",
+            "runPA": "✨ 啟動 AI 問題分析",
+            "ppaSectionTitle": "PPA: Potential Problem Analysis (潛在問題分析)",
+            "ppaSectionSubtitle": "超前部署，防範未然",
+            "ppaConceptText": "任何計畫或行動都伴隨著風險。PPA 是一套將「被動救火」轉為「主動防災」の系統化方法。它讓我們在行動前，先系統性地思考「哪裡可能出錯？」，並預先制定「預防」與「應變」計畫，大幅提高計畫の成功率。",
+            "ppaSteps": `<li><b>1. 識別風險 (Plan):</b> 針對計畫的每個步驟，腦力激盪所有可能發生的潛在問題。</li><li><b>2. 優先次序 (Do):</b> 對每個風險進行量化評估。<b>RPN (風險優先數) = S (嚴重性) x O (發生率) x D (難檢測度)</b>。這個分數能幫助我們客觀地找出最需要關注的高風險項目。</li><li><b>3. 分析原因 (Check):</b> 針對 RPN 最高的風險，進一步分析可能導致它發生的原因 (Likely Causes)。</li><li><b>4. 制定對策 (Action):</b> 這是 PPA 的行動核心，分為兩個層面：<ul class="my-2"><li>- <b>預防行動 (Prevention - Plan A):</b> 針對「原因」下手，採取措施來降低風險的「發生率(O)」。例如：增加教育訓練、建立防呆機制。</li><li>- <b>應變行動 (Contingency - Plan B):</b> 假設風險不幸發生，預先準備好對策以降低「嚴重性(S)」。同時也要思考如何提高「檢測度(D)」，例如增加警報器。</li></ul></li>`,
+            "quizTitlePPA": "PPA 學習成效測驗",
+            "ppaQ1": "1. 在PPA中，RPN (風險優先數) 是由哪三個因素相乘得出的？",
+            "ppaQ1A": "A. 嚴重性、緊急性、未來性",
+            "ppaQ1B": "B. 成本、時間、品質",
+            "ppaQ1C": "C. 可能性、影響力、可控性",
+            "ppaQ1D": "D. 嚴重性(S)、發生率(O)、難檢測度(D)",
+            "ppaQ2": "2. 「為新設備準備備用零件」是屬於PPA中的哪一種行動？",
+            "ppaQ2A": "A. 應變行動 (Contingency - Plan B)",
+            "ppaQ2B": "B. 預防行動 (Prevention - Plan A)",
+            "ppaQ2C": "C. 治本行動 (Corrective Action)",
+            "ppaQ2D": "D. 治標行動 (Containment Action)",
+            "ppaExerciseTitle": "PPA 實戰演練",
+            "ppaExercisePrompt": "請在此描述您的計畫或專案：",
+            "ppaExample": "例如：我們計畫在三個月內推出新的智慧手錶產品。專案包括：第一個月完成軟體開發和硬體整合測試；第二個月進行用戶測試和生產準備；第三個月開始量產和市場推廣。團隊包括10名工程師、5名設計師、3名專案經理。預算為500萬元，目標首月銷售10,000台。這是公司首次進入穿戴裝置市場。",
+            "runPPA": "✨ 啟動 AI 風險分析",
+            "daSectionTitle": "DA: Decision Analysis (決策分析)",
+            "daSectionSubtitle": "權衡利弊，做出最佳選擇",
+            "daConceptText": "將決策過程從「直覺」和「感覺」提升到「系統」和「計算」。DA 提供了一個結構化、透明化的流程，將複雜的選擇題拆解為可評估的標準，讓團隊或個人能客觀地權衡利弊，並對最終選擇的風險有清晰的認識。",
+            "daSteps": `<li><b>1. 規劃需求 (Plan):</b> 這是決策的基礎。清楚定義決策的目的，並將評估標準分為兩類：<ul class="my-2"><li>- <b>Musts (必要條件):</b> 非有不可的門檻，用來「篩選」選項，不滿足者直接淘汰。</li><li>- <b>Wants (想要條件):</b> 多多益善的加分項，用來「評分」。必須給予每個 Want 不同的「權重(Weight)」，以體現其相對重要性。</li></ul></li><li><b>2. 發展選項 (Do):</b> 進行評分與計算。先用 Musts 篩掉不合格的選項。然後為剩下的選項，根據 Wants 逐項評分 (1-10分)，再將分數乘以權重，得出每個選項的加權總分。</li><li><b>3. 了解風險 (Check):</b> 分數不是一切。針對分數最高的幾個選項，必須冷靜地分析其潛在的負面風險 (Adverse Consequences)。一個高分但風險極大的選項，未必是最佳選擇。</li><li><b>4. 執行決策 (Action):</b> 做出最終選擇。理想的選擇是「加權分數最高」且「風險可控」的選項。一旦做出決定，就要為可能的風險制定應對計畫。</li>`,
+            "quizTitleDA": "DA 學習成效測驗",
+            "daQ1": "1. 在決策分析(DA)中，「Musts (必要條件)」的主要作用是什麼？",
+            "daQ1A": "A. 用來為選項加權計分",
+            "daQ1B": "B. 評估選項的潛在風險",
+            "daQ1C": "C. 作為篩選門檻，快速淘汰不合格的選項",
+            "daQ1D": "D. 比較不同選項的優點",
+            "daQ2": "2. 為何在DA中要為「Wants (想要條件)」設定權重(Weight)？",
+            "daQ2A": "A. 讓計算過程更複雜",
+            "daQ2B": "B. 體現不同標準的相對重要性",
+            "daQ2C": "C. 確保所有選項得分都一樣",
+            "daQ2D": "D. 這是隨機設定的數字",
+            "daExerciseTitle": "DA 實戰演練",
+            "daExercisePrompt": "請在此描述您需要做的決策 (包含選項、評估標準 Wants 及權重)：",
+            "daExample": "例如：我們需要選擇新的雲端服務供應商。目前有三個選項：AWS、Azure、Google Cloud。主要考量因素(Wants)與權重為：成本控制(權重9)、技術支援品質(權重8)、資料安全性(權重9)、系統整合難易度(權重8)、未來擴展性(權重7)、AI功能(權重6)。我們的必要條件(Musts)是：必須符合本地資料法規、提供24/7中文技術支援。",
+            "runDA": "✨ 啟動 AI 決策分析",
+            "caSectionTitle": "CA: Creativity Analysis (創意分析)",
+            "caSectionSubtitle": "突破框架，系統創新",
+            "caConceptText": "創新並非少數天才的專利，而是人人皆可學習的方法。CA 提供了一套系統化的 IDEA 框架，引導我們將發散的「點子(Idea)」轉化為有市場價值的「創新(Innovation)」。它教我們如何從客戶需求出發，透過系統工具演化點子，並最終打造出成功的商業模式。",
+            "ideaFramework": "IDEA 創新框架解析",
+            "caSteps": `<li><b>I - Imagination / Input / Insight (想像/輸入/洞見):</b> 創新的起點。透過同理心(Empathy)觀察，深入了解客戶的痛點(Pains)與爽點(Gains)，從中發掘未被滿足的需求。</li><li><b>D - Domain Application (運用場景):</b> 尋找創新的「空隙」。思考將現有的技術或產品，應用到新的時間、空間或物件上。例如，將工業用纖維棉應用到個人衛生領域，誕生了衛生棉。</li><li><b>E - Evolution / Evaluation (連接演化):</b> 系統性地讓點子「進化」。運用 <b>SCAMPER</b> (替代/結合/調整/修改/他用/消除/重排) 或 <b>TRIZ (發明性問題解決理論)</b> 等工具，對現有方案進行破壞式重組，產生新的可能性。</li><li><b>A - Action (創新行動方案):</b> 將成熟的創意落地。使用<b>設計思維(Design Thinking)</b>來快速迭代原型，透過<b>價值主張圖(VPC)</b>確保產品與市場契合，最後用<b>商業模式圖(BMC)</b>規劃出可持續獲利的模式。</li>`,
+            "quizTitleCA": "CA 學習成效測驗",
+            "caQ1": "1. 在IDEA創新框架中，哪一個階段最著重於透過同理心來了解客戶的痛點與爽點？",
+            "caQ1A": "A. D (Domain Application)",
+            "caQ1B": "B. E (Evolution)",
+            "caQ1C": "C. A (Action)",
+            "caQ1D": "D. I (Insight)",
+            "caQ2": "2. SCAMPER工具中的「C」代表什麼意思？",
+            "caQ2A": "A. 複製 (Copy)",
+            "caQ2B": "B. 結合 (Combine)",
+            "caQ2C": "C. 挑戰 (Challenge)",
+            "caQ2D": "D. 改變 (Change)",
+            "caExerciseTitle": "CA 實戰演練",
+            "sixHats": "六頂思考帽",
+            "designThinking": "設計思維",
+            "vpc": "價值主張圖 (VPC)",
+            "bmc": "商業模式圖 (BMC)",
+            "pyramid": "金字塔原理",
+            "caExercisePrompt": "請在此輸入您想創新的主題或產品：",
+            "caExample": "例如：如何提升實體書店的來客數與營收，以應對電商的衝擊？",
+            "runCA": "✨ 啟動 AI 創意分析",
+            "conclusionTitle": "結論與討論",
+            "mindmapCaption": "課程總結心智圖 (點擊放大)",
+            "summaryList": `<li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>一個關鍵思考整合：</b>邏輯思維 (左腦) 與創意思維 (右腦) 的交互運作。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>二個邏輯必須兼具：</b>演繹法與歸納法。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>三個層次檢視：</b>議題層、論證邏輯層、結論行動層。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>四個步驟循環：</b>以 PDCA 處理邏輯問題，以 IDEA 框架激發創新。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>五個 AI 應用場景：</b>在 SA, PA, PPA, DA, CA 中，善用 AI 作為輔助工具。</span></li>`,
+            "downloadButton": "下載練習檔 (PSDM Excel Template.xlsx)",
+            "finalGoal": "<b>最終目標：</b>以人腦的智慧與判斷力為主導，駕馭 AI 的強大算力與知識庫，成為未來職場中無可取代的關鍵人才。"
+        },
+        "zh-CN": {
+            "pageTitle": "关键思考与创新 PSDM + AI 课程",
+            "headerTitle": "关键思考与创新 PSDM + AI",
+            "headerSubtitle": "一门为您打造的系统性思维PSDM与 AI 协作实战课程",
+            "authorName": "Cliff Wang, Ph.D. 王启岳博士",
+            "podcastTitle": "课程 Podcast",
+            "audioNotSupported": "您的浏览器不支持声音播放功能。",
+            "navOverview": "课程概览",
+            "navAiSetup": "AI 设定",
+            "navSa": "SA 状况评估",
+            "navPa": "PA 问题分析",
+            "navPpa": "PPA 潜在问题分析",
+            "navDa": "DA 决策分析",
+            "navCa": "CA 创意分析",
+            "navConclusion": "结论与讨论",
+            "overviewTitle": "五大系统思考应用模块",
+            "saTitle": "SA 状况评估", "saChar": "广!", "saDesc": "掌握大局",
+            "paTitle": "PA 问题分析", "paChar": "细!", "paDesc": "问题解决",
+            "ppaTitle": "PPA 潜在问题分析", "ppaChar": "远!", "ppaDesc": "超前部署",
+            "daTitle": "DA 决策分析", "daChar": "准!", "daDesc": "正确决策",
+            "caTitle": "CA 创意分析", "caChar": "变!", "caDesc": "突破框架",
+            "aiSetupTitle": "启动 AI 互动功能",
+            "aiSetupDesc": "为了使用课程中的 AI 实战演练，请选择您的 AI 服务并贴上对应的 API 密钥。",
+            "aiSetupStep1": "1. 选择 AI 服务提供商:",
+            "aiSetupStep2": "2. 输入您的 API 密钥:",
+            "apiKeyPlaceholder": "在此贴上您选择的服务密钥...",
+            "saveButton": "保存",
+            "aiSetupStep3": "3. 输入您的 Azure Endpoint:",
+            "endpointPlaceholder": "例如: https://your-resource.openai.azure.com/",
+            "endpointNote": "请确认 Endpoint 包含完整的部署名称，例如 `.../deployments/your-deployment-name`",
+            "keyStorageInfo": "您的密钥只会储存在您目前的浏览器中。可从 <a href='https://aistudio.google.com/app/apikey' target='_blank' class='underline hover:text-blue-800'>Google AI Studio</a>, <a href='https://platform.deepseek.com/api_keys' target='_blank' class='underline hover:text-blue-800'>Deepseek</a>, 或 <a href='https://platform.openai.com/api-keys' target='_blank' class='underline hover:text-blue-800'>OpenAI/Azure</a> 免费取得。",
+            "paymentNotice": "请注意：部分服务在免费额度用完后，可能需要您在该平台设定付款方式或储值才能继续使用。",
+            "saSectionTitle": "SA: Situation Appraisal (状况评估)",
+            "saSectionSubtitle": "掌握大局，理清头绪",
+            "coreConcept": "核心理念",
+            "keySteps": "关键步骤解析",
+            "saConceptText": "当面对一团混乱、千头万绪的状况时，SA 提供一个系统性的方法来拆解复杂情境，确立优先顺序，并决定下一步的行动方向。它是所有分析的起点，帮助我们从「见树不见林」的困境中跳脱，看清全局。",
+            "saSteps": `<li><b>1. 规划议题 (Plan - 审问):</b> 将脑中所有待办事项、担忧、问题全部列出。接着运用 <b>MECE 原则 (相互独立，完全穷尽)</b> 进行分类与归纳，将杂乱的关注点整理成几个清晰、独立的议题大项。</li><li><b>2. 轻重缓急 (Do - 慎思):</b> 资源有限，不可能所有事都做。针对每个议题，从<b>严重性(S)</b>、<b>紧急性(U)</b>、<b>未来性(G)</b>三个维度进行评估，找出真正需要优先处理的关键少数。</li><li><b>3. 决定流程 (Check - 明辨):</b> 针对高优先级的议题，判断其问题属性。这一步是关键的「分流站」：<ul class="my-2"><li>- 如果是「原因不明的偏差」，则进入 <b>PA (问题分析)</b>。</li><li>- 如果是「需要做出选择」，则进入 <b>DA (决策分析)</b>。</li><li>- 如果是「未来可能发生的风险」，则进入 <b>PPA (潜在问题分析)</b>。</li></ul></li><li><b>4. 当责行动 (Action - 笃行):</b> 将分析转化为行动。明确定义「谁(Who)」、「在何时(When)」、「做什么(What)」，并启动对应的分析流程。</li>`,
+            "quizTitleSA": "SA 学习成效测验",
+            "saQ1": "1. 状况评估(SA)最主要的核心目的是什么？",
+            "saQ1A": "A. 找到问题的唯一真因",
+            "saQ1B": "B. 预防所有未来可能发生的风险",
+            "saQ1C": "C. 拆解复杂情况，理清头绪并决定优先顺序",
+            "saQ1D": "D. 产生最多样化的创意点子",
+            "saQ2": "2. 在SA中，使用MECE原则是为了达成什么效果？",
+            "saQ2A": "A. 确保议题的划分不重叠、不遗漏",
+            "saQ2B": "B. 确保每个议题都同样重要",
+            "saQ2C": "C. 确保只找出最紧急的议题",
+            "saQ2D": "D. 确保所有议题都有解决方案",
+            "submitAnswers": "提交答案",
+            "saExerciseTitle": "SA 实战演练",
+            "saExercisePrompt": "请在此描述您面临的复杂情况：",
+            "loadExample": "加载范例",
+            "saExample": "例如：我们公司最近面临多个挑战：客户投诉增加了30%，主要集中在产品品质和客服回应时间；员工流失率从5%上升到15%，特别是技术部门；新产品开发进度落后原计划2个月；竞争对手推出类似产品，抢占了我们20%的市场份额；同时，供应链成本上涨15%，影响获利能力。管理层对于应该优先处理哪个问题意见分歧。",
+            "runSA": "✨ 启动 AI 状况评估",
+            "paSectionTitle": "PA: Problem Analysis (问题分析)",
+            "paSectionSubtitle": "追根究柢，找到真因",
+            "paConceptText": "当发生「实际」与「应有」的偏差 (Deviation)，且原因不明时，PA 提供一套严谨的逻辑工具。其精髓在于「比较」，透过系统性地比对「是(IS)」与「不是(IS NOT)」之间的差异，从而找出导致问题的「独特变化」，锁定真因。",
+            "paSteps": `<li><b>1. 定义问题 (Plan - 审问):</b> 精准描述问题（物件＋偏差），并利用 <b>IS/IS NOT 表格</b>，从 What, Where, When, Extent 四个构面，巨细靡遗地收集「事实」，而非意见或猜测。</li><li><b>2. 推理原因 (Do - 慎思):</b> 双管齐下寻找可能原因。<b>演绎法</b>：从经验出发，使用鱼骨图等工具发想。<b>归纳法</b>：专注于 IS/IS NOT 表格中的「差异点」和「变化点」，这是最客观的线索来源。</li><li><b>3. 辩证原因 (Check - 明辨):</b> 这是最关键的验证步骤。将上一步找出的「最可能原因(MPC)」，拿来解释 IS/IS NOT 表格中的每一项事实。如果这个原因能完美解释「为何发生在 IS，而未发生在 IS NOT」，那它很可能就是真因。</li><li><b>4. 决策执行 (Act - 笃行):</b> 透过实验或观察来最终确认真因。确认后，立即采取<b>治标行动 (Containment)</b> 防止灾情扩大，并规划<b>治本行动 (Corrective)</b> 根除问题。</li>`,
+            "quizTitlePA": "PA 学习成效测验",
+            "paQ1": "1. 在问题分析(PA)中，「IS / IS NOT」分析的主要作用是什么？",
+            "paQ1A": "A. 评估问题的严重性",
+            "paQ1B": "B. 透过比较来缩小可能原因的范围",
+            "paQ1C": "C. 决定由谁来负责解决问题",
+            "paQ1D": "D. 提出创新的解决方案",
+            "paQ2": "2. 当你找到一个「最可能原因(MPC)」时，下一步应该做什么来验证它？",
+            "paQ2A": "A. 马上投入资源解决它",
+            "paQ2B": "B. 寻找更多可能的原因",
+            "paQ2C": "C. 忽略它，专注于治标行动",
+            "paQ2D": "D. 用它来解释IS/IS NOT表格中的所有事实，看是否吻合",
+            "paExerciseTitle": "PA 实战演练",
+            "selectMethod": "请选择分析方法：",
+            "paExercisePrompt": "请在此描述您遇到的问题与相关数据：",
+            "paExample": "例如：A款手机外壳涂漆出现裂缝。问题只发生在台中厂的A产线 (Location: 大地点)，且集中在外壳的右上角 (Position: 小位置)。问题是从昨天(Time: 时间点)开始，呈现周期性发生(Pattern: 模式)，且通常在早上10点的班次(Life Cycle: 生命周期)出现。高雄厂的A产线、B款手机、或昨天以前则正常。",
+            "runPA": "✨ 启动 AI 问题分析",
+            "ppaSectionTitle": "PPA: Potential Problem Analysis (潜在问题分析)",
+            "ppaSectionSubtitle": "超前部署，防范未然",
+            "ppaConceptText": "任何计画或行动都伴随着风险。PPA 是一套将「被动救火」转为「主动防灾」的系统化方法。它让我们在行动前，先系统性地思考「哪里可能出错？」，并预先制定「预防」与「应变」计画，大幅提高计画的成功率。",
+            "ppaSteps": `<li><b>1. 识别风险 (Plan):</b> 针对计画的每个步骤，脑力激荡所有可能发生的潜在问题。</li><li><b>2. 优先次序 (Do):</b> 对每个风险进行量化评估。<b>RPN (风险优先数) = S (严重性) x O (发生率) x D (难检测度)</b>。这个分数能帮助我们客观地找出最需要关注的高风险项目。</li><li><b>3. 分析原因 (Check):</b> 针对 RPN 最高的风险，进一步分析可能导致它发生的可能原因 (Likely Causes)。</li><li><b>4. 制定对策 (Action):</b> 这是 PPA 的行动核心，分为两个层面：<ul class="my-2"><li>- <b>预防行动 (Prevention - Plan A):</b> 针对「原因」下手，采取措施来降低风险的「发生率(O)」。例如：增加教育训练、建立防呆机制。</li><li>- <b>应变行动 (Contingency - Plan B):</b> 假设风险不幸发生，预先准备好对策以降低「严重性(S)」。同时也要思考如何提高「检测度(D)」，例如增加警报器。</li></ul></li>`,
+            "quizTitlePPA": "PPA 学习成效测验",
+            "ppaQ1": "1. 在PPA中，RPN (风险优先数) 是由哪三个因素相乘得出的？",
+            "ppaQ1A": "A. 严重性、紧急性、未来性",
+            "ppaQ1B": "B. 成本、时间、品质",
+            "ppaQ1C": "C. 可能性、影响力、可控性",
+            "ppaQ1D": "D. 严重性(S)、发生率(O)、难检测度(D)",
+            "ppaQ2": "2. 「为新设备准备备用零件」是属于PPA中的哪一种行动？",
+            "ppaQ2A": "A. 应变行动 (Contingency - Plan B)",
+            "ppaQ2B": "B. 预防行动 (Prevention - Plan A)",
+            "ppaQ2C": "C. 治本行动 (Corrective Action)",
+            "ppaQ2D": "D. 治标行动 (Containment Action)",
+            "ppaExerciseTitle": "PPA 实战演练",
+            "ppaExercisePrompt": "请在此描述您的计画或专案：",
+            "ppaExample": "例如：我们计画在三个月内推出新的智慧手表产品。专案包括：第一个月完成软体开发和硬体整合测试；第二个月进行使用者测试和生产准备；第三个月开始量产和市场推广。团队包括10名工程师、5名设计师、3名专案经理。预算为500万元，目标首月销售10,000台。这是公司首次进入穿戴装置市场。",
+            "runPPA": "✨ 启动 AI 风险分析",
+            "daSectionTitle": "DA: Decision Analysis (决策分析)",
+            "daSectionSubtitle": "权衡利弊，做出最佳选择",
+            "daConceptText": "将决策过程从「直觉」和「感觉」提升到「系统」和「计算」。DA 提供了一个结构化、透明化的流程，将复杂的选择题拆解为可评估的标准，让团队或个人能客观地权衡利弊，并对最终选择的风险有清晰的认识。",
+            "daSteps": `<li><b>1. 规划需求 (Plan):</b> 这是决策的基础。清楚定义决策的目的，并将评估标准分为两类：<ul class="my-2"><li>- <b>Musts (必要条件):</b> 非有不可的门槛，用来「筛选」选项，不满足者直接淘汰。</li><li>- <b>Wants (想要条件):</b> 多多益善的加分项，用来「评分」。必须给予每个 Want 不同的「权重(Weight)」，以体现其相对重要性。</li></ul></li><li><b>2. 发展选项 (Do):</b> 进行评分与计算。先用 Musts 筛掉不合格的选项。然后为剩下的选项，根据 Wants 逐项评分 (1-10分)，再将分数乘以权重，得出每个选项的加权总分。</li><li><b>3. 了解风险 (Check):</b> 分数不是一切。针对分数最高的几个选项，必须冷静地分析其潜在的负面风险 (Adverse Consequences)。一个高分但风险极大的选项，未必是最佳选择。</li><li><b>4. 执行决策 (Action):</b> 做出最终选择。理想的选择是「加权分数最高」且「风险可控」的选项。一旦做出决定，就要为可能的风险制定应对计画。</li>`,
+            "quizTitleDA": "DA 学习成效测验",
+            "daQ1": "1. 在决策分析(DA)中，「Musts (必要条件)」的主要作用是什么？",
+            "daQ1A": "A. 用来为选项加权计分",
+            "daQ1B": "B. 评估选项的潜在风险",
+            "daQ1C": "C. 作为筛选门槛，快速淘汰不合格的选项",
+            "daQ1D": "D. 比较不同选项的优点",
+            "daQ2": "2. 为何在DA中要为「Wants (想要条件)」设定权重(Weight)？",
+            "daQ2A": "A. 让计算过程更复杂",
+            "daQ2B": "B. 体现不同标准的相对重要性",
+            "daQ2C": "C. 确保所有选项得分都一样",
+            "daQ2D": "D. 这是随机设定的数字",
+            "daExerciseTitle": "DA 实战演练",
+            "daExercisePrompt": "请在此描述您需要做的决策 (包含选项、评估标准 Wants 及权重)：",
+            "daExample": "例如：我们需要选择新的云端服务供应商。目前有三个选项：AWS、Azure、Google Cloud。主要考量因素(Wants)与权重为：成本控制(权重9)、技术支援品质(权重8)、资料安全性(权重9)、系统整合难易度(权重8)、未来扩展性(权重7)、AI功能(权重6)。我们的必要条件(Musts)是：必须符合本地资料法规、提供24/7中文技术支援。",
+            "runDA": "✨ 启动 AI 决策分析",
+            "caSectionTitle": "CA: Creativity Analysis (创意分析)",
+            "caSectionSubtitle": "突破框架，系统创新",
+            "caConceptText": "创新并非少数天才的专利，而是人人皆可学习的方法。CA 提供了一套系统化的 IDEA 框架，引导我们将发散的「点子(Idea)」转化为有市场价值的「创新(Innovation)」。它教我们如何从客户需求出发，透过系统工具演化点子，并最终打造出成功的商业模式。",
+            "ideaFramework": "IDEA 创新框架解析",
+            "caSteps": `<li><b>I - Imagination / Input / Insight (想像/输入/洞见):</b> 创新的起点。透过同理心(Empathy)观察，深入了解客户的痛点(Pains)与爽点(Gains)，从中发掘未被满足的需求。</li><li><b>D - Domain Application (运用场景):</b> 寻找创新的「空隙」。思考将现有的技术或产品，应用到新的时间、空间或物件上。例如，将工业用纤维棉应用到个人卫生领域，诞生了卫生棉。</li><li><b>E - Evolution / Evaluation (连接演化):</b> 系统性地让点子「进化」。运用 <b>SCAMPER</b> (替代/结合/调整/修改/他用/消除/重排) 或 <b>TRIZ (发明性问题解决理论)</b> 等工具，对现有方案进行破坏式重组，产生新的可能性。</li><li><b>A - Action (创新行动方案):</b> 将成熟的创意落地。使用<b>设计思维(Design Thinking)</b>来快速迭代原型，透过<b>价值主张图(VPC)</b>确保产品与市场契合，最后用<b>商业模式图(BMC)</b>规划出可持续获利的模式。</li>`,
+            "quizTitleCA": "CA 学习成效测验",
+            "caQ1": "1. 在IDEA创新框架中，哪一个阶段最着重于透过同理心来了解客户的痛点与爽点？",
+            "caQ1A": "A. D (Domain Application)",
+            "caQ1B": "B. E (Evolution)",
+            "caQ1C": "C. A (Action)",
+            "caQ1D": "D. I (Insight)",
+            "caQ2": "2. SCAMPER工具中的「C」代表什么意思？",
+            "caQ2A": "A. 复制 (Copy)",
+            "caQ2B": "B. 结合 (Combine)",
+            "caQ2C": "C. 挑战 (Challenge)",
+            "caQ2D": "D. 改变 (Change)",
+            "caExerciseTitle": "CA 实战演练",
+            "sixHats": "六顶思考帽",
+            "designThinking": "设计思维",
+            "vpc": "价值主张图 (VPC)",
+            "bmc": "商业模式图 (BMC)",
+            "pyramid": "金字塔原理",
+            "caExercisePrompt": "请在此输入您想创新的主题或产品：",
+            "caExample": "例如：如何提升实体书店的来客数与营收，以应对电商的冲击？",
+            "runCA": "✨ 启动 AI 创意分析",
+            "conclusionTitle": "结论与讨论",
+            "mindmapCaption": "课程总结心智图 (点击放大)",
+            "summaryList": `<li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>一个关键思考整合：</b>逻辑思维 (左脑) 与创意思维 (右脑) 的交互运作。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>二个逻辑必须兼具：</b>演绎法与归纳法。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>三个层次检视：</b>议题层、论证逻辑层、结论行动层。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>四个步骤循环：</b>以 PDCA 处理逻辑问题，以 IDEA 框架激发创新。</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>五个 AI 应用场景：</b>在 SA, PA, PPA, DA, CA 中，善用 AI 作为辅助工具。</span></li>`,
+            "downloadButton": "下载练习档 (PSDM Excel Template.xlsx)",
+            "finalGoal": "<b>最终目标：</b>以人脑的智慧与判断力为主导，驾驭 AI 的强大算力与知识库，成为未来职场中无可取代的关键人才。"
+        },
+        "vi": {
+            "pageTitle": "Tư duy Phản biện và Sáng tạo PSDM + AI",
+            "headerTitle": "Tư duy Phản biện và Sáng tạo PSDM + AI",
+            "headerSubtitle": "Một khóa học thực chiến về tư duy hệ thống PSDM và hợp tác với AI được thiết kế cho bạn",
+            "authorName": "Cliff Wang, Ph.D. Tiến sĩ Vương Khải Nhạc",
+            "podcastTitle": "Podcast của khóa học",
+            "audioNotSupported": "Trình duyệt của bạn không hỗ trợ phát âm thanh.",
+            "navOverview": "Tổng quan khóa học",
+            "navAiSetup": "Cài đặt AI",
+            "navSa": "SA Đánh giá Tình hình",
+            "navPa": "PA Phân tích Vấn đề",
+            "navPpa": "PPA Phân tích Vấn đề Tiềm ẩn",
+            "navDa": "DA Phân tích Quyết định",
+            "navCa": "CA Phân tích Sáng tạo",
+            "navConclusion": "Kết luận và Thảo luận",
+            "overviewTitle": "Năm Module Ứng dụng Tư duy Hệ thống",
+            "saTitle": "SA Đánh giá Tình hình", "saChar": "Rộng!", "saDesc": "Nắm bắt toàn cục",
+            "paTitle": "PA Phân tích Vấn đề", "paChar": "Sâu!", "paDesc": "Giải quyết vấn đề",
+            "ppaTitle": "PPA Phân tích Vấn đề Tiềm ẩn", "ppaChar": "Xa!", "ppaDesc": "Triển khai đón đầu",
+            "daTitle": "DA Phân tích Quyết định", "daChar": "Chuẩn!", "daDesc": "Quyết định đúng đắn",
+            "caTitle": "CA Phân tích Sáng tạo", "caChar": "Đổi!", "caDesc": "Phá vỡ khuôn khổ",
+            "aiSetupTitle": "Kích hoạt Chức năng Tương tác AI",
+            "aiSetupDesc": "Để sử dụng các bài thực hành AI trong khóa học, vui lòng chọn dịch vụ AI của bạn và dán khóa API tương ứng.",
+            "aiSetupStep1": "1. Chọn nhà cung cấp dịch vụ AI:",
+            "aiSetupStep2": "2. Nhập khóa API của bạn:",
+            "apiKeyPlaceholder": "Dán khóa dịch vụ bạn đã chọn vào đây...",
+            "saveButton": "Lưu",
+            "aiSetupStep3": "3. Nhập Azure Endpoint của bạn:",
+            "endpointPlaceholder": "Ví dụ: https://your-resource.openai.azure.com/",
+            "endpointNote": "Vui lòng xác nhận Endpoint bao gồm tên triển khai đầy đủ, ví dụ `.../deployments/your-deployment-name`",
+            "keyStorageInfo": "Khóa của bạn chỉ được lưu trữ trong trình duyệt hiện tại. Bạn có thể nhận miễn phí từ <a href='https://aistudio.google.com/app/apikey' target='_blank' class='underline hover:text-blue-800'>Google AI Studio</a>, <a href='https://platform.deepseek.com/api_keys' target='_blank' class='underline hover:text-blue-800'>Deepseek</a>, hoặc <a href='https://platform.openai.com/api-keys' target='_blank' class='underline hover:text-blue-800'>OpenAI/Azure</a>.",
+            "paymentNotice": "Xin lưu ý: Một số dịch vụ có thể yêu cầu bạn thiết lập phương thức thanh toán hoặc nạp tiền trên nền tảng đó để tiếp tục sử dụng sau khi hết hạn mức miễn phí.",
+            "saSectionTitle": "SA: Situation Appraisal (Đánh giá Tình hình)",
+            "saSectionSubtitle": "Nắm bắt toàn cục, làm rõ vấn đề",
+            "coreConcept": "Khái niệm cốt lõi",
+            "keySteps": "Phân tích các bước chính",
+            "saConceptText": "Khi đối mặt với một tình huống hỗn loạn, phức tạp, SA cung cấp một phương pháp hệ thống để phân tách bối cảnh phức tạp, xác lập thứ tự ưu tiên và quyết định hướng hành động tiếp theo. Đây là điểm khởi đầu của mọi phân tích, giúp chúng ta thoát khỏi tình trạng 'thấy cây mà không thấy rừng' để nhìn rõ toàn cục.",
+            "saSteps": `<li><b>1. Lập kế hoạch các vấn đề (Plan - Thẩm vấn):</b> Liệt kê tất cả các công việc cần làm, lo lắng, vấn đề trong đầu. Sau đó, áp dụng <b>nguyên tắc MECE (Loại trừ lẫn nhau, Bao hàm toàn diện)</b> để phân loại và quy nạp, sắp xếp các mối quan tâm lộn xộn thành một vài hạng mục vấn đề rõ ràng, độc lập.</li><li><b>2. Mức độ ưu tiên (Do - Thận trọng suy xét):</b> Nguồn lực có hạn, không thể làm mọi việc cùng lúc. Đối với mỗi vấn đề, đánh giá từ ba chiều: <b>Mức độ nghiêm trọng (S)</b>, <b>Mức độ khẩn cấp (U)</b>, và <b>Xu hướng phát triển (G)</b> để tìm ra số ít các vấn đề quan trọng thực sự cần được ưu tiên xử lý.</li><li><b>3. Quyết định quy trình (Check - Phân biệt rõ ràng):</b> Đối với các vấn đề có mức độ ưu tiên cao, xác định thuộc tính của chúng. Bước này là 'trạm phân luồng' quan trọng:<ul><li class='my-2'>- Nếu là 'sai lệch không rõ nguyên nhân', chuyển sang <b>PA (Phân tích Vấn đề)</b>.</li><li>- Nếu là 'cần đưa ra lựa chọn', chuyển sang <b>DA (Phân tích Quyết định)</b>.</li><li>- Nếu là 'rủi ro có thể xảy ra trong tương lai', chuyển sang <b>PPA (Phân tích Vấn đề Tiềm ẩn)</b>.</li></ul></li><li><b>4. Hành động có trách nhiệm (Action - Thực hiện):</b> Chuyển phân tích thành hành động. Xác định rõ 'Ai (Who)', 'Khi nào (When)', 'Làm gì (What)', và khởi động quy trình phân tích tương ứng.</li>`,
+            "quizTitleSA": "Kiểm tra Hiệu quả Học tập SA",
+            "saQ1": "1. Mục đích cốt lõi chính của Đánh giá Tình hình (SA) là gì?",
+            "saQ1A": "A. Tìm ra nguyên nhân gốc rễ duy nhất của vấn đề",
+            "saQ1B": "B. Ngăn chặn tất cả các rủi ro có thể xảy ra trong tương lai",
+            "saQ1C": "C. Phân tách tình huống phức tạp, làm rõ vấn đề và quyết định thứ tự ưu tiên",
+            "saQ1D": "D. Tạo ra nhiều ý tưởng sáng tạo đa dạng nhất",
+            "saQ2": "2. Trong SA, việc sử dụng nguyên tắc MECE nhằm mục đích gì?",
+            "saQ2A": "A. Đảm bảo việc phân chia các vấn đề không chồng chéo, không bỏ sót",
+            "saQ2B": "B. Đảm bảo mỗi vấn đề đều quan trọng như nhau",
+            "saQ2C": "C. Đảm bảo chỉ tìm ra những vấn đề khẩn cấp nhất",
+            "saQ2D": "D. Đảm bảo tất cả các vấn đề đều có giải pháp",
+            "submitAnswers": "Nộp bài",
+            "saExerciseTitle": "Thực hành SA",
+            "saExercisePrompt": "Vui lòng mô tả tình huống phức tạp bạn đang đối mặt tại đây:",
+            "loadExample": "Tải ví dụ",
+            "saExample": "Ví dụ: Công ty chúng tôi gần đây đối mặt với nhiều thách thức: khiếu nại của khách hàng tăng 30%, chủ yếu tập trung vào chất lượng sản phẩm và thời gian phản hồi của dịch vụ khách hàng; tỷ lệ nhân viên nghỉ việc tăng từ 5% lên 15%, đặc biệt là ở bộ phận kỹ thuật; tiến độ phát triển sản phẩm mới chậm hơn kế hoạch 2 tháng; đối thủ cạnh tranh ra mắt sản phẩm tương tự, chiếm 20% thị phần của chúng tôi; đồng thời, chi phí chuỗi cung ứng tăng 15%, ảnh hưởng đến lợi nhuận. Ban quản lý có ý kiến khác nhau về việc nên ưu tiên xử lý vấn đề nào.",
+            "runSA": "✨ Bắt đầu Đánh giá Tình hình bằng AI",
+            "paSectionTitle": "PA: Problem Analysis (Phân tích Vấn đề)",
+            "paSectionSubtitle": "Truy tìm tận gốc, tìm ra nguyên nhân thực sự",
+            "paConceptText": "Khi xảy ra sự sai lệch (Deviation) giữa 'thực tế' và 'mong muốn', và nguyên nhân không rõ ràng, PA cung cấp một bộ công cụ logic chặt chẽ. Tinh hoa của nó nằm ở việc 'so sánh', thông qua việc đối chiếu có hệ thống giữa 'LÀ (IS)' và 'KHÔNG PHẢI LÀ (IS NOT)' để tìm ra 'sự thay đổi đặc biệt' gây ra vấn đề, từ đó xác định nguyên nhân gốc rễ.",
+            "paSteps": `<li><b>1. Xác định vấn đề (Plan - Thẩm vấn):</b> Mô tả chính xác vấn đề (đối tượng + sai lệch), và sử dụng <b>bảng IS/IS NOT</b>, thu thập chi tiết 'sự thật' từ bốn khía cạnh What, Where, When, Extent, thay vì ý kiến hay phỏng đoán.</li><li><b>2. Suy luận nguyên nhân (Do - Thận trọng suy xét):</b> Tìm kiếm nguyên nhân có thể có từ hai hướng. <b>Phương pháp diễn dịch</b>: xuất phát từ kinh nghiệm, sử dụng các công cụ như biểu đồ xương cá để phát triển ý tưởng. <b>Phương pháp quy nạp</b>: tập trung vào các 'điểm khác biệt' và 'điểm thay đổi' trong bảng IS/IS NOT, đây là những manh mối khách quan nhất.</li><li><b>3. Biện chứng nguyên nhân (Check - Phân biệt rõ ràng):</b> Đây là bước xác minh quan trọng nhất. Lấy 'nguyên nhân có khả năng cao nhất (MPC)' đã tìm thấy ở bước trước để giải thích từng sự thật trong bảng IS/IS NOT. Nếu nguyên nhân này có thể giải thích hoàn hảo 'tại sao nó xảy ra ở IS mà không xảy ra ở IS NOT', thì rất có thể đó là nguyên nhân thực sự.</li><li><b>4. Quyết định và thực hiện (Act - Thực hiện):</b> Xác nhận nguyên nhân cuối cùng thông qua thử nghiệm hoặc quan sát. Sau khi xác nhận, ngay lập tức thực hiện <b>hành động khắc phục tạm thời (Containment)</b> để ngăn chặn thiệt hại lan rộng, và lập kế hoạch <b>hành động khắc phục triệt để (Corrective)</b> để loại bỏ vấn đề tận gốc.</li>`,
+            "quizTitlePA": "Kiểm tra Hiệu quả Học tập PA",
+            "paQ1": "1. Trong Phân tích Vấn đề (PA), tác dụng chính của phân tích 'IS / IS NOT' là gì?",
+            "paQ1A": "A. Đánh giá mức độ nghiêm trọng của vấn đề",
+            "paQ1B": "B. Thu hẹp phạm vi các nguyên nhân có thể có thông qua so sánh",
+            "paQ1C": "C. Quyết định ai sẽ chịu trách nhiệm giải quyết vấn đề",
+            "paQ1D": "D. Đề xuất các giải pháp sáng tạo",
+            "paQ2": "2. Khi bạn tìm thấy một 'nguyên nhân có khả năng cao nhất (MPC)', bước tiếp theo bạn nên làm gì để xác minh nó?",
+            "paQ2A": "A. Đầu tư nguồn lực ngay lập tức để giải quyết nó",
+            "paQ2B": "B. Tìm kiếm thêm các nguyên nhân có thể có khác",
+            "paQ2C": "C. Bỏ qua nó, tập trung vào hành động khắc phục tạm thời",
+            "paQ2D": "D. Dùng nó để giải thích tất cả các sự thật trong bảng IS/IS NOT xem có khớp không",
+            "paExerciseTitle": "Thực hành PA",
+            "selectMethod": "Vui lòng chọn phương pháp phân tích:",
+            "paExercisePrompt": "Vui lòng mô tả vấn đề bạn gặp phải và các dữ liệu liên quan tại đây:",
+            "paExample": "Ví dụ: Lớp sơn vỏ điện thoại mẫu A bị nứt. Vấn đề chỉ xảy ra trên dây chuyền A của nhà máy Đài Trung (Location: địa điểm lớn), và tập trung ở góc trên bên phải của vỏ (Position: vị trí nhỏ). Vấn đề bắt đầu từ hôm qua (Time: thời điểm), xảy ra theo chu kỳ (Pattern: quy luật), và thường xuất hiện vào ca làm việc lúc 10 giờ sáng (Life Cycle: vòng đời). Dây chuyền A của nhà máy Cao Hùng, điện thoại mẫu B, hoặc trước ngày hôm qua đều bình thường.",
+            "runPA": "✨ Bắt đầu Phân tích Vấn đề bằng AI",
+            "ppaSectionTitle": "PPA: Potential Problem Analysis (Phân tích Vấn đề Tiềm ẩn)",
+            "ppaSectionSubtitle": "Triển khai đón đầu, phòng ngừa rủi ro",
+            "ppaConceptText": "Bất kỳ kế hoạch hay hành động nào cũng đi kèm với rủi ro. PPA là một bộ phương pháp hệ thống hóa việc chuyển từ 'chữa cháy bị động' sang 'phòng cháy chủ động'. Nó giúp chúng ta, trước khi hành động, suy nghĩ một cách có hệ thống về 'điều gì có thể sai sót?', và lập sẵn kế hoạch 'phòng ngừa' và 'ứng phó', từ đó tăng đáng kể tỷ lệ thành công của kế hoạch.",
+            "ppaSteps": `<li><b>1. Nhận diện rủi ro (Plan):</b> Đối với mỗi bước của kế hoạch, brainstorming tất cả các vấn đề tiềm ẩn có thể xảy ra.</li><li><b>2. Sắp xếp thứ tự ưu tiên (Do):</b> Đánh giá định lượng cho mỗi rủi ro. <b>RPN (Số ưu tiên rủi ro) = S (Mức độ nghiêm trọng) x O (Tần suất xảy ra) x D (Khả năng phát hiện)</b>. Điểm số này giúp chúng ta xác định một cách khách quan các mục rủi ro cao cần được quan tâm nhất.</li><li><b>3. Phân tích nguyên nhân (Check):</b> Đối với các rủi ro có RPN cao nhất, phân tích sâu hơn các nguyên nhân có thể dẫn đến chúng (Likely Causes).</li><li><b>4. Xây dựng đối sách (Action):</b> Đây là cốt lõi hành động của PPA, được chia thành hai cấp độ:<ul><li class='my-2'>- <b>Hành động phòng ngừa (Prevention - Kế hoạch A):</b> Nhắm vào 'nguyên nhân', thực hiện các biện pháp để giảm 'tần suất xảy ra (O)' của rủi ro. Ví dụ: tăng cường đào tạo, thiết lập cơ chế chống sai sót.</li><li>- <b>Hành động ứng phó (Contingency - Kế hoạch B):</b> Giả sử rủi ro không may xảy ra, chuẩn bị sẵn các biện pháp đối phó để giảm 'mức độ nghiêm trọng (S)'. Đồng thời cũng cần suy nghĩ cách tăng 'khả năng phát hiện (D)', ví dụ như lắp đặt thêm thiết bị cảnh báo.</li></ul></li>`,
+            "quizTitlePPA": "Kiểm tra Hiệu quả Học tập PPA",
+            "ppaQ1": "1. Trong PPA, RPN (Số ưu tiên rủi ro) được tính bằng cách nhân ba yếu tố nào?",
+            "ppaQ1A": "A. Mức độ nghiêm trọng, Mức độ khẩn cấp, Xu hướng phát triển",
+            "ppaQ1B": "B. Chi phí, Thời gian, Chất lượng",
+            "ppaQ1C": "C. Khả năng xảy ra, Tác động, Khả năng kiểm soát",
+            "ppaQ1D": "D. Mức độ nghiêm trọng (S), Tần suất xảy ra (O), Khả năng phát hiện (D)",
+            "ppaQ2": "2. 'Chuẩn bị phụ tùng thay thế cho thiết bị mới' thuộc loại hành động nào trong PPA?",
+            "ppaQ2A": "A. Hành động ứng phó (Contingency - Kế hoạch B)",
+            "ppaQ2B": "B. Hành động phòng ngừa (Prevention - Kế hoạch A)",
+            "ppaQ2C": "C. Hành động khắc phục triệt để (Corrective Action)",
+            "ppaQ2D": "D. Hành động khắc phục tạm thời (Containment Action)",
+            "ppaExerciseTitle": "Thực hành PPA",
+            "ppaExercisePrompt": "Vui lòng mô tả kế hoạch hoặc dự án của bạn tại đây:",
+            "ppaExample": "Ví dụ: Chúng tôi dự định ra mắt sản phẩm đồng hồ thông minh mới trong vòng ba tháng. Dự án bao gồm: tháng đầu tiên hoàn thành phát triển phần mềm và kiểm thử tích hợp phần cứng; tháng thứ hai tiến hành kiểm thử người dùng và chuẩn bị sản xuất; tháng thứ ba bắt đầu sản xuất hàng loạt và quảng bá thị trường. Đội ngũ bao gồm 10 kỹ sư, 5 nhà thiết kế, 3 quản lý dự án. Ngân sách là 5 triệu TWD, mục tiêu bán 10,000 chiếc trong tháng đầu tiên. Đây là lần đầu tiên công ty tham gia vào thị trường thiết bị đeo.",
+            "runPPA": "✨ Bắt đầu Phân tích Rủi ro bằng AI",
+            "daSectionTitle": "DA: Decision Analysis (Phân tích Quyết định)",
+            "daSectionSubtitle": "Cân nhắc lợi hại, đưa ra lựa chọn tốt nhất",
+            "daConceptText": "Nâng cấp quá trình ra quyết định từ 'trực giác' và 'cảm tính' lên 'hệ thống' và 'tính toán'. DA cung cấp một quy trình có cấu trúc, minh bạch, phân tách các lựa chọn phức tạp thành các tiêu chí có thể đánh giá, giúp nhóm hoặc cá nhân có thể cân nhắc lợi hại một cách khách quan và có nhận thức rõ ràng về rủi ro của lựa chọn cuối cùng.",
+            "daSteps": `<li><b>1. Lập kế hoạch yêu cầu (Plan):</b> Đây là nền tảng của việc ra quyết định. Xác định rõ mục đích của quyết định và chia các tiêu chí đánh giá thành hai loại:<ul><li class='my-2'>- <b>Musts (Điều kiện bắt buộc):</b> Ngưỡng không thể thiếu, dùng để 'sàng lọc' các lựa chọn, những lựa chọn không đáp ứng sẽ bị loại trực tiếp.</li><li>- <b>Wants (Điều kiện mong muốn):</b> Các mục cộng điểm, càng nhiều càng tốt, dùng để 'chấm điểm'. Phải gán 'trọng số (Weight)' khác nhau cho mỗi Want để thể hiện tầm quan trọng tương đối của chúng.</li></ul></li><li><b>2. Phát triển các lựa chọn (Do):</b> Chấm điểm và tính toán. Đầu tiên, dùng Musts để loại bỏ các lựa chọn không đủ điều kiện. Sau đó, đối với các lựa chọn còn lại, chấm điểm từng mục theo Wants (thang điểm 1-10), rồi nhân điểm số với trọng số để ra tổng điểm có trọng số của mỗi lựa chọn.</li><li><b>3. Hiểu rõ rủi ro (Check):</b> Điểm số không phải là tất cả. Đối với một vài lựa chọn có điểm cao nhất, cần phải bình tĩnh phân tích các rủi ro tiêu cực tiềm ẩn (Adverse Consequences) của chúng. Một lựa chọn điểm cao nhưng rủi ro cực lớn chưa chắc đã là lựa chọn tốt nhất.</li><li><b>4. Thực hiện quyết định (Action):</b> Đưa ra lựa chọn cuối cùng. Lựa chọn lý tưởng là lựa chọn có 'tổng điểm có trọng số cao nhất' và 'rủi ro có thể kiểm soát'. Một khi đã quyết định, cần phải lập kế hoạch ứng phó cho các rủi ro có thể xảy ra.</li>`,
+            "quizTitleDA": "Kiểm tra Hiệu quả Học tập DA",
+            "daQ1": "1. Trong Phân tích Quyết định (DA), tác dụng chính của 'Musts (Điều kiện bắt buộc)' là gì?",
+            "daQ1A": "A. Dùng để tính điểm có trọng số cho các lựa chọn",
+            "daQ1B": "B. Đánh giá rủi ro tiềm ẩn của các lựa chọn",
+            "daQ1C": "C. Là ngưỡng sàng lọc để nhanh chóng loại bỏ các lựa chọn không đủ điều kiện",
+            "daQ1D": "D. So sánh ưu điểm của các lựa chọn khác nhau",
+            "daQ2": "2. Tại sao trong DA lại phải đặt trọng số (Weight) cho 'Wants (Điều kiện mong muốn)'?",
+            "daQ2A": "A. Để quá trình tính toán phức tạp hơn",
+            "daQ2B": "B. Để thể hiện tầm quan trọng tương đối của các tiêu chí khác nhau",
+            "daQ2C": "C. Để đảm bảo tất cả các lựa chọn đều có điểm số như nhau",
+            "daQ2D": "D. Đây là những con số được đặt ngẫu nhiên",
+            "daExerciseTitle": "Thực hành DA",
+            "daExercisePrompt": "Vui lòng mô tả quyết định bạn cần đưa ra tại đây (bao gồm các lựa chọn, tiêu chí đánh giá Wants và trọng số):",
+            "daExample": "Ví dụ: Chúng tôi cần chọn một nhà cung cấp dịch vụ đám mây mới. Hiện có ba lựa chọn: AWS, Azure, Google Cloud. Các yếu tố xem xét chính (Wants) và trọng số là: kiểm soát chi phí (trọng số 9), chất lượng hỗ trợ kỹ thuật (trọng số 8), bảo mật dữ liệu (trọng số 9), độ khó tích hợp hệ thống (trọng số 8), khả năng mở rộng trong tương lai (trọng số 7), chức năng AI (trọng số 6). Điều kiện bắt buộc (Musts) của chúng tôi là: phải tuân thủ các quy định về dữ liệu địa phương, cung cấp hỗ trợ kỹ thuật bằng tiếng Trung 24/7.",
+            "runDA": "✨ Bắt đầu Phân tích Quyết định bằng AI",
+            "caSectionTitle": "CA: Creativity Analysis (Phân tích Sáng tạo)",
+            "caSectionSubtitle": "Phá vỡ khuôn khổ, đổi mới hệ thống",
+            "caConceptText": "Sáng tạo không phải là đặc quyền của một số ít thiên tài, mà là một phương pháp mà mọi người đều có thể học được. CA cung cấp một khung IDEA có hệ thống, hướng dẫn chúng ta chuyển đổi những 'ý tưởng (Idea)' rời rạc thành 'sự đổi mới (Innovation)' có giá trị thị trường. Nó dạy chúng ta cách bắt đầu từ nhu cầu của khách hàng, phát triển ý tưởng thông qua các công cụ hệ thống, và cuối cùng xây dựng một mô hình kinh doanh thành công.",
+            "ideaFramework": "Phân tích Khung Sáng tạo IDEA",
+            "caSteps": `<li><b>I - Imagination / Input / Insight (Tưởng tượng/Đầu vào/Thấu hiểu):</b> Điểm khởi đầu của sự đổi mới. Thông qua việc quan sát bằng sự đồng cảm (Empathy), hiểu sâu sắc những nỗi đau (Pains) và lợi ích (Gains) của khách hàng, từ đó khám phá ra những nhu cầu chưa được đáp ứng.</li><li><b>D - Domain Application (Ứng dụng lĩnh vực):</b> Tìm kiếm 'khoảng trống' cho sự đổi mới. Suy nghĩ về việc áp dụng công nghệ hoặc sản phẩm hiện có vào thời gian, không gian hoặc đối tượng mới. Ví dụ, áp dụng bông sợi công nghiệp vào lĩnh vực vệ sinh cá nhân, từ đó ra đời băng vệ sinh.</li><li><b>E - Evolution / Evaluation (Tiến hóa/Đánh giá):</b> Làm cho ý tưởng 'tiến hóa' một cách có hệ thống. Sử dụng các công cụ như <b>SCAMPER</b> (Thay thế/Kết hợp/Điều chỉnh/Sửa đổi/Sử dụng khác/Loại bỏ/Sắp xếp lại) hoặc <b>TRIZ (Lý thuyết giải quyết vấn đề sáng chế)</b> để tái cấu trúc một cách đột phá các giải pháp hiện có, tạo ra những khả năng mới.</li><li><b>A - Action (Hành động đổi mới):</b> Hiện thực hóa những ý tưởng sáng tạo đã chín muồi. Sử dụng <b>Tư duy Thiết kế (Design Thinking)</b> để nhanh chóng lặp lại các nguyên mẫu, thông qua <b>Bản đồ Đề xuất Giá trị (VPC)</b> để đảm bảo sản phẩm phù hợp với thị trường, và cuối cùng sử dụng <b>Mô hình Kinh doanh Canvas (BMC)</b> để lập kế hoạch cho một mô hình kinh doanh bền vững.</li>`,
+            "quizTitleCA": "Kiểm tra Hiệu quả Học tập CA",
+            "caQ1": "1. Trong khung sáng tạo IDEA, giai đoạn nào tập trung nhất vào việc thấu hiểu nỗi đau và lợi ích của khách hàng thông qua sự đồng cảm?",
+            "caQ1A": "A. D (Domain Application)",
+            "caQ1B": "B. E (Evolution)",
+            "caQ1C": "C. A (Action)",
+            "caQ1D": "D. I (Insight)",
+            "caQ2": "2. Chữ 'C' trong công cụ SCAMPER có nghĩa là gì?",
+            "caQ2A": "A. Sao chép (Copy)",
+            "caQ2B": "B. Kết hợp (Combine)",
+            "caQ2C": "C. Thách thức (Challenge)",
+            "caQ2D": "D. Thay đổi (Change)",
+            "caExerciseTitle": "Thực hành CA",
+            "sixHats": "Sáu chiếc mũ tư duy",
+            "designThinking": "Tư duy Thiết kế",
+            "vpc": "Bản đồ Đề xuất Giá trị (VPC)",
+            "bmc": "Mô hình Kinh doanh Canvas (BMC)",
+            "pyramid": "Nguyên lý Kim tự tháp",
+            "caExercisePrompt": "Vui lòng nhập chủ đề hoặc sản phẩm bạn muốn đổi mới tại đây:",
+            "caExample": "Ví dụ: Làm thế nào để tăng lượng khách và doanh thu cho các hiệu sách truyền thống để đối phó với sự cạnh tranh từ thương mại điện tử?",
+            "runCA": "✨ Bắt đầu Phân tích Sáng tạo bằng AI",
+            "conclusionTitle": "Kết luận và Thảo luận",
+            "mindmapCaption": "Sơ đồ tư duy tổng kết khóa học (Nhấp để phóng to)",
+            "summaryList": `<li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Một sự tích hợp tư duy phản biện:</b> Sự tương tác giữa tư duy logic (não trái) và tư duy sáng tạo (não phải).</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Hai logic cần phải có:</b> Phương pháp diễn dịch và quy nạp.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Ba cấp độ xem xét:</b> Cấp độ vấn đề, cấp độ logic lập luận, cấp độ kết luận và hành động.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Bốn bước tuần hoàn:</b> Sử dụng PDCA để xử lý các vấn đề logic, sử dụng khung IDEA để kích thích sự đổi mới.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Năm kịch bản ứng dụng AI:</b> Tận dụng AI như một công cụ hỗ trợ trong SA, PA, PPA, DA, CA.</span></li>`,
+            "downloadButton": "Tải xuống tệp thực hành (PSDM Excel Template.xlsx)",
+            "finalGoal": "<b>Mục tiêu cuối cùng:</b> Dẫn dắt bằng trí tuệ và khả năng phán đoán của con người, điều khiển sức mạnh tính toán và kho kiến thức khổng lồ của AI, để trở thành một nhân tài không thể thay thế trong môi trường làm việc tương lai."
+        },
+        "en": {
+            "pageTitle": "Critical Thinking and Innovation PSDM + AI Course",
+            "headerTitle": "Critical Thinking and Innovation PSDM + AI",
+            "headerSubtitle": "A systematic thinking PSDM and AI collaboration practical course designed for you",
+            "authorName": "Cliff Wang, Ph.D.",
+            "podcastTitle": "Course Podcast",
+            "audioNotSupported": "Your browser does not support audio playback.",
+            "navOverview": "Course Overview",
+            "navAiSetup": "AI Setup",
+            "navSa": "SA Situation Appraisal",
+            "navPa": "PA Problem Analysis",
+            "navPpa": "PPA Potential Problem Analysis",
+            "navDa": "DA Decision Analysis",
+            "navCa": "CA Creative Analysis",
+            "navConclusion": "Conclusion & Discussion",
+            "overviewTitle": "Five Major Systematic Thinking Application Modules",
+            "saTitle": "SA Situation Appraisal",
+            "saChar": "Broad!",
+            "saDesc": "Grasp the Big Picture",
+            "paTitle": "PA Problem Analysis",
+            "paChar": "Detail!",
+            "paDesc": "Problem Solving",
+            "ppaTitle": "PPA Potential Problem Analysis",
+            "ppaChar": "Future!",
+            "ppaDesc": "Proactive Deployment",
+            "daTitle": "DA Decision Analysis",
+            "daChar": "Precise!",
+            "daDesc": "Correct Decisions",
+            "caTitle": "CA Creative Analysis",
+            "caChar": "Change!",
+            "caDesc": "Break Through Frameworks",
+            "aiSetupTitle": "Activate AI Interactive Features",
+            "aiSetupDesc": "To use the AI practical exercises in the course, please select your AI service and paste the corresponding API key.",
+            "aiSetupStep1": "1. Select AI Service Provider:",
+            "aiSetupStep2": "2. Enter Your API Key:",
+            "apiKeyPlaceholder": "Paste your selected service key here...",
+            "saveButton": "Save",
+            "aiSetupStep3": "3. Enter Your Azure Endpoint:",
+            "endpointPlaceholder": "e.g.: https://your-resource.openai.azure.com/",
+            "endpointNote": "Please ensure the Endpoint includes the complete deployment name, e.g., `.../deployments/your-deployment-name`",
+            "keyStorageInfo": "Your key will only be stored in your current browser. You can get it for free from <a href='https://aistudio.google.com/app/apikey' target='_blank' class='underline hover:text-blue-800'>Google AI Studio</a>, <a href='https://platform.deepseek.com/api_keys' target='_blank' class='underline hover:text-blue-800'>Deepseek</a>, or <a href='https://platform.openai.com/api-keys' target='_blank' class='underline hover:text-blue-800'>OpenAI/Azure</a>.",
+            "paymentNotice": "Please note: Some services may require you to set up payment methods or top up on their platform after the free quota is exhausted.",
+            "saSectionTitle": "SA: Situation Appraisal",
+            "saSectionSubtitle": "Grasp the Big Picture, Clarify the Situation",
+            "coreConcept": "Core Concept",
+            "saConceptText": "When facing a chaotic, complex situation, SA provides a systematic method to break down complex scenarios, establish priorities, and determine the next course of action. It is the starting point of all analysis, helping us escape from the dilemma of 'seeing the trees but not the forest' and see the whole picture.",
+            "keySteps": "Key Steps Analysis",
+            "saSteps": `<li><b>1. Plan Issues (Plan - Inquiry):</b> List all to-do items, concerns, and problems in your mind. Then use the <b>MECE principle (Mutually Exclusive, Collectively Exhaustive)</b> to classify and organize, turning scattered concerns into several clear, independent major issues.</li><li><b>2. Prioritize (Do - Deliberate):</b> Resources are limited, not everything can be done. For each issue, evaluate from three dimensions: <b>Severity (S)</b>, <b>Urgency (U)</b>, and <b>Growth (G)</b> to find the critical few that truly need priority attention.</li><li><b>3. Determine Process (Check - Discern):</b> For high-priority issues, determine their problem attributes. This step is the key 'triage station':<ul class="my-2"><li>- If it's an 'unexplained deviation', proceed to <b>PA (Problem Analysis)</b>.</li><li>- If it's a 'need to make a choice', proceed to <b>DA (Decision Analysis)</b>.</li><li>- If it's a 'future potential risk', proceed to <b>PPA (Potential Problem Analysis)</b>.</li></ul></li><li><b>4. Accountable Action (Action - Execute):</b> Transform analysis into action. Clearly define 'Who', 'When', and 'What', and initiate the corresponding analysis process.</li>`,
+            "quizTitleSA": "SA Learning Effectiveness Test",
+            "saQ1": "1. What is the main core purpose of Situation Appraisal (SA)?",
+            "saQ1A": "A. Find the single root cause of the problem",
+            "saQ1B": "B. Prevent all future possible risks",
+            "saQ1C": "C. Break down complex situations, clarify issues and determine priorities",
+            "saQ1D": "D. Generate the most diverse creative ideas",
+            "saQ2": "2. In SA, what effect does using the MECE principle aim to achieve?",
+            "saQ2A": "A. Ensure issue division is non-overlapping and complete",
+            "saQ2B": "B. Ensure every issue is equally important",
+            "saQ2C": "C. Ensure only the most urgent issues are found",
+            "saQ2D": "D. Ensure all issues have solutions",
+            "submitAnswers": "Submit Answers",
+            "saExerciseTitle": "SA Practical Exercise",
+            "saExercisePrompt": "Please describe the complex situation you are facing here:",
+            "loadExample": "Load Example",
+            "saExample": "Example: Our company recently faces multiple challenges: customer complaints increased by 30%, mainly focusing on product quality and customer service response time; employee turnover rate rose from 5% to 15%, especially in the technical department; new product development progress is 2 months behind the original plan; competitors launched similar products, capturing 20% of our market share; meanwhile, supply chain costs increased by 15%, affecting profitability. Management has different opinions on which problem should be prioritized.",
+            "runSA": "✨ Start AI Situation Appraisal",
+            "paSectionTitle": "PA: Problem Analysis",
+            "paSectionSubtitle": "Trace to the Root, Find the True Cause",
+            "paConceptText": "When there is a deviation between 'actual' and 'expected' and the cause is unclear, PA provides a set of rigorous logical tools. Its essence lies in 'comparison', systematically comparing 'IS' and 'IS NOT' to find the 'unique changes' that cause problems, thus identifying the root cause.",
+            "paSteps": `<li><b>1. Define Problem (Plan - Inquiry):</b> Precisely describe the problem (object + deviation), and use the <b>IS/IS NOT table</b> to meticulously collect 'facts' from four dimensions: What, Where, When, Extent, rather than opinions or guesses.</li><li><b>2. Reason Causes (Do - Deliberate):</b> Seek possible causes through two approaches. <b>Deductive method</b>: Start from experience, use tools like fishbone diagrams for brainstorming. <b>Inductive method</b>: Focus on 'difference points' and 'change points' in the IS/IS NOT table, which are the most objective clues.</li><li><b>3. Verify Causes (Check - Discern):</b> This is the most critical verification step. Take the 'Most Probable Cause (MPC)' found in the previous step to explain every fact in the IS/IS NOT table. If this cause can perfectly explain 'why it occurs in IS but not in IS NOT', then it's likely the true cause.</li><li><b>4. Decision and Implementation (Act - Execute):</b> Finally confirm the true cause through experiments or observations. Once confirmed, immediately take <b>containment actions</b> to prevent damage expansion, and plan <b>corrective actions</b> to eliminate the problem at its root.</li>`,
+            "quizTitlePA": "PA Learning Effectiveness Test",
+            "paQ1": "1. In Problem Analysis (PA), what is the main function of 'IS / IS NOT' analysis?",
+            "paQ1A": "A. Assess the severity of the problem",
+            "paQ1B": "B. Narrow down the range of possible causes through comparison",
+            "paQ1C": "C. Decide who is responsible for solving the problem",
+            "paQ1D": "D. Propose innovative solutions",
+            "paQ2": "2. When you find a 'Most Probable Cause (MPC)', what should you do next to verify it?",
+            "paQ2A": "A. Immediately invest resources to solve it",
+            "paQ2B": "B. Look for more possible causes",
+            "paQ2C": "C. Ignore it and focus on containment actions",
+            "paQ2D": "D. Use it to explain all facts in the IS/IS NOT table to see if they match",
+            "paExerciseTitle": "PA Practical Exercise",
+            "selectMethod": "Please select analysis method:",
+            "paExercisePrompt": "Please describe the problem you encountered and related data here:",
+            "paExample": "Example: Model A phone case paint cracking. The problem only occurs on Production Line A at Taichung Factory (Location: large location), and is concentrated on the upper right corner of the case (Position: small position). The problem started yesterday (Time: time point), occurs cyclically (Pattern: pattern), and usually appears during the 10 AM shift (Life Cycle: life cycle). Production Line A at Kaohsiung Factory, Model B phones, or before yesterday are all normal.",
+            "runPA": "✨ Start AI Problem Analysis",
+            "ppaSectionTitle": "PPA: Potential Problem Analysis",
+            "ppaSectionSubtitle": "Proactive Deployment, Prevention is Better than Cure",
+            "ppaConceptText": "Any plan or action comes with risks. PPA is a systematic method to shift from 'passive firefighting' to 'proactive disaster prevention'. It allows us to systematically think about 'what could go wrong?' before taking action, and pre-establish 'prevention' and 'contingency' plans, significantly improving the success rate of plans.",
+            "ppaSteps": `<li><b>1. Identify Risks (Plan):</b> For each step of the plan, brainstorm all potential problems that could occur.</li><li><b>2. Prioritize (Do):</b> Quantitatively assess each risk. <b>RPN (Risk Priority Number) = S (Severity) x O (Occurrence) x D (Detection)</b>. This score helps us objectively identify the highest-risk items that need the most attention.</li><li><b>3. Analyze Causes (Check):</b> For risks with the highest RPN, further analyze the possible causes that could lead to their occurrence (Likely Causes).</li><li><b>4. Develop Countermeasures (Action):</b> This is the action core of PPA, divided into two levels:<ul class="my-2"><li>- <b>Preventive Actions (Prevention - Plan A):</b> Target 'causes', take measures to reduce the 'occurrence rate (O)' of risks. For example: increase training, establish error-proofing mechanisms.</li><li>- <b>Contingent Actions (Contingency - Plan B):</b> Assuming risks unfortunately occur, prepare countermeasures in advance to reduce 'severity (S)'. Also consider how to improve 'detection (D)', such as installing additional alarms.</li></ul></li>`,
+            "quizTitlePPA": "PPA Learning Effectiveness Test",
+            "ppaQ1": "1. In PPA, RPN (Risk Priority Number) is calculated by multiplying which three factors?",
+            "ppaQ1A": "A. Severity, Urgency, Growth Trend",
+            "ppaQ1B": "B. Cost, Time, Quality",
+            "ppaQ1C": "C. Probability, Impact, Controllability",
+            "ppaQ1D": "D. Severity (S), Occurrence (O), Detection (D)",
+            "ppaQ2": "2. 'Preparing spare parts for new equipment' belongs to which type of action in PPA?",
+            "ppaQ2A": "A. Contingent Action (Contingency - Plan B)",
+            "ppaQ2B": "B. Preventive Action (Prevention - Plan A)",
+            "ppaQ2C": "C. Corrective Action",
+            "ppaQ2D": "D. Containment Action",
+            "ppaExerciseTitle": "PPA Practical Exercise",
+            "ppaExercisePrompt": "Please describe your plan or project here:",
+            "ppaExample": "Example: We plan to launch a new smartwatch product within three months. The project includes: completing software development and hardware integration testing in the first month; conducting user testing and production preparation in the second month; starting mass production and market promotion in the third month. The team includes 10 engineers, 5 designers, and 3 project managers. The budget is 5 million TWD, with a goal of selling 10,000 units in the first month. This is the company's first entry into the wearable device market.",
+            "runPPA": "✨ Start AI Risk Analysis",
+            "daSectionTitle": "DA: Decision Analysis",
+            "daSectionSubtitle": "Weigh Pros and Cons, Make the Best Choice",
+            "daConceptText": "Upgrade the decision-making process from 'intuition' and 'feeling' to 'systematic' and 'calculated'. DA provides a structured, transparent process that breaks down complex choices into evaluable criteria, helping teams or individuals weigh pros and cons objectively and have clear awareness of the risks of final choices.",
+            "daSteps": `<li><b>1. Plan Requirements (Plan):</b> This is the foundation of decision-making. Clearly define the purpose of the decision and divide evaluation criteria into two categories:<ul class="my-2"><li>- <b>Musts (Must-have conditions):</b> Indispensable thresholds, used to 'screen' options; options that don't meet Musts should be eliminated directly.</li><li>- <b>Wants (Desired conditions):</b> Scoring items, the more the better, used for 'scoring'. Must assign different 'weights' to each Want to reflect their relative importance.</li></ul></li><li><b>2. Develop Alternatives (Do):</b> Score and calculate. First, use Musts to eliminate unqualified options. Then, for remaining options, score each item according to Wants (scale 1-10), then multiply scores by weights to get weighted total scores for each option.</li><li><b>3. Understand Risks (Check):</b> Scores are not everything. For the few options with the highest scores, calmly analyze their potential negative risks (Adverse Consequences). A high-scoring option with extremely high risks may not be the best choice.</li><li><b>4. Implement Decision (Action):</b> Make the final choice. The ideal choice is one with 'highest weighted total score' and 'controllable risks'. Once decided, must plan contingency measures for possible risks.</li>`,
+            "quizTitleDA": "DA Learning Effectiveness Test",
+            "daQ1": "1. In Decision Analysis (DA), what is the main function of 'Musts (Must-have conditions)'?",
+            "daQ1A": "A. Used to calculate weighted scores for options",
+            "daQ1B": "B. Assess potential risks of options",
+            "daQ1C": "C. Screening threshold to quickly eliminate unqualified options",
+            "daQ1D": "D. Compare advantages of different options",
+            "daQ2": "2. Why must weights be set for 'Wants (Desired conditions)' in DA?",
+            "daQ2A": "A. To make the calculation process more complex",
+            "daQ2B": "B. To reflect the relative importance of different criteria",
+            "daQ2C": "C. To ensure all options have the same scores",
+            "daQ2D": "D. These are randomly assigned numbers",
+            "daExerciseTitle": "DA Practical Exercise",
+            "daExercisePrompt": "Please describe the decision you need to make here (including options, evaluation criteria Wants and weights):",
+            "daExample": "Example: We need to choose a new cloud service provider. Currently have three options: AWS, Azure, Google Cloud. Main consideration factors (Wants) and weights are: cost control (weight 9), technical support quality (weight 8), data security (weight 9), system integration difficulty (weight 8), future scalability (weight 7), AI functionality (weight 6). Our must-have conditions (Musts) are: must comply with local data regulations, provide 24/7 Chinese technical support.",
+            "runDA": "✨ Start AI Decision Analysis",
+            "caSectionTitle": "CA: Creative Analysis",
+            "caSectionSubtitle": "Break Through Frameworks, Systematic Innovation",
+            "caConceptText": "Creativity is not the privilege of a few geniuses, but a method that everyone can learn. CA provides a systematic IDEA framework, guiding us to transform scattered 'ideas' into valuable market 'innovation'. It teaches us how to start from customer needs, develop ideas through systematic tools, and finally build a successful business model.",
+            "ideaFramework": "IDEA Creative Framework Analysis",
+            "caSteps": `<li><b>I - Imagination / Input / Insight:</b> The starting point of innovation. Through empathetic observation, deeply understand customers' pains and gains, thus discovering unmet needs.</li><li><b>D - Domain Application:</b> Find 'gaps' for innovation. Think about applying existing technology or products to new times, spaces, or targets. For example, applying industrial fiber to personal hygiene, leading to the birth of sanitary pads.</li><li><b>E - Evolution / Evaluation:</b> Make ideas 'evolve' systematically. Use tools like <b>SCAMPER</b> (Substitute/Combine/Adapt/Modify/Put to other uses/Eliminate/Reverse) or <b>TRIZ (Theory of Inventive Problem Solving)</b> to breakthrough restructure existing solutions, creating new possibilities.</li><li><b>A - Action (Innovation Action):</b> Realize mature creative ideas. Use <b>Design Thinking</b> to rapidly iterate prototypes, through <b>Value Proposition Canvas (VPC)</b> to ensure product-market fit, and finally use <b>Business Model Canvas (BMC)</b> to plan a sustainable business model.</li>`,
+            "quizTitleCA": "CA Learning Effectiveness Test",
+            "caQ1": "1. In the IDEA creative framework, which stage focuses most on understanding customer pains and gains through empathy?",
+            "caQ1A": "A. D (Domain Application)",
+            "caQ1B": "B. E (Evolution)",
+            "caQ1C": "C. A (Action)",
+            "caQ1D": "D. I (Insight)",
+            "caQ2": "2. What does the 'C' in the SCAMPER tool stand for?",
+            "caQ2A": "A. Copy",
+            "caQ2B": "B. Combine",
+            "caQ2C": "C. Challenge",
+            "caQ2D": "D. Change",
+            "caExerciseTitle": "CA Practical Exercise",
+            "sixHats": "Six Thinking Hats",
+            "designThinking": "Design Thinking",
+            "vpc": "Value Proposition Canvas (VPC)",
+            "bmc": "Business Model Canvas (BMC)",
+            "pyramid": "Pyramid Principle",
+            "caExercisePrompt": "Please enter the topic or product you want to innovate here:",
+            "caExample": "Example: How to increase customer traffic and revenue for traditional bookstores to cope with e-commerce competition?",
+            "runCA": "✨ Start AI Creative Analysis",
+            "conclusionTitle": "Conclusion and Discussion",
+            "mindmapCaption": "Course summary mind map (Click to enlarge)",
+            "summaryList": `<li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>One critical thinking integration:</b> The interaction between logical thinking (left brain) and creative thinking (right brain).</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Two essential logics:</b> Deductive and inductive methods.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Three levels of consideration:</b> Problem level, logical reasoning level, conclusion and action level.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Four cyclical steps:</b> Use PDCA to handle logical problems, use IDEA framework to stimulate innovation.</span></li><li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>Five systematic modules:</b> SA grasps the big picture, PA traces root causes, PPA prevents risks, DA makes wise choices, CA breaks through frameworks.</span></li>`,
+            "keyInsights": "Key Insights",
+            "keyInsightsList": `<li class="flex items-start"><span class="text-green-500 font-bold mr-3 mt-1">💡</span> <span><b>Systematic thinking is not innate talent, but learnable skills.</b> Through deliberate practice of PSDM methods, anyone can improve their problem-solving and decision-making abilities.</span></li><li class="flex items-start"><span class="text-green-500 font-bold mr-3 mt-1">💡</span> <span><b>AI is a powerful thinking partner, not a replacement for human judgment.</b> The key is learning how to ask the right questions and guide AI to provide valuable insights.</span></li><li class="flex items-start"><span class="text-green-500 font-bold mr-3 mt-1">💡</span> <span><b>The essence of innovation lies in deep insight into user needs,</b> not wild imagination. Start from problems, not solutions.</span></li><li class="flex items-start"><span class="text-green-500 font-bold mr-3 mt-1">💡</span> <span><b>Good decisions come from structured processes, not intuition.</b> Transparent criteria and objective evaluation can avoid decision-making blind spots.</span></li>`,
+            "practiceRecommendations": "Practice Recommendations",
+            "practiceList": `<li class="flex items-start"><span class="text-purple-500 font-bold mr-3 mt-1">🎯</span> <span><b>Start with simple daily problems:</b> Use SA to organize your weekly work priorities, use PA to analyze why certain habits are hard to maintain.</span></li><li class="flex items-start"><span class="text-purple-500 font-bold mr-3 mt-1">🎯</span> <span><b>Form thinking habits:</b> When encountering problems, first ask 'What type of problem is this?' before jumping to solutions.</span></li><li class="flex items-start"><span class="text-purple-500 font-bold mr-3 mt-1">🎯</span> <span><b>Practice with AI:</b> Use the interactive exercises in this course to familiarize yourself with each module's thinking patterns.</span></li><li class="flex items-start"><span class="text-purple-500 font-bold mr-3 mt-1">🎯</span> <span><b>Team application:</b> Introduce PSDM methods in team meetings to improve collective decision-making quality.</span></li>`,
+            "downloadButton": "Download Practice File (PSDM Excel Template.xlsx)",
+            "finalGoal": "<b>Ultimate Goal:</b> Led by human wisdom and judgment, harness AI's computational power and vast knowledge base to become an irreplaceable talent in the future workplace."
+        }
+    };
+
+    // --- Language Switcher Logic ---
+    function switchLanguage(lang) {
+        // Set lang attribute on html tag
+        document.documentElement.lang = lang;
+
+        // Apply translations
+        const elements = document.querySelectorAll('[data-lang-key]');
+        elements.forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            if (translations[lang] && translations[lang][key]) {
+                el.innerHTML = translations[lang][key];
+            }
+        });
+        
+        // Apply placeholder translations
+        const placeholderElements = document.querySelectorAll('[data-lang-key-placeholder]');
+        placeholderElements.forEach(el => {
+            const key = el.getAttribute('data-lang-key-placeholder');
+            if (translations[lang] && translations[lang][key]) {
+                el.placeholder = translations[lang][key];
+            }
+        });
+
+        // Update active button style
+        document.getElementById('lang-tw-btn').classList.toggle('active', lang === 'zh-TW');
+        document.getElementById('lang-cn-btn').classList.toggle('active', lang === 'zh-CN');
+        document.getElementById('lang-vi-btn').classList.toggle('active', lang === 'vi');
+
+        // Save preference
+        localStorage.setItem('preferredLanguage', lang);
+    }
+
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load preferred language or default to zh-TW
+        const preferredLanguage = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        switchLanguage(preferredLanguage);
+        
+        // Show the first section by default
+        showSection('overview');
+        // Setup dynamic placeholders
+        setupDynamicPlaceholders();
+    });
+
+    // --- Tab Navigation ---
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Deactivate all tabs
+        document.querySelectorAll('#tab-nav .tab-button').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Show selected section and activate corresponding tab
+        document.getElementById(sectionId).classList.add('active');
+        const activeButton = document.querySelector(`#tab-nav .tab-button[onclick="showSection('${sectionId}')"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            apiProvider = this.value;
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        const messages = {
+            "zh-TW": {
+                success: `API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`,
+                successNoEndpoint: `API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`,
+                endpointNeeded: '使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。',
+                keyNeeded: '請輸入有效的 API 金鑰。'
+            },
+            "zh-CN": {
+                success: `API 密钥与 Endpoint 已保存！您现在选择的服务是 ${apiProvider.toUpperCase()}。`,
+                successNoEndpoint: `API 密钥已保存！您现在选择的服务是 ${apiProvider.toUpperCase()}。`,
+                endpointNeeded: '使用 Copilot (Azure) 时，请务必输入您的 Endpoint URL。',
+                keyNeeded: '请输入有效的 API 密钥。'
+            },
+            "vi": {
+                success: `Đã lưu khóa API và Endpoint! Dịch vụ bạn đang chọn là ${apiProvider.toUpperCase()}.`,
+                successNoEndpoint: `Đã lưu khóa API! Dịch vụ bạn đang chọn là ${apiProvider.toUpperCase()}.`,
+                endpointNeeded: 'Khi sử dụng Copilot (Azure), vui lòng nhập URL Endpoint của bạn.',
+                keyNeeded: 'Vui lòng nhập khóa API hợp lệ.'
+            },
+            "en": {
+                success: `API key and Endpoint saved! Your selected service is ${apiProvider.toUpperCase()}.`,
+                successNoEndpoint: `API key saved! Your selected service is ${apiProvider.toUpperCase()}.`,
+                endpointNeeded: 'When using Copilot (Azure), please enter your Endpoint URL.',
+                keyNeeded: 'Please enter a valid API key.'
+            }
+        };
+        
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(messages[currentLang].success);
+                } else {
+                    alert(messages[currentLang].endpointNeeded);
+                    return;
+                }
+            } else {
+                 alert(messages[currentLang].successNoEndpoint);
+            }
+        } else {
+            alert(messages[currentLang].keyNeeded);
+        }
+    }
+
+    // --- AI Interaction Logic ---
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+        const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        
+        let langInstruction = '請使用繁體中文回答。'; // Default
+        if (currentLang === 'zh-CN') {
+            langInstruction = '请使用简体中文回答。';
+        } else if (currentLang === 'vi') {
+            langInstruction = 'Vui lòng trả lời bằng tiếng Việt.';
+        } else if (currentLang === 'en') {
+            langInstruction = 'Please respond in English.';
+        }
+        
+        let systemContent = `You are a helpful assistant. ${langInstruction}`;
+
+        try {
+            switch (provider) {
+                case 'gemini':
+                    apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                    body = {
+                        contents: [{ role: "user", parts: [{ text: `${prompt}\n\n指令：${langInstruction}` }] }],
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                        ]
+                    };
+                    break;
+                case 'deepseek':
+                    apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: `You are a professional consultant. ${langInstruction}` },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'chatgpt':
+                    apiUrl = 'https://api.openai.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "gpt-4o",
+                        messages: [
+                            { role: "system", content: systemContent },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'copilot':
+                    apiUrl = endpoint;
+                    headers['api-key'] = apiKey;
+                    body = {
+                        messages: [
+                            { role: "system", content: systemContent },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                default:
+                    return { success: false, error: '未知的 AI 服務提供商。' };
+            }
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = result?.error?.message || JSON.stringify(result);
+                throw new Error(`API 請求失敗 (狀態碼 ${response.status}): ${errorMsg}`);
+            }
+
+            if (provider === 'gemini') {
+                if (result.promptFeedback?.blockReason) {
+                    return { success: false, error: `請求因安全因素被阻擋：${result.promptFeedback.blockReason}` };
+                }
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return { success: true, text: result.candidates[0].content.parts[0].text };
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空 (Gemini)。' };
+            } else { 
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return { success: true, text: result.choices[0].message.content };
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空。' };
+            }
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            let friendlyError = `無法連接至 AI 服務。請檢查您的網路連線、API 金鑰及 Endpoint (如適用) 是否正確。`;
+            if (error.message.includes("API 請求失敗")) {
+                friendlyError = error.message; 
+            } else if (error.name === 'TypeError') {
+                friendlyError += ' 可能的原因是網路問題或 CORS 跨域錯誤。'
+            }
+            return { success: false, error: friendlyError };
+        }
+    }
+
+    async function handleAI(type) {
+        const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        const messages = {
+            "zh-TW": {
+                alertKeyEndpoint: '請先在「AI 設定」分頁中輸入並儲存您的 API 金鑰與 Azure Endpoint！',
+                alertKey: '請先在「AI 設定」分頁中輸入並儲存您的 API 金鑰！',
+                alertInput: '請先輸入您的情境或問題！'
+            },
+            "zh-CN": {
+                alertKeyEndpoint: '请先在「AI 设定」分页中输入并储存您的 API 密钥与 Azure Endpoint！',
+                alertKey: '请先在「AI 设定」分页中输入并储存您的 API 密钥！',
+                alertInput: '请先输入您的情境或问题！'
+            },
+            "vi": {
+                alertKeyEndpoint: 'Vui lòng nhập và lưu khóa API và Azure Endpoint của bạn trong tab "Cài đặt AI" trước!',
+                alertKey: 'Vui lòng nhập và lưu khóa API của bạn trong tab "Cài đặt AI" trước!',
+                alertInput: 'Vui lòng nhập bối cảnh hoặc câu hỏi của bạn trước!'
+            },
+            "en": {
+                alertKeyEndpoint: 'Please enter and save your API key and Azure Endpoint in the "AI Setup" tab first!',
+                alertKey: 'Please enter and save your API key in the "AI Setup" tab first!',
+                alertInput: 'Please enter your context or question first!'
+            }
+        };
+
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert(messages[currentLang].alertKeyEndpoint);
+            showSection('ai-setup');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert(messages[currentLang].alertKey);
+            showSection('ai-setup');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert(messages[currentLang].alertInput);
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = generatePrompt(type, userInput);
+        
+        const result = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+
+        if (result.success) {
+            outputElement.innerHTML = marked.parse(result.text);
+        } else {
+            outputElement.innerHTML = `<div class="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                <p class="font-bold">Đã xảy ra lỗi</p>
+                <p class="mt-2 text-sm">${result.error}</p>
+            </div>`;
+        }
+    }
+
+    function generatePrompt(type, userInput) {
+        const selectedCaMethod = document.querySelector('input[name="ca-method"]:checked')?.value;
+        const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        
+        let langPrompt = '請以繁體中文'; // Default
+        if (currentLang === 'zh-CN') {
+            langPrompt = '请以简体中文';
+        } else if (currentLang === 'vi') {
+            langPrompt = 'vui lòng trả lời bằng tiếng Việt';
+        } else if (currentLang === 'en') {
+            langPrompt = 'please respond in English';
+        }
+
+
+        switch (type) {
+            case 'sa':
+                return `作為一名頂尖的管理顧問，請對以下複雜情況進行狀況評估(SA)。請遵循以下結構化步驟，並以${langPrompt}回答：
+### 1. 識別與歸納議題 (MECE原則)
+從使用者描述中，提取所有關注點，並運用MECE原則將它們歸納成幾個獨立且完整的核心議題。
+### 2. 優先級評估 (SUG評分)
+為每個核心議題，從嚴重性(S)、緊急性(U)、未來性(G)三個維度進行1-10分的評分，並計算總分以確定優先順序。請以Markdown表格呈現。
+### 3. 建議行動流程
+針對最高優先級的議題，明確建議下一步應進入哪個分析流程 (PA, DA, 或 PPA)，並簡述理由。
+
+使用者情境：\n${userInput}`;
+            case 'pa':
+                const selectedPaMethod = document.querySelector('input[name="pa-method"]:checked').value;
+                if (selectedPaMethod === 'isisnot') {
+                    return `作為一名經驗豐富的品管專家，請使用Kepner-Tregoe的IS/IS NOT方法，對以下問題進行深入分析。請遵循以下結構，並以${langPrompt}回答：
+### 1. 問題定義
+精確定義問題的「主體」與「偏差」。
+### 2. IS / IS NOT 分析表
+建立一個Markdown表格，從What, Where, When, Extent四個構面，詳細列出問題的「IS(是)」與「IS NOT(不是)」的事實。
+- 在 **Where** 構面，請明確區分 **Location(大地點)** 和 **Position(小位置)**。
+- 在 **When** 構面，請明確區分 **Time(時間點)**、**Pattern(模式，如：週期性、持續性、偶發性)** 和 **Life Cycle(生命週期)**。
+### 3. 差異點與變化分析
+基於上表，找出最關鍵的「差異點」和「相關變化」。
+### 4. 最可能原因(MPC)推論
+根據差異點和變化，提出1-3個最可能的原因，並詳細解釋你的推論邏輯。
+### 5. 驗證建議
+提出具體的下一步行動建議，以驗證你所推論的最可能原因。
+
+使用者問題描述：\n${userInput}`;
+                } else if (selectedPaMethod === 'pmanalysis') {
+                    return `你是一位精通 PM Analysis (Physical Mechanism Analysis) 的工程專家。請嚴格遵循以下五個步驟，對使用者提出的問題進行分析，並以${langPrompt}回答。請用漏油問題的例子來思考並對應說明：
+### 1. 現象 (Phenomenon)
+明確化異常現象，不帶任何推測。
+### 2. 物理現象 (Physical Phenomenon)
+找出可直接觀察或量測的物理量變化。例如：間隙增大、壓力超限、表面龜裂。
+### 3. 物理機制 (Physical Mechanism)
+用物理定律或機械原理解釋物理現象的成因。例如：壓力-面積關係(F=P*A)、熱膨脹差異、材料疲勞。
+### 4. 原因 (Cause)
+從物理機制回推到實際造成此狀況的根本原因。例如：設計壓縮率不足、材質耐溫不足、安裝不良。
+### 5. 驗證 (Verification)
+設計具體的實驗或測試方法，來驗證假設的機制與原因是否正確。
+
+使用者問題描述：\n${userInput}`;
+                } else if (selectedPaMethod === 'whywhy') {
+                    return `你是一位經驗豐富的根本原因分析(RCA)專家。請針對以下問題，嚴格使用 3x5 Why 分析法，從三個構面進行深入探討，並以${langPrompt}回答：
+### 1. 發生端 (Occurrence)
+為什麼問題會「發生」？(此處應探討物理或技術上的直接原因)
+- Why 1: ...
+- Why 2: ...
+- Why 3: ...
+### 2. 逃脫端 (Escape)
+為什麼問題發生後，沒有在源頭被「偵測到」或預防？(此處應探討控制或檢測系統的失效)
+- Why 1: ...
+- Why 2: ...
+- Why 3: ...
+### 3. 系統端 (System)
+為什麼我們的「管理系統或流程」允許這個問題發生？(此處應探討流程、標準或管理上的根本原因)
+- Why 1: ...
+- Why 2: ...
+- Why 3: ...
+請為每個構面都進行至少三層的 Why-Why 分析，並以結構化的方式呈現結果。
+
+使用者問題描述：\n${userInput}`;
+                } else if (selectedPaMethod === 'datadriven') {
+                    return `作為一名數據分析專家，請根據以下問題描述和相關數據，運用數據驅動的問題分析方法，找出問題的根本原因並提出改善建議。請遵循以下結構，並以${langPrompt}回答：
+### 1. 問題概述與數據洞察
+簡要概述問題，並從提供的數據中提煉出關鍵的數據洞察（例如：趨勢、異常、分佈等）。
+### 2. 潛在原因假設
+基於數據洞察，提出至少3個導致問題的潛在原因假設。
+### 3. 數據驗證與分析
+說明如何進一步利用數據（或需要哪些額外數據）來驗證這些假設，並闡述數據將如何支持或反駁這些假設。
+### 4. 根本原因推論與建議
+根據目前的數據和分析，推論最可能的根本原因，並提出具體的改善建議。
+
+使用者問題描述：\n${userInput}`;
+                }
+                return `你是一位根本原因分析專家，請根據使用者選擇的 ${selectedPaMethod} 方法，對以下問題進行分析，並以結構化、條列式的方式呈現結果。請用${langPrompt}回答。\n\n使用者問題描述：${userInput}`;
+            case 'ppa':
+                return `作為一名資深的風險管理師，請使用潛在問題分析(PPA)/FMEA方法，為以下計畫進行風險分析。請遵循以下結構，並以${langPrompt}回答：
+### 1. 潛在問題識別
+針對計畫的關鍵步驟，腦力激盪出至少5個潛在的風險或問題點。
+### 2. RPN風險評估表
+建立一個Markdown表格，對每個風險評估其嚴重性(S)、發生率(O)與難檢測度(D) (1-10分)，並計算RPN (S*O*D)。
+### 3. 高風險項目分析
+選出RPN最高的2-3個風險。
+### 4. 預防與應變對策
+針對選出的高風險項目，分別提出具體的「預防行動(Plan A)」以降低發生率，以及「應變行動(Plan B)」以降低衝擊或提高檢測率。
+
+使用者計畫：\n${userInput}`;
+            case 'da':
+                return `作為一名理性的決策分析專家，請使用決策分析(DA)方法，協助使用者做決定。請遵循以下結構，並以${langPrompt}回答：
+### 1. 決策目標與標準
+明確決策目標，並從使用者輸入中區分出「必要條件(Musts)」和「想要條件(Wants)」及其權重。
+### 2. 決策矩陣評分
+建立一個Markdown表格。先用Musts篩選選項。然後對通過篩選的選項，根據Wants逐項評分(1-10分)，並計算加權總分。
+### 3. 風險分析
+針對加權分數最高的1-2個選項，分析其潛在的負面風險(Adverse Consequences)。
+### 4. 最終決策建議
+綜合分數與風險分析，提出一個明確的決策建議，並說明理由。
+
+使用者決策情境：\n${userInput}`;
+            case 'ca':
+                if (selectedCaMethod === 'vpc') {
+                    return `你是一位市場策略專家，請嚴格使用「價值主張圖 (Value Proposition Canvas)」框架，針對以下主題進行分析。**禁止**使用任何其他框架（如Vision, Problem, Solution）。請遵循以下結構，並以${langPrompt}回答：
+### 1. 顧客輪廓 (Customer Profile) - 右側
+- **顧客任務 (Customer Jobs):** 顧客試圖完成什麼？
+- **痛點 (Pains):** 什麼困擾著顧客？
+- **獲益 (Gains):** 顧客想獲得什麼？
+### 2. 價值地圖 (Value Map) - 左側
+- **產品與服務 (Products & Services):** 你的產品是什麼？
+- **痛點解方 (Pain Relievers):** 你的產品如何緩解顧客痛點？
+- **獲益創造者 (Gain Creators):** 你的產品如何為顧客創造獲益？
+### 3. 契合度分析
+簡要說明你的價值地圖如何與顧客輪廓相契合。
+
+使用者主題：\n${userInput}`;
+                }
+                return `作為一名充滿創意的創新顧問，請使用「${selectedCaMethod}」方法，針對以下主題，發想創新的點子。請提供結構化、具體且有創意的想法。請用${langPrompt}回答。\n\n使用者主題：${userInput}`;
+        }
+    }
+
+    // --- Load Example & Dynamic Placeholder Logic ---
+    function loadExample(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        if (textarea) {
+            const placeholderKey = textarea.getAttribute('data-lang-key-placeholder');
+            const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+            const exampleText = translations[currentLang][placeholderKey].replace(/^例如：/, '').replace(/^例如:/, '').replace(/^Ví dụ: /, '').trim();
+            textarea.value = exampleText;
+            textarea.focus();
+        }
+    }
+
+    function setupDynamicPlaceholders() {
+        // PA Dynamic Placeholder
+        const paRadioButtons = document.querySelectorAll('input[name="pa-method"]');
+        const paTextarea = document.getElementById('pa-input');
+        const paExamples = {
+            "zh-TW": {
+                isisnot: "例如：A款手機外殼塗漆出現裂縫。問題只發生在台中廠的A產線 (Location: 大地點)，且集中在外殼的右上角 (Position: 小位置)。問題是從昨天(Time: 時間點)開始，呈現週期性發生(Pattern: 模式)，且通常在早上10點的班次(Life Cycle: 生命週期)出現。高雄廠的A產線、B款手機、或昨天以前則正常。",
+                whywhy: "例如：我們發現產品在客戶端的故障率增加了5%，即使我們在出貨前已經有全檢程序。",
+                pmanalysis: "例如：我們公司的油壓缸缸蓋右側，最近觀察到持續滲油，地面有油滴。",
+                datadriven: "例如：某電商平台發現，過去三個月『顧客抱怨商品品質』的數量增加了20%。經初步統計，這些抱怨主要集中在『服飾類商品』，且多數抱怨發生在『收到商品後一週內』。平台希望透過數據分析，找出導致品質抱怨增加的根本原因，並提出改善建議。",
+                "8dreport": "例如：我們的客戶 XYZ 公司投訴，上一批交付的零件 (料號 #12345) 有 10% 的比例出現表面刮痕。"
+            },
+            "zh-CN": {
+                isisnot: "例如：A款手机外壳涂漆出现裂缝。问题只发生在台中厂的A产线 (Location: 大地点)，且集中在外壳的右上角 (Position: 小位置)。问题是从昨天(Time: 时间点)开始，呈现周期性发生(Pattern: 模式)，且通常在早上10点的班次(Life Cycle: 生命周期)出现。高雄厂的A产线、B款手机、或昨天以前则正常。",
+                whywhy: "例如：我们发现产品在客户端的故障率增加了5%，即使我们在出货前已经有全检程序。",
+                pmanalysis: "例如：我们公司的油压缸缸盖右侧，最近观察到持续渗油，地面有油滴。",
+                datadriven: "例如：某电商平台发现，过去三个月『顾客抱怨商品质量』的数量增加了20%。经初步统计，这些抱怨主要集中在『服饰类商品』，且多数抱怨发生在『收到商品后一周内』。平台希望通过数据分析，找出导致质量抱怨增加的根本原因，并提出改进建议。",
+                "8dreport": "例如：我们的客户 XYZ 公司投诉，上一批交付的零件 (料号 #12345) 有 10% 的比例出现表面刮痕。"
+            },
+            "vi": {
+                isisnot: "Ví dụ: Lớp sơn vỏ điện thoại mẫu A bị nứt. Vấn đề chỉ xảy ra trên dây chuyền A của nhà máy Đài Trung (Location: địa điểm lớn), và tập trung ở góc trên bên phải của vỏ (Position: vị trí nhỏ). Vấn đề bắt đầu từ hôm qua (Time: thời điểm), xảy ra theo chu kỳ (Pattern: quy luật), và thường xuất hiện vào ca làm việc lúc 10 giờ sáng (Life Cycle: vòng đời). Dây chuyền A của nhà máy Cao Hùng, điện thoại mẫu B, hoặc trước ngày hôm qua đều bình thường.",
+                whywhy: "Ví dụ: Chúng tôi phát hiện tỷ lệ hỏng hóc của sản phẩm tại phía khách hàng đã tăng 5%, mặc dù chúng tôi đã có quy trình kiểm tra toàn bộ trước khi xuất hàng.",
+                pmanalysis: "Ví dụ: Gần đây, chúng tôi quan sát thấy có hiện tượng rò rỉ dầu liên tục ở phía bên phải nắp xi lanh thủy lực của công ty, có giọt dầu trên sàn.",
+                datadriven: "Ví dụ: Một nền tảng thương mại điện tử phát hiện số lượng 'khiếu nại về chất lượng sản phẩm của khách hàng' đã tăng 20% trong ba tháng qua. Theo thống kê sơ bộ, những khiếu nại này chủ yếu tập trung vào 'sản phẩm quần áo' và hầu hết các khiếu nại xảy ra 'trong vòng một tuần sau khi nhận hàng'. Nền tảng hy vọng thông qua phân tích dữ liệu, tìm ra nguyên nhân gốc rễ dẫn đến việc tăng khiếu nại về chất lượng và đưa ra các đề xuất cải thiện.",
+                "8dreport": "Ví dụ: Khách hàng của chúng tôi, công ty XYZ, phàn nàn rằng lô hàng linh kiện (mã số #12345) được giao gần đây có 10% bị trầy xước bề mặt."
+            },
+            "en": {
+                isisnot: "Example: Model A phone case paint cracking. The problem only occurs on Production Line A at Taichung Factory (Location: large location), and is concentrated on the upper right corner of the case (Position: small position). The problem started yesterday (Time: time point), occurs cyclically (Pattern: pattern), and usually appears during the 10 AM shift (Life Cycle: life cycle). Production Line A at Kaohsiung Factory, Model B phones, or before yesterday are all normal.",
+                whywhy: "Example: We found that the product failure rate at the customer end increased by 5%, even though we have a full inspection process before shipment.",
+                pmanalysis: "Example: Recently, we observed continuous oil leakage on the right side of our company's hydraulic cylinder head, with oil drops on the ground.",
+                datadriven: "Example: An e-commerce platform found that the number of 'customer complaints about product quality' increased by 20% in the past three months. Preliminary statistics show that these complaints are mainly concentrated in 'apparel products', and most complaints occurred 'within one week of receiving the goods'. The platform hopes to use data analysis to find the root cause of the increase in quality complaints and propose improvement suggestions.",
+                "8dreport": "Example: Our customer XYZ Company complained that 10% of the recently delivered parts (part number #12345) have surface scratches."
+            }
+        };
+        paRadioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    const lang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+                    paTextarea.placeholder = paExamples[lang][this.value] || "請輸入問題描述...";
+                }
+            });
+        });
+
+        // CA Dynamic Placeholder
+        const caRadioButtons = document.querySelectorAll('input[name="ca-method"]');
+        const caTextarea = document.getElementById('ca-input');
+        const caExamples = {
+            "zh-TW": {
+                scamper: "例如：如何提升實體書店的來客數與營收，以應對電商的衝擊？",
+                triz: "例如：我想要手機電池續航力更長(增強)，但又不希望電池體積變大變重(減弱)。",
+                sixhats: "例如：公司是否應該全面推行居家辦公(WFH)政策？",
+                designthinking: "例如：如何改善大學生在校園內的用餐體驗？",
+                vpc: "例如：為忙碌但注重健康的都市上班族，設計一款個人化的訂閱制健康餐盒服務。",
+                bmc: "例如：承接VPC的分析，為『個人化訂閱制健康餐盒』服務規劃一個完整的商業模式。",
+                pyramid: "例如：我想向管理層提議，公司應該投資導入新的AI客服系統。"
+            },
+            "zh-CN": {
+                scamper: "例如：如何提升实体书店的来客数与营收，以应对电商的冲击？",
+                triz: "例如：我想要手机电池续航力更长(增强)，但又不希望电池体积变大变重(减弱)。",
+                sixhats: "例如：公司是否应该全面推行居家办公(WFH)政策？",
+                designthinking: "例如：如何改善大学生在校园内的用餐体验？",
+                vpc: "例如：为忙碌但注重健康的都市上班族，设计一款个人化的订阅制健康餐盒服务。",
+                bmc: "例如：承接VPC的分析，为『个人化订阅制健康餐盒』服务规划一个完整的商业模式。",
+                pyramid: "例如：我想向管理层提议，公司应该投资导入新的AI客服系统。"
+            },
+            "vi": {
+                scamper: "Ví dụ: Làm thế nào để tăng lượng khách và doanh thu cho các hiệu sách truyền thống để đối phó với sự cạnh tranh từ thương mại điện tử?",
+                triz: "Ví dụ: Tôi muốn pin điện thoại có thời lượng sử dụng lâu hơn (tăng cường), nhưng không muốn pin to và nặng hơn (suy yếu).",
+                sixhats: "Ví dụ: Công ty có nên triển khai chính sách làm việc tại nhà (WFH) toàn diện không?",
+                designthinking: "Ví dụ: Làm thế nào để cải thiện trải nghiệm ăn uống của sinh viên trong khuôn viên trường đại học?",
+                vpc: "Ví dụ: Thiết kế một dịch vụ hộp cơm sức khỏe đăng ký theo cá nhân hóa cho nhân viên văn phòng thành thị bận rộn nhưng quan tâm đến sức khỏe.",
+                bmc: "Ví dụ: Tiếp nối phân tích VPC, lập kế hoạch một mô hình kinh doanh hoàn chỉnh cho dịch vụ 'hộp cơm sức khỏe đăng ký theo cá nhân hóa'.",
+                pyramid: "Ví dụ: Tôi muốn đề xuất với ban quản lý rằng công ty nên đầu tư vào việc triển khai một hệ thống dịch vụ khách hàng AI mới."
+            },
+            "en": {
+                scamper: "Example: How to increase customer traffic and revenue for traditional bookstores to cope with e-commerce competition?",
+                triz: "Example: I want phone batteries to last longer (enhancement), but don't want the battery to become larger and heavier (weakening).",
+                sixhats: "Example: Should the company fully implement a work-from-home (WFH) policy?",
+                designthinking: "Example: How to improve the dining experience of college students on campus?",
+                vpc: "Example: Design a personalized subscription healthy meal box service for busy but health-conscious urban office workers.",
+                bmc: "Example: Following the VPC analysis, plan a complete business model for the 'personalized subscription healthy meal box' service.",
+                pyramid: "Example: I want to propose to management that the company should invest in implementing a new AI customer service system."
+            }
+        };
+        caRadioButtons.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    const lang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+                    caTextarea.placeholder = caExamples[lang][this.value] || "請輸入主題...";
+                }
+            });
+        });
+    }
+    
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        "zh-TW": {
+            'q1-sa': 'SA的核心是面對複雜情況時，先進行系統性的拆解與排序，以掌握全局，而非直接跳入解決方案。',
+            'q2-sa': 'MECE (Mutually Exclusive, Collectively Exhaustive) 意思是「相互獨立，完全窮盡」，是確保邏輯結構嚴謹的黃金法則。',
+            'q1-pa': 'PA的精髓在於透過比較「發生(IS)」與「未發生(IS NOT)」的各項條件，找出其中的「差異」，這些差異點就是找到根本原因的關鍵線索。',
+            'q2-pa': '找到最可能原因(MPC)後，必須用它來反向驗證，看它是否能合理解釋所有已知的事實(IS/IS NOT)，通過驗證才能確認為真因。',
+            'q1-ppa': 'RPN是風險管理的量化工具，透過綜合評估風險的嚴重性、發生可能性與被檢測的難易度，來客觀地排出風險的優先級。',
+            'q2-ppa': 'Plan B (應變行動) 的目的是，當風險不幸真的發生時，能有預案來降低其造成的損害或衝擊。準備備用零件就是典型的Plan B。',
+            'q1-da': 'Musts是決策的硬性門檻，任何選項若不滿足Musts，無論在Wants上得分多高，都應直接淘汰，這能有效率地縮小選擇範圍。',
+            'q2-da': '不同的決策標準其重要性也不同。設定權重是為了讓最終的總分能真實反映出我們對不同標準的重視程度。',
+            'q1-ca': 'IDEA框架的第一步是從洞察(Insight)開始，這需要我們深入使用者情境，用同理心去感受他們的痛點與爽點，這是所有創新的源頭。',
+            'q2-ca': 'SCAMPER是一個腦力激盪的檢查表，C代表Combine(結合)，鼓勵我們思考能否將不同的事物、功能或點子結合在一起，創造出新的價值。'
+        },
+        "zh-CN": {
+            'q1-sa': 'SA的核心是面对复杂情况时，先进行系统性的拆解与排序，以掌握全局，而非直接跳入解决方案。',
+            'q2-sa': 'MECE (Mutually Exclusive, Collectively Exhaustive) 意思是「相互独立，完全穷尽」，是确保逻辑结构严谨的黄金法则。',
+            'q1-pa': 'PA的精髓在于透过比较「发生(IS)」与「未发生(IS NOT)」的各项条件，找出其中的「差异」，这些差异点就是找到根本原因的关键线索。',
+            'q2-pa': '找到最可能原因(MPC)后，必须用它来反向验证，看它是否能合理解释所有已知的事实(IS/IS NOT)，通过验证才能确认为真因。',
+            'q1-ppa': 'RPN是风险管理的量化工具，透过综合评估风险的严重性、发生可能性与被检测的难易度，来客观地排出风险的优先级。',
+            'q2-ppa': 'Plan B (应变行动) 的目的是，当风险不幸真的发生时，能有预案来降低其造成的损害或冲击。准备备用零件就是典型的Plan B。',
+            'q1-da': 'Musts是决策的硬性门槛，任何选项若不满足Musts，无论在Wants上得分多高，都应直接淘汰，这能有效率地缩小选择范围。',
+            'q2-da': '不同的决策标准其重要性也不同。设定权重是为了让最终的总分能真实反映出我们对不同标准的重视程度。',
+            'q1-ca': 'IDEA框架的第一步是从洞察(Insight)开始，这需要我们深入使用者情境，用同理心去感受他们的痛点与爽点，这是所有创新的源头。',
+            'q2-ca': 'SCAMPER是一个脑力激荡的检查表，C代表Combine(结合)，鼓励我们思考能否将不同的事物、功能或点子结合在一起，创造出新的价值。'
+        },
+        "vi": {
+            'q1-sa': 'Cốt lõi của SA là khi đối mặt với tình huống phức tạp, trước tiên cần phân tách và sắp xếp một cách có hệ thống để nắm bắt toàn cục, thay vì nhảy ngay vào giải pháp.',
+            'q2-sa': 'MECE (Mutually Exclusive, Collectively Exhaustive) có nghĩa là "loại trừ lẫn nhau, bao hàm toàn diện", là quy tắc vàng để đảm bảo cấu trúc logic chặt chẽ.',
+            'q1-pa': 'Tinh hoa của PA nằm ở việc so sánh các điều kiện "xảy ra (IS)" và "không xảy ra (IS NOT)" để tìm ra "sự khác biệt", những điểm khác biệt này là manh mối quan trọng để tìm ra nguyên nhân gốc rễ.',
+            'q2-pa': 'Sau khi tìm thấy nguyên nhân có khả năng cao nhất (MPC), cần phải dùng nó để kiểm chứng ngược lại, xem nó có thể giải thích hợp lý tất cả các sự thật đã biết (IS/IS NOT) hay không. Chỉ khi qua kiểm chứng mới có thể xác nhận là nguyên nhân thực sự.',
+            'q1-ppa': 'RPN là công cụ định lượng trong quản lý rủi ro, thông qua việc đánh giá tổng hợp mức độ nghiêm trọng, khả năng xảy ra và độ khó phát hiện của rủi ro để sắp xếp thứ tự ưu tiên một cách khách quan.',
+            'q2-ppa': 'Mục đích của Kế hoạch B (hành động ứng phó) là khi rủi ro không may xảy ra, có sẵn phương án để giảm thiểu thiệt hại hoặc tác động. Chuẩn bị phụ tùng thay thế là một ví dụ điển hình của Kế hoạch B.',
+            'q1-da': 'Musts là ngưỡng cứng trong việc ra quyết định. Bất kỳ lựa chọn nào không đáp ứng Musts, dù điểm Wants cao đến đâu, cũng nên bị loại bỏ ngay lập tức, điều này giúp thu hẹp phạm vi lựa chọn một cách hiệu quả.',
+            'q2-da': 'Tầm quan trọng của các tiêu chí quyết định khác nhau là khác nhau. Việc đặt trọng số là để tổng điểm cuối cùng có thể phản ánh chân thực mức độ chúng ta coi trọng các tiêu chí khác nhau.',
+            'q1-ca': 'Bước đầu tiên của khung IDEA là bắt đầu từ sự thấu hiểu (Insight), điều này đòi hỏi chúng ta phải đi sâu vào bối cảnh của người dùng, dùng sự đồng cảm để cảm nhận những nỗi đau và lợi ích của họ, đây là nguồn gốc của mọi sự đổi mới.',
+            'q2-ca': 'SCAMPER là một danh sách kiểm tra cho brainstorming, C đại diện cho Combine (Kết hợp), khuyến khích chúng ta suy nghĩ về việc liệu có thể kết hợp các sự vật, chức năng hoặc ý tưởng khác nhau lại với nhau để tạo ra giá trị mới hay không.'
+        },
+        "en": {
+            'q1-sa': 'The core of SA is to systematically break down and prioritize complex situations to grasp the overall picture, rather than jumping directly into solutions.',
+            'q2-sa': 'MECE (Mutually Exclusive, Collectively Exhaustive) means "mutually independent, completely exhaustive", which is the golden rule for ensuring rigorous logical structure.',
+            'q1-pa': 'The essence of PA lies in comparing the conditions of "occurrence (IS)" and "non-occurrence (IS NOT)" to find the "differences", which are key clues to finding the root cause.',
+            'q2-pa': 'After finding the Most Probable Cause (MPC), it must be used for reverse verification to see if it can reasonably explain all known facts (IS/IS NOT). Only after verification can it be confirmed as the true cause.',
+            'q1-ppa': 'RPN is a quantitative tool for risk management, objectively prioritizing risks through comprehensive assessment of risk severity, occurrence probability, and detection difficulty.',
+            'q2-ppa': 'The purpose of Plan B (contingent action) is to have a contingency plan to reduce damage or impact when risks unfortunately occur. Preparing spare parts is a typical example of Plan B.',
+            'q1-da': 'Musts are hard thresholds for decision-making. Any option that does not meet Musts should be eliminated directly, regardless of how high it scores on Wants, which efficiently narrows down the choice range.',
+            'q2-da': 'Different decision criteria have different importance levels. Setting weights is to ensure the final total score truly reflects our emphasis on different criteria.',
+            'q1-ca': 'The first step of the IDEA framework starts with Insight, which requires us to deeply understand user contexts and empathetically feel their pain points and gains, which is the source of all innovation.',
+            'q2-ca': 'SCAMPER is a brainstorming checklist, where C stands for Combine, encouraging us to think about whether different things, functions, or ideas can be combined to create new value.'
+        }
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('div[data-correct]');
+        let score = 0;
+        const currentLang = localStorage.getItem('preferredLanguage') || 'zh-TW';
+        const currentExplanations = quizExplanations[currentLang];
+        const messages = {
+            "zh-TW": { correct: "答對了！", incorrect: "答錯了。", notAnswered: "您未選擇答案。", scoreText: "您的得分:", explanationPrefix: "正確答案是" },
+            "zh-CN": { correct: "答对了！", incorrect: "答错了。", notAnswered: "您未选择答案。", scoreText: "您的得分:", explanationPrefix: "正确答案是" },
+            "vi": { correct: "Đúng rồi!", incorrect: "Sai rồi.", notAnswered: "Bạn chưa chọn câu trả lời.", scoreText: "Điểm của bạn:", explanationPrefix: "Đáp án đúng là" },
+            "en": { correct: "Correct!", incorrect: "Incorrect.", notAnswered: "You haven't selected an answer.", scoreText: "Your score:", explanationPrefix: "The correct answer is" }
+        };
+        const currentMessages = messages[currentLang];
+
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.innerHTML = `✅ <strong>${currentMessages.correct}</strong> ${currentExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.innerHTML = `❌ <strong>${currentMessages.incorrect}</strong> ${currentMessages.explanationPrefix} (${correctAnswer.toUpperCase()}).<br>${currentExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.innerHTML = `<strong>${currentMessages.notAnswered}</strong> ${currentMessages.explanationPrefix} (${correctAnswer.toUpperCase()}).<br>${currentExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `${currentMessages.scoreText} ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

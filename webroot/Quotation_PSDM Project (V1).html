@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IC 後段服務報價儀表板</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+  <!-- React 18 UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <!-- Babel for JSX in-browser transpile -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+  <!-- SheetJS for XLSX export (guarded in code) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+  <style>
+    html, body, #root { height: 100%; margin: 0; padding: 0; background-color: #f8fafc; }
+    /* subtle radial background for better aesthetics */
+    body { background-image: radial-gradient(1200px 600px at 10% -10%, rgba(148,163,184,.15), transparent), radial-gradient(1000px 500px at 90% 10%, rgba(203,213,225,.2), transparent); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // --- Icons ---
+    const Plus = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    );
+    const Download = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+    );
+    const RefreshCw = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+    );
+    const Sparkles = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8-5.8 1.9 5.8 1.9 1.9 5.8 1.9-5.8 5.8-1.9-5.8-1.9z"/></svg>
+    );
+
+    // --- UI Primitives ---
+    const Card = ({ children, className = "" }) => (
+      <div className={`bg-white border border-slate-200 rounded-2xl shadow-sm ${className}`}>{children}</div>
+    );
+    const CardHeader = ({ children }) => <div className="p-6 border-b border-slate-200">{children}</div>;
+    const CardTitle = ({ children }) => <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">{children}</h3>;
+    const CardContent = ({ children, className = "" }) => <div className={`p-6 ${className}`}>{children}</div>;
+    const Button = ({ children, onClick, variant = 'primary', className = '', disabled = false }) => {
+      const base = "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150";
+      const variants = { primary: 'bg-slate-800 text-white hover:bg-slate-700 focus:ring-slate-500', outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-700 focus:ring-slate-400' };
+      return <button onClick={onClick} disabled={disabled} className={`${base} ${variants[variant]} ${className} disabled:opacity-50 disabled:cursor-not-allowed`}>{children}</button>;
+    };
+    const Input = (props) => <input {...props} className={`block w-full px-3 py-2 text-sm border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 ${props.className||''}`} />;
+    const Label = ({ children, ...props }) => <label {...props} className="block text-sm font-medium text-slate-600">{children}</label>;
+    const Select = ({ value, onChange, children }) => (
+      <select value={value} onChange={onChange} className="block w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500">
+        {children}
+      </select>
+    );
+    const Slider = ({ value, onChange, ...props }) => (
+      <input type="range" value={value} onChange={e => onChange([Number(e.target.value)])} {...props} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+    );
+
+    // --- Mini Bar Chart (pure HTML + Tailwind) ---
+    const MiniBarChart = ({ data, fmt, title = '報價對比 (USD)' }) => {
+      if (!data || data.length === 0) {
+        return (
+          <div className="w-full h-80 flex items-center justify-center text-sm text-slate-600">沒有資料可顯示</div>
+        );
+      }
+      const max = Math.max(...data.map(d => Number(d.USD) || 0)) || 1;
+      const min = Math.min(...data.map(d => Number(d.USD) || 0)) || 0;
+      const magnitude = Math.pow(10, Math.max(0, String(Math.floor(max)).length - 2));
+      const displayMax = Math.ceil(max / magnitude) * magnitude;
+      const gridSteps = 4; // 0%, 25%, 50%, 75%, 100%
+
+      return (
+        <div className="h-80 relative">
+          {/* header */}
+          <div className="flex items-end justify-between mb-2">
+            <div className="text-sm font-medium text-slate-700">{title}</div>
+            <div className="text-xs text-slate-500">單位：USD</div>
+          </div>
+          {/* grid lines */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(gridSteps + 1)].map((_, i) => (
+              <div key={i} className="absolute left-0 right-0 border-t border-slate-200" style={{bottom: `${(i / gridSteps) * 100}%`}}>
+                <div className="absolute -translate-y-1/2 left-1 text-[10px] text-slate-500">
+                  ${fmt((displayMax * (i / gridSteps)), 0)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* bars */}
+          <div className="absolute inset-x-0 bottom-0 top-6 flex items-end gap-3 px-4">
+            {data.map((d, idx) => {
+              const v = Number(d.USD) || 0;
+              const h = Math.max(2, (v / displayMax) * 100);
+              const isBest = v === min;
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center min-w-[72px]">
+                  <div className="w-full bg-slate-200/70 rounded-t-md relative overflow-hidden" style={{height: `${h}%`, transition: 'height 320ms ease'}} aria-label={`${d.name} 金額 ${fmt(v)} 美元`}>
+                    <div className={`absolute inset-x-0 bottom-0 h-full ${isBest ? 'bg-emerald-600' : 'bg-slate-600/80'} rounded-t-md hover:opacity-90`} title={`${d.name}: $${fmt(v)}`} style={{height: '100%', transition: 'opacity 150ms ease'}}></div>
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-slate-800 whitespace-nowrap bg-white/70 px-1.5 rounded">${fmt(v)}</div>
+                    {isBest && <span className="absolute -top-6 right-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Best</span>}
+                  </div>
+                  <div className="mt-2 text-[11px] text-center text-slate-600 leading-tight truncate w-full" title={d.name}>{d.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // --- App ---
+    function ICBackendQuotationDashboard() {
+      const hasXLSX = typeof window.XLSX !== 'undefined';
+
+      // Constants
+      const COUNTRIES = ["Taiwan", "China", "United States", "Japan", "Malaysia", "Philippines", "Vietnam", "South Korea", "Thailand", "Singapore"];
+      const SEGMENTS = ["AI Accelerator", "FPGA Vision", "Other"];
+      const PACKAGES = ["FCBGA", "CoWoS-S", "CoWoS-L", "2.5D + Si Interposer", "FOPLP", "Fan-Out"];
+
+      // Labels moved ABOVE all usage to avoid TDZ surprises
+      const labelMap = {
+        projectName: "專案名稱", customer: "客戶", segment: "產品別", packageType: "封裝型態",
+        dieCount: "Die 數", nodeNm: "製程節點 (nm)", waferCostPerDie: "Wafer 成本/Die (USD)",
+        substrateCost: "基板成本 (USD)", interposerCost: "中介層/Si Interposer (USD)",
+        bumpingCost: "凸點/鍍錫 (USD)", assemblyCost: "組裝成本 (USD)", testCost: "測試成本 (USD)",
+        yieldWafer: "良率-前段 (%)", yieldAssembly: "良率-組裝 (%)", yieldFinal: "良率-最終 (%)",
+        outboundLogistics: "出貨物流 (USD)", insurance: "保險 (USD)", otherVariable: "其他變動費 (USD)",
+        fxTWDperUSD: "匯率 TWD/USD", paymentTermsDays: "付款條件 (天)", targetGM: "目標毛利率 (%)",
+        riskAddon: "風險加成 (%)", incoterm: "Incoterm", hsCode: "HS Code",
+        frontEndCountry: "前段國別", assemblyCountry: "封裝國別", testCountry: "測試國別",
+        shipToCountry: "出貨目的地", cooOverride: "產地判定 (COO)",
+      };
+
+      // Defaults
+      const DEFAULT_INPUTS = {
+        projectName: "Demo_2025Q3", customer: "ACME", segment: "AI Accelerator", packageType: "CoWoS-L",
+        dieCount: 2, nodeNm: 5, waferCostPerDie: 1200, substrateCost: 180, interposerCost: 350,
+        bumpingCost: 75, assemblyCost: 220, testCost: 110, yieldWafer: 97, yieldAssembly: 95,
+        yieldFinal: 98, outboundLogistics: 40, insurance: 5, otherVariable: 0, fxTWDperUSD: 32.5,
+        paymentTermsDays: 45, targetGM: 25, riskAddon: 3, incoterm: "FOB", hsCode: "8542.31",
+        frontEndCountry: "Taiwan", assemblyCountry: "Taiwan", testCountry: "Taiwan", shipToCountry: "China",
+        cooOverride: "auto",
+      };
+      const DEFAULT_TARIFFS = [
+        ["United States", "China", "^8542\\.", "US Section 301 (2025)", 50, "2025-08-01"],
+        ["United States", "Taiwan", "^8542\\.", "US MFN (2025)", 0, "2025-01-01"],
+        ["United States", "Japan", "^8542\\.", "US MFN (2025)", 0, "2025-01-01"],
+        ["China", "China", ".*", "PRC Import (domestic)", 0, "2025-01-01"],
+        ["Taiwan", "Taiwan", ".*", "TW Import (domestic)", 0, "2025-01-01"],
+      ];
+      const DEFAULT_SCENARIOS = [
+        { name: "TW-only Backend", frontEndCountry: "Taiwan", assemblyCountry: "Taiwan", testCountry: "Taiwan", shipToCountry: "China", assumedCOO: "auto" },
+        { name: "CN Backend (US dest w/China COO)", frontEndCountry: "Taiwan", assemblyCountry: "China", testCountry: "China", shipToCountry: "United States", assumedCOO: "China" },
+        { name: "ASEAN via Amkor (US dest, TW COO)", frontEndCountry: "Taiwan", assemblyCountry: "Malaysia", testCountry: "Philippines", shipToCountry: "United States", assumedCOO: "Taiwan" },
+      ];
+
+      // State
+      const [activeTab, setActiveTab] = useState('inputs');
+      const [inputs, setInputs] = useState(DEFAULT_INPUTS);
+      const [tariffs, setTariffs] = useState(DEFAULT_TARIFFS);
+      const [scenarios, setScenarios] = useState(DEFAULT_SCENARIOS);
+      const [xlsxLoaded, setXlsxLoaded] = useState(hasXLSX);
+      const [analysis, setAnalysis] = useState("");
+      const [isAnalyzing, setIsAnalyzing] = useState(false);
+      const [toast, setToast] = useState(null);
+      const [testReport, setTestReport] = useState(null);
+
+      useEffect(() => { if (!xlsxLoaded && window.XLSX) setXlsxLoaded(true); }, [xlsxLoaded]);
+
+      // Core helpers
+      const inferCOO = (frontEnd, override) => (override && override !== "auto") ? override : (frontEnd || "Taiwan");
+      const matchTariffRate = (rows, destination, coo, hsCode) => {
+        for (const t of rows) {
+          const [dest, origin, pattern, , rate] = t;
+          if (dest === destination && origin === coo) {
+            try { if (new RegExp(pattern).test(hsCode)) return rate; } catch (e) { console.error("Invalid regex:", pattern); }
+          }
+        }
+        return 0;
+      };
+      const fmt = (n, d = 2) => (Number.isNaN(n) || n == null) ? "-" : Number(n).toLocaleString(undefined, { maximumFractionDigits: d, minimumFractionDigits: d });
+
+      const baseCost = useMemo(() => {
+        const yW = Math.max(Number(inputs.yieldWafer) / 100, 1e-6);
+        const yA = Math.max(Number(inputs.yieldAssembly) / 100, 1e-6);
+        const yF = Math.max(Number(inputs.yieldFinal) / 100, 1e-6);
+        const mfg = (Number(inputs.waferCostPerDie) / yW)
+                  + (Number(inputs.assemblyCost) / yA)
+                  + (Number(inputs.testCost) / yF)
+                  + Number(inputs.substrateCost)
+                  + Number(inputs.interposerCost)
+                  + Number(inputs.bumpingCost)
+                  + Number(inputs.outboundLogistics)
+                  + Number(inputs.insurance)
+                  + Number(inputs.otherVariable);
+        return Number.isFinite(mfg) ? mfg : 0;
+      }, [inputs]);
+
+      const results = useMemo(() => scenarios.map(s => {
+        const coo = inferCOO(s.frontEndCountry, s.assumedCOO);
+        const rate = matchTariffRate(tariffs, s.shipToCountry, coo, inputs.hsCode);
+        const tariff = (rate / 100) * baseCost;
+        const landed = baseCost + tariff;
+        const quoteUSD = landed * (1 + Number(inputs.riskAddon)/100) * (1 / (1 - Number(inputs.targetGM)/100));
+        const quoteTWD = quoteUSD * Number(inputs.fxTWDperUSD);
+        return { ...s, coo, tariffRate: rate, manufacturingCost: baseCost, tariff, landed, quoteUSD, quoteTWD };
+      }), [inputs, tariffs, scenarios, baseCost]);
+
+      const chartData = useMemo(() => results.map(r => ({ name: r.name, USD: Number(r.quoteUSD.toFixed(2)) })), [results]);
+
+      // Events
+      const handleInputChange = (key, value) => setInputs(p => ({ ...p, [key]: value }));
+      const handleTariffChange = (rowIndex, colIndex, value) => {
+        setTariffs(prev => {
+          const copy = prev.map(r => [...r]);
+          copy[rowIndex][colIndex] = value;
+          return copy;
+        });
+      };
+      const updateScenario = (idx, field, value) => setScenarios(prev => prev.map((s,i) => i===idx ? { ...s, [field]: value } : s));
+      const addScenario = () => setScenarios(prev => ([ ...prev, { name: `New Scenario ${prev.length+1}`, frontEndCountry: inputs.frontEndCountry, assemblyCountry: inputs.assemblyCountry, testCountry: inputs.testCountry, shipToCountry: inputs.shipToCountry, assumedCOO: inputs.cooOverride || 'auto' } ]));
+      const resetAll = () => { setInputs(DEFAULT_INPUTS); setTariffs(DEFAULT_TARIFFS); setScenarios(DEFAULT_SCENARIOS); setAnalysis(""); setTestReport(null); };
+      
+
+      const exportXLSX = () => {
+        if (!window.XLSX) { alert("匯出功能尚未就緒（XLSX 未載入）"); return; }
+        try {
+          const XLSX = window.XLSX;
+          const wb = XLSX.utils.book_new();
+          const inputsRows = Object.entries(inputs).map(([k,v]) => ({ '項目': (labelMap && labelMap[k]) || k, '數值': v }));
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(inputsRows), "輸入參數");
+          const tHeaders = ["目的地","COO","HS Pattern","方案","稅率%","生效日"];
+          const tRows = tariffs.map(t => ({ [tHeaders[0]]: t[0], [tHeaders[1]]: t[1], [tHeaders[2]]: t[2], [tHeaders[3]]: t[3], [tHeaders[4]]: t[4], [tHeaders[5]]: t[5] }));
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(tRows), "關稅表");
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(scenarios), "場景設定");
+          const resultsExport = results.map(r => ({ '場景': r.name, '前段': r.frontEndCountry, '封裝': r.assemblyCountry, '測試': r.testCountry, '目的地': r.shipToCountry, 'COO': r.coo, '關稅率%': r.tariffRate, '製造成本USD': r.manufacturingCost.toFixed(2), '關稅USD': r.tariff.toFixed(2), '到岸成本USD': r.landed.toFixed(2), '建議報價USD': r.quoteUSD.toFixed(2), '建議報價TWD': r.quoteTWD.toFixed(0) }));
+          XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resultsExport), "結果明細");
+          XLSX.writeFile(wb, `IC_Backend_Quote_${inputs.projectName || 'Export'}.xlsx`);
+        } catch (err) {
+          console.error(err);
+          alert("匯出失敗：" + (err && err.message ? err.message : err));
+        }
+      };
+
+      // Prompt 建立器（提供給 ChatGPT 使用，或當地端摘要的素材）
+      // FIX: use '\n' join to avoid syntax error
+      const buildAnalysisPrompt = () => {
+        const scenariosText = results
+          .map(r => `- 場景: "${r.name}" | 供應鏈: ${r.frontEndCountry}(前段) -> ${r.assemblyCountry}(封裝) -> ${r.testCountry}(測試) -> ${r.shipToCountry}(目的地) | 推定產地(COO): ${r.coo} | 關稅率: ${r.tariffRate}% | 最終報價: $${fmt(r.quoteUSD)} USD`)
+          .join('\n');
+        return `作為一名專業的半導體行業市場分析師，請根據以下資訊撰寫市場風險與策略分析（中文，精簡條列）：
+專案: ${inputs.projectName}（${inputs.segment}, ${inputs.packageType}）
+客戶: ${inputs.customer}
+核心成本: $${fmt(baseCost)} USD
+HS Code: ${inputs.hsCode}
+當前場景：
+${scenariosText}
+請輸出：1) 宏觀風險 2) 各場景的主要風險 3) 2-3 條策略建議 4) 總結。`;
+      };
+
+      // 本地即時摘要（規則式，無需網路）
+      // FIX: lines.join('\n') to avoid syntax error
+      const generateLocalSummary = () => {
+        setIsAnalyzing(true);
+        try {
+          const cheapest = [...results].sort((a,b)=>a.quoteUSD-b.quoteUSD)[0];
+          const mostTariff = [...results].sort((a,b)=>b.tariff-a.tariff)[0];
+          const lines = [];
+          lines.push(`【總覽】目前製造成本約 $${fmt(baseCost)}，建議報價區間 $${fmt(Math.min(...results.map(r=>r.quoteUSD)))} ~ $${fmt(Math.max(...results.map(r=>r.quoteUSD)))}`);
+          lines.push(`【最佳性價比】${cheapest.name}（$${fmt(cheapest.quoteUSD)}），COO: ${cheapest.coo}，關稅率 ${cheapest.tariffRate}%`);
+          lines.push(`【關稅風險】最高關稅場景：${mostTariff.name}（稅額 $${fmt(mostTariff.tariff)}）`);
+          lines.push('【策略建議】1) 與客戶協議以非中國 COO 的供應路徑；2) 保留 ASEAN 備援；3) 報價條款加註關稅變動調整機制。');
+          setAnalysis(lines.join('\n'));
+        } finally { setIsAnalyzing(false); }
+      };
+
+      // 將提示詞複製到剪貼簿，方便直接貼到右側 GPT 對話
+      const copyPromptToClipboard = async () => {
+        const text = buildAnalysisPrompt();
+        try { await navigator.clipboard.writeText(text); setToast('已複製提示詞，請在右側聊天視窗貼上並送出。'); }
+        catch { setToast('無法自動複製，已在下方顯示內容，請手動複製。'); setAnalysis(text); }
+        setTimeout(()=> setToast(null), 3000);
+      };
+
+      // --- Lightweight "tests" / smoke checks ---
+      const runTests = () => {
+        const resultsList = [];
+        const push = (name, pass, detail='') => resultsList.push({ name, pass, detail });
+        try { push('labelMap 有 projectName', !!labelMap.projectName); } catch(e) { push('labelMap 定義', false, e.message); }
+        push('inferCOO auto→frontEnd', inferCOO('Taiwan','auto') === 'Taiwan');
+        push('inferCOO override', inferCOO('Taiwan','China') === 'China');
+        push('關稅比對 US<-CN HS8542 => 50%', matchTariffRate(DEFAULT_TARIFFS,'United States','China','8542.31') === 50);
+        push('scenarios 與結果數一致', scenarios.length === chartData.length);
+        push('報價應≥製造成本', (chartData.length>0) ? (results[0].quoteUSD >= results[0].manufacturingCost) : true);
+        // 新增：格式化 & 圖表資料測試
+        push('fmt(0,0) === "0"', (fmt(0,0) === '0'));
+        const maxUSD = Math.max(...chartData.map(d=>d.USD));
+        push('圖表資料最大值存在', Number.isFinite(maxUSD) && maxUSD >= 0);
+        const cheapestName = [...results].sort((a,b)=>a.quoteUSD-b.quoteUSD)[0]?.name;
+        const minNameFromChart = chartData.reduce((m,d)=> (d.USD < (m?.USD ?? Infinity) ? d : m), null)?.name;
+        push('最便宜場景一致', cheapestName === minNameFromChart);
+        setTestReport(resultsList);
+      };
+
+      // Render helpers
+      const renderInputField = (key, type='number', options={}) => (
+        <div className="space-y-1">
+          <Label htmlFor={key}>{labelMap[key] || key}</Label>
+          {type === 'select' ? (
+            <Select id={key} value={inputs[key]} onChange={e => handleInputChange(key, e.target.value)}>
+              {options.choices.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+          ) : type === 'country' ? (
+            <Select id={key} value={inputs[key]} onChange={e => handleInputChange(key, e.target.value)}>
+              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+          ) : type === 'coo' ? (
+            <Select id={key} value={inputs[key]} onChange={e => handleInputChange(key, e.target.value)}>
+              <option value="auto">自動 (以前段國別推定)</option>
+              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+          ) : (
+            <Input id={key} type={type} value={inputs[key]} onChange={e => handleInputChange(key, type==='number' ? Number(e.target.value) : e.target.value)} step={options.step || 1} />
+          )}
+        </div>
+      );
+
+      const renderSliderField = (key, max, step) => (
+        <div className="space-y-1">
+          <Label>{labelMap[key] || key}</Label>
+          <div className="flex items-center gap-3">
+            <Slider value={inputs[key]} onChange={v => handleInputChange(key, v[0])} max={max} step={step} />
+            <span className="w-12 text-right text-sm">{inputs[key]}%</span>
+          </div>
+        </div>
+      );
+
+      const Stat = ({ title, value }) => (
+        <div className="rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs text-slate-500">{title}</p>
+          <p className="text-2xl font-semibold mt-1 text-slate-900 tracking-tight">{value}</p>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen w-full bg-slate-50 p-4 sm:p-6 font-sans">
+          <div className="mx-auto max-w-7xl space-y-6">
+            <header className="flex flex-col sm:flex-row items-start justify-between gap-4 bg-gradient-to-br from-white/90 to-slate-50/80 rounded-2xl p-5 border shadow-sm ring-1 ring-white/50">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">IC 後段服務 — 報價互動儀表板</h1>
+                <p className="text-slate-600 text-sm">AI 加速器 / FPGA 視覺封裝設計・產地/關稅敏感・三場景比對＋批次模擬</p>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <Button variant="outline" onClick={resetAll}><RefreshCw />重置</Button>
+                <Button variant="outline" onClick={runTests}>🧪 自動檢測</Button>
+                <Button onClick={exportXLSX} disabled={!xlsxLoaded}>{xlsxLoaded ? (<><Download />匯出 Excel</>) : '載入中...'}</Button>
+              </div>
+            </header>
+
+            {testReport && (
+              <div className="rounded-lg border p-4 bg-white">
+                <div className="text-sm font-semibold mb-2">自動檢測結果</div>
+                <ul className="text-sm space-y-1">
+                  {testReport.map((t,i)=> (
+                    <li key={i} className={t.pass ? 'text-emerald-600' : 'text-rose-600'}>
+                      {t.pass ? '✓' : '✗'} {t.name}{t.detail ? ` — ${t.detail}` : ''}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="border-b border-slate-200 sticky top-0 z-10 bg-slate-50/80 backdrop-blur supports-[backdrop-filter]:bg-slate-50/60">
+              <nav className="flex flex-wrap -mb-px" aria-label="Tabs">
+                {['inputs','tariffs','scenarios','results'].map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} className={`whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm rounded-t-md ${activeTab===tab ? 'border-slate-700 text-slate-900 bg-white shadow-sm' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}>
+                    {{inputs:'輸入參數', tariffs:'關稅表', scenarios:'路徑/場景', results:'結果/圖表'}[tab]}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            <main>
+              {activeTab==='inputs' && (
+                <Card>
+                  <CardHeader><CardTitle>專案與成本參數</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {renderInputField('projectName','text')}
+                      {renderInputField('customer','text')}
+                      {renderInputField('segment','select',{choices:SEGMENTS})}
+                      {renderInputField('packageType','select',{choices:PACKAGES})}
+                      {renderInputField('dieCount')}
+                      {renderInputField('nodeNm')}
+                      {renderInputField('waferCostPerDie')}
+                      {renderInputField('substrateCost')}
+                      {renderInputField('interposerCost')}
+                      {renderInputField('bumpingCost')}
+                      {renderInputField('assemblyCost')}
+                      {renderInputField('testCost')}
+                      {renderInputField('yieldWafer','number',{step:0.1})}
+                      {renderInputField('yieldAssembly','number',{step:0.1})}
+                      {renderInputField('yieldFinal','number',{step:0.1})}
+                      {renderInputField('outboundLogistics')}
+                      {renderInputField('insurance')}
+                      {renderInputField('otherVariable')}
+                      {renderInputField('fxTWDperUSD','number',{step:0.01})}
+                      {renderInputField('paymentTermsDays')}
+                      {renderInputField('incoterm','select',{choices:['FOB','CIF','DDP']})}
+                      {renderInputField('hsCode','text')}
+                      <div className="md:col-span-3 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {renderSliderField('targetGM',60,1)}
+                        {renderSliderField('riskAddon',15,0.5)}
+                      </div>
+                      <div className="md:col-span-3 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        {renderInputField('frontEndCountry','country')}
+                        {renderInputField('assemblyCountry','country')}
+                        {renderInputField('testCountry','country')}
+                        {renderInputField('shipToCountry','country')}
+                        {renderInputField('cooOverride','coo')}
+                      </div>
+                    </div>
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Stat title="製造成本 (USD)" value={`$${fmt(baseCost)}`} />
+                      <Stat title="到岸成本 (TW-only, 估)" value={`$${fmt(results.find(r=>r.name.includes('TW-only'))?.landed || 0)}`} />
+                      <Stat title="建議報價 (USD, TW-only)" value={`$${fmt(results.find(r=>r.name.includes('TW-only'))?.quoteUSD || 0)}`} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeTab==='tariffs' && (
+                <Card>
+                  <CardHeader><CardTitle>關稅設定</CardTitle></CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-slate-600 mb-4">簡化示例：美國對中國原產半導體 (HS 8542.*) 課徵 50% 關稅。您可以根據最新情況新增或修改規則。</p>
+                    <div className="overflow-x-auto rounded-lg border">
+                      <table className="w-full text-sm text-left text-slate-500">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-0">
+                          <tr>{["目的地","COO","HS Pattern (Regex)","方案","稅率%","生效日"].map(h => <th key={h} scope="col" className="px-4 py-3">{h}</th>)}</tr>
+                        </thead>
+                        <tbody>
+                          {tariffs.map((t,rIdx)=> (
+                            <tr key={rIdx} className="bg-white border-b hover:bg-slate-50/70">
+                              <td className="px-2 py-2"><Select value={t[0]} onChange={e=>handleTariffChange(rIdx,0,e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></td>
+                              <td className="px-2 py-2"><Select value={t[1]} onChange={e=>handleTariffChange(rIdx,1,e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></td>
+                              <td className="px-2 py-2"><Input value={t[2]} onChange={e=>handleTariffChange(rIdx,2,e.target.value)} /></td>
+                              <td className="px-2 py-2"><Input value={t[3]} onChange={e=>handleTariffChange(rIdx,3,e.target.value)} /></td>
+                              <td className="px-2 py-2"><Input type="number" value={t[4]} onChange={e=>handleTariffChange(rIdx,4,Number(e.target.value))} /></td>
+                              <td className="px-2 py-2"><Input type="date" value={t[5]} onChange={e=>handleTariffChange(rIdx,5,e.target.value)} /></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <Button variant="outline" className="mt-4" onClick={() => setTariffs([...tariffs, ["United States","China","^8542\\.","Custom",25,"2025-01-01"]])}><Plus />新增一列</Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeTab==='scenarios' && (
+                <Card>
+                  <CardHeader><CardTitle>路徑/場景</CardTitle></CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-slate-600">比較不同供應鏈路徑對成本和報價的影響。</p>
+                      <Button variant="outline" onClick={addScenario}><Plus />新增場景</Button>
+                    </div>
+                    <div className="grid gap-4">
+                      {scenarios.map((s,idx)=> (
+                        <div key={idx} className="rounded-lg border p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3 bg-white">
+                          <div className="md:col-span-3 lg:col-span-2"><Label>名稱</Label><Input value={s.name} onChange={e=>updateScenario(idx,'name',e.target.value)} /></div>
+                          <div><Label>前段</Label><Select value={s.frontEndCountry} onChange={e=>updateScenario(idx,'frontEndCountry',e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></div>
+                          <div><Label>封裝</Label><Select value={s.assemblyCountry} onChange={e=>updateScenario(idx,'assemblyCountry',e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></div>
+                          <div><Label>測試</Label><Select value={s.testCountry} onChange={e=>updateScenario(idx,'testCountry',e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></div>
+                          <div><Label>目的地</Label><Select value={s.shipToCountry} onChange={e=>updateScenario(idx,'shipToCountry',e.target.value)}>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></div>
+                          <div><Label>COO（產地判定）</Label><Select value={s.assumedCOO} onChange={e=>updateScenario(idx,'assumedCOO',e.target.value)}><option value="auto">自動（以前段國別）</option>{COUNTRIES.map(c=> <option key={c} value={c}>{c}</option>)}</Select></div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {activeTab==='results' && (
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader><CardTitle>報價對比 (USD) <span className='ml-2 text-xs font-normal text-slate-500'>(最佳值以綠色標示)</span></CardTitle></CardHeader>
+                    <CardContent>
+                      <MiniBarChart data={chartData} fmt={fmt} />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader><CardTitle>明細表</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto rounded-lg border">
+                        <table className="w-full text-sm text-left text-slate-500">
+                          <thead className="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-0">
+                            <tr>{["場景","COO","製造成本","關稅率%","關稅","到岸成本","報價 (USD)","報價 (TWD)"].map(h => <th key={h} scope="col" className="px-4 py-3 whitespace-nowrap">{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {results.map((r,i)=> (
+                              <tr key={i} className="bg-white border-b hover:bg-slate-50/70">
+                                <td className="px-4 py-2 font-medium text-slate-900 whitespace-nowrap">{r.name}</td>
+                                <td className="px-4 py-2">{r.coo}</td>
+                                <td className="px-4 py-2 text-right">${fmt(r.manufacturingCost)}</td>
+                                <td className="px-4 py-2 text-right">{fmt(r.tariffRate,1)}%</td>
+                                <td className="px-4 py-2 text-right">${fmt(r.tariff)}</td>
+                                <td className="px-4 py-2 text-right">${fmt(r.landed)}</td>
+                                <td className="px-4 py-2 text-right font-semibold text-slate-800">${fmt(r.quoteUSD)}</td>
+                                <td className="px-4 py-2 text-right font-semibold text-slate-800">NT${fmt(r.quoteTWD,0)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader><CardTitle><Sparkles /> AI 洞察分析</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col gap-3">
+                        <p className="text-sm text-slate-600">可直接在本地生成簡報式摘要，或將提示詞複製到右側 ChatGPT 以獲得更深入的自然語言分析。</p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button onClick={generateLocalSummary} disabled={isAnalyzing}>{isAnalyzing ? '分析中…' : '⚡️ 本地速覽'}</Button>
+                          <Button variant="outline" onClick={copyPromptToClipboard}>🧠 複製 ChatGPT 提示詞</Button>
+                        </div>
+                        {toast && <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-2 py-1 w-fit">{toast}</div>}
+                        {analysis && (
+                          <div className="w-full mt-2 p-4 border rounded-md bg-slate-50">
+                            <pre className="whitespace-pre-wrap text-sm text-slate-800 font-sans">{analysis}</pre>
+                          </div>
+                        )}
+                        {!analysis && (
+                          <details className="text-xs text-slate-500">
+                            <summary className="cursor-pointer">查看將複製的提示詞</summary>
+                            <pre className="whitespace-pre-wrap text-xs mt-2 p-2 bg-white border rounded">{buildAnalysisPrompt()}</pre>
+                          </details>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </main>
+
+            <footer className="text-xs text-slate-500 pt-4 text-center">
+              本工具為試算用途，關稅與產地(COO)需依個案由關務/法律確認；出口管制請參照 BIS 最新公告與客戶最終用途。AI 分析結果僅供參考。
+            </footer>
+          </div>
+        </div>
+      );
+    }
+
+    window.addEventListener('load', () => {
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<ICBackendQuotationDashboard />);
+    });
+  </script>
+</body>
+</html>

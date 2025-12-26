@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數據分析與機器學習輔助工具</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js for interactive charts -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    
+    <!-- SheetJS (xlsx.full.min.js) for reading Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- simple-statistics for basic stats -->
+    <script src="https://unpkg.com/simple-statistics@7.8.3/dist/simple-statistics.min.js"></script>
+
+    <!-- jStat for advanced statistical functions -->
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+
+    <!-- regression-js (not used by runLogistic anymore) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+
+    <!-- ml.js for Decision Tree -->
+    <script src="https://www.lactame.com/lib/ml/6.0.0/ml.min.js"></script>
+
+
+    <style>
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .tab-button { transition: all 0.3s ease; border-bottom: 4px solid transparent; padding-top: 1rem; padding-bottom: 1rem; }
+        .tab-button.active { color: #2563eb; border-bottom-color: #2563eb; }
+        .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        input[type="file"]::file-selector-button { background-color: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+        input[type="file"]::file-selector-button:hover { background-color: #1d4ed8; }
+        .ml-tab-button { padding-bottom: 0.5rem; border-bottom: 3px solid transparent; }
+        .ml-tab-button.active { color: #db2777; border-bottom-color: #db2777; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">數據分析與機器學習輔助工具</h1>
+            <p class="text-md text-gray-600 mt-2">上傳您的 Excel 檔案，探索數據、驗證假設並建立預測模型</p>
+        </header>
+
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. 上傳資料</h2>
+            <div class="flex items-center space-x-4">
+                <input type="file" id="fileInput" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                <button id="loadDataBtn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 disabled:bg-gray-400" disabled>載入資料</button>
+            </div>
+            <div id="loadingIndicator" class="hidden loader"></div>
+            <p id="fileName" class="mt-4 text-gray-600"></p>
+        </div>
+
+        <main id="mainContent" class="hidden">
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">資料預覽</h2>
+                <div id="dataPreview" class="overflow-x-auto max-h-80"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-4">2. 選擇分析方法</h2>
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex flex-wrap space-x-6" aria-label="Tabs">
+                        <button class="tab-button active font-medium text-lg" data-tab="eda">探索性資料分析</button>
+                        <button class="tab-button font-medium text-lg" data-tab="pareto">柏拉圖分析</button>
+                        <button class="tab-button font-medium text-lg" data-tab="testing">假設檢定</button>
+                        <button class="tab-button font-medium text-lg" data-tab="regression">迴歸分析</button>
+                        <button class="tab-button font-medium text-lg" data-tab="forecast">時間序列預測</button>
+                        <button class="tab-button font-medium text-lg" data-tab="ml">進階分析 (ML)</button>
+                    </nav>
+                </div>
+
+                <div id="analysisContent" class="mt-6">
+                    <!-- EDA -->
+                    <div id="edaContent" class="tab-content"><div id="edaResults"></div></div>
+                    <!-- Pareto -->
+                    <div id="paretoContent" class="tab-content hidden">
+                        <p class="text-gray-600 mb-4">找出造成問題的關鍵原因 (80/20法則)。</p>
+                        <div class="grid md:grid-cols-3 gap-4 items-end">
+                            <div><label for="paretoCategoryVar" class="block text-sm font-medium text-gray-700">選擇類別欄位 (X)</label><select id="paretoCategoryVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="paretoValueVar" class="block text-sm font-medium text-gray-700">選擇數值欄位 (Y)</label><select id="paretoValueVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <button id="runParetoBtn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">產生柏拉圖</button>
+                        </div>
+                        <div id="paretoResults" class="mt-6"></div>
+                    </div>
+                    <!-- Hypothesis Testing -->
+                    <div id="testingContent" class="tab-content hidden">
+                        <p class="text-gray-600 mb-4">比較不同組別之間，數值資料的平均值是否存在顯著差異。</p>
+                        <div class="grid md:grid-cols-3 gap-4 items-end">
+                            <div><label for="tTestCategoricalVar" class="block text-sm font-medium text-gray-700">選擇分組變數 (X)</label><select id="tTestCategoricalVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="tTestNumericalVar" class="block text-sm font-medium text-gray-700">選擇數值變數 (Y)</label><select id="tTestNumericalVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <button id="runTTestBtn" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">執行 T 檢定</button>
+                        </div>
+                        <div id="tTestResults" class="mt-6"></div>
+                    </div>
+                    <!-- Regression -->
+                    <div id="regressionContent" class="tab-content hidden">
+                        <p class="text-gray-600 mb-4">探討兩個數值變數之間的關聯性。</p>
+                        <div class="grid md:grid-cols-3 gap-4 items-end">
+                            <div><label for="regressionX" class="block text-sm font-medium text-gray-700">選擇自變數 (X)</label><select id="regressionX" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="regressionY" class="block text-sm font-medium text-gray-700">選擇應變數 (Y)</label><select id="regressionY" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <button id="runRegressionBtn" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700">執行迴歸分析</button>
+                        </div>
+                        <div id="regressionResults" class="mt-6"></div>
+                    </div>
+                    <!-- Forecast -->
+                    <div id="forecastContent" class="tab-content hidden">
+                         <p class="text-gray-600 mb-4">使用 Holt-Winters 方法進行時間序列預測。</p>
+                         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                            <div><label for="forecastTimeVar" class="block text-sm font-medium text-gray-700">選擇時間欄位 (X)</label><select id="forecastTimeVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="forecastValueVar" class="block text-sm font-medium text-gray-700">選擇數值欄位 (Y)</label><select id="forecastValueVar" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select></div>
+                            <div><label for="forecastPeriod" class="block text-sm font-medium text-gray-700">季節長度 (Period)</label><input type="number" id="forecastPeriod" value="12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                            <div><label for="forecastSteps" class="block text-sm font-medium text-gray-700">預測期數</label><input type="number" id="forecastSteps" value="12" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                         </div>
+                         <details class="mt-4"><summary class="cursor-pointer text-sm font-medium text-blue-600">進階選項</summary><div class="grid md:grid-cols-3 gap-4 mt-2 p-4 bg-gray-50 rounded-md">
+                            <div><label for="forecastAlpha" class="block text-sm font-medium text-gray-700">Alpha</label><input type="number" id="forecastAlpha" value="0.5" step="0.1" min="0" max="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                            <div><label for="forecastBeta" class="block text-sm font-medium text-gray-700">Beta</label><input type="number" id="forecastBeta" value="0.5" step="0.1" min="0" max="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                            <div><label for="forecastGamma" class="block text-sm font-medium text-gray-700">Gamma</label><input type="number" id="forecastGamma" value="0.5" step="0.1" min="0" max="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></div>
+                         </div></details>
+                         <div class="mt-4"><button id="runForecastBtn" class="bg-sky-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-700">執行預測</button></div>
+                         <div id="forecastResults" class="mt-6"></div>
+                    </div>
+                     <!-- Machine Learning -->
+                    <div id="mlContent" class="tab-content hidden">
+                        <div class="border-b border-gray-200">
+                            <nav class="flex flex-wrap space-x-4" aria-label="MLTabs">
+                                <button class="ml-tab-button active font-medium" data-ml-tab="logistic">邏輯斯迴歸</button>
+                                <button class="ml-tab-button font-medium" data-ml-tab="decisionTree">決策樹</button>
+                                <button class="ml-tab-button font-medium" data-ml-tab="correlationMatrix">相關係數矩陣</button>
+                            </nav>
+                        </div>
+                        <!-- Logistic Regression Content -->
+                        <div id="logisticContent" class="ml-tab-content mt-4">
+                            <p class="text-gray-600 mb-4">建立模型以預測二元結果 (例如：是/否、成功/失敗)。</p>
+                            <div class="grid md:grid-cols-2 gap-x-8 gap-y-4 items-start">
+                                <div>
+                                    <label for="logisticY" class="block text-sm font-medium text-gray-700">選擇應變數 (Y, 二元類別)</label>
+                                    <select id="logisticY" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                                    <p class="mt-2 text-xs text-gray-500">此選單只會顯示資料中剛好有兩種值的類別欄位。</p>
+                                </div>
+                                <div>
+                                    <label for="logisticX" class="block text-sm font-medium text-gray-700">選擇自變數 (X, 數值)</label>
+                                    <select id="logisticX" multiple class="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-32"></select>
+                                    <p class="mt-2 text-xs text-gray-500">按住 Ctrl (或 Mac 上的 Command) 可複選。</p>
+                                </div>
+                            </div>
+                            <div class="mt-4"><button id="runLogisticBtn" class="bg-rose-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-rose-700">執行邏輯斯迴歸</button></div>
+                            <div id="logisticResults" class="mt-6"></div>
+                        </div>
+                        <!-- Decision Tree Content -->
+                        <div id="decisionTreeContent" class="ml-tab-content mt-4 hidden">
+                            <p class="text-gray-600 mb-4">建立迴歸決策樹模型，預測數值結果並找出關鍵因子。</p>
+                            <div class="grid md:grid-cols-2 gap-x-8 gap-y-4 items-start">
+                                <div>
+                                    <label for="dtY" class="block text-sm font-medium text-gray-700">選擇應變數 (Y, 數值)</label>
+                                    <select id="dtY" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"></select>
+                                </div>
+                                <div>
+                                    <label for="dtX" class="block text-sm font-medium text-gray-700">選擇自變數 (X)</label>
+                                    <select id="dtX" multiple class="mt-1 block w-full rounded-md border-gray-300 shadow-sm h-32"></select>
+                                </div>
+                                <div>
+                                    <label for="dtMaxDepth" class="block text-sm font-medium text-gray-700">最大深度</label>
+                                    <input type="number" id="dtMaxDepth" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                </div>
+                                <div>
+                                    <label for="dtMinSamplesLeaf" class="block text-sm font-medium text-gray-700">最小葉節點樣本數</label>
+                                    <input type="number" id="dtMinSamplesLeaf" value="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                </div>
+                            </div>
+                            <div class="mt-4"><button id="runDtBtn" class="bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700">建立決策樹</button></div>
+                            <div id="dtResults" class="mt-6"></div>
+                        </div>
+                        <!-- Correlation Matrix Content -->
+                        <div id="correlationMatrixContent" class="ml-tab-content mt-4 hidden">
+                            <p class="text-gray-600 mb-4">視覺化所有數值變數之間的相關性，快速找出高度正相關或負相關的變數配對。</p>
+                            <div class="mt-4">
+                                <button id="runCorrelationMatrixBtn" class="bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">產生相關係數熱圖</button>
+                            </div>
+                            <div id="correlationMatrixResults" class="mt-6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    // --- Global Variables & DOM References ---
+    let jsonData = [], headers = [], numericHeaders = [], categoricalHeaders = [];
+    let logisticModel = null;
+    
+    // --- Event Listeners Setup ---
+    function setupEventListeners() {
+        document.getElementById('fileInput').addEventListener('change', () => {
+            const fileInput = document.getElementById('fileInput');
+            const loadDataBtn = document.getElementById('loadDataBtn');
+            const fileNameDisplay = document.getElementById('fileName');
+            if (fileInput.files.length > 0) {
+                loadDataBtn.disabled = false;
+                fileNameDisplay.textContent = `已選擇檔案: ${fileInput.files[0].name}`;
+            } else {
+                loadDataBtn.disabled = true;
+                fileNameDisplay.textContent = '';
+            }
+        });
+
+        document.getElementById('loadDataBtn').addEventListener('click', handleFileUpload);
+        document.querySelectorAll('.tab-button').forEach(button => button.addEventListener('click', (e) => switchTab(e.target, '.tab-button', '.tab-content', 'data-tab')));
+        document.querySelectorAll('.ml-tab-button').forEach(button => button.addEventListener('click', (e) => switchTab(e.target, '.ml-tab-button', '.ml-tab-content', 'data-ml-tab')));
+        
+        document.getElementById('runParetoBtn').addEventListener('click', runPareto);
+        document.getElementById('runTTestBtn').addEventListener('click', runAnovaStyleTest);
+        document.getElementById('runRegressionBtn').addEventListener('click', runRegression);
+        document.getElementById('runForecastBtn').addEventListener('click', runForecast);
+        document.getElementById('runLogisticBtn').addEventListener('click', runLogistic);
+        document.getElementById('runDtBtn').addEventListener('click', runDecisionTree);
+        document.getElementById('runCorrelationMatrixBtn').addEventListener('click', runCorrelationMatrix);
+
+
+        // Add event listener for dynamic X variable filtering in Decision Tree
+        document.getElementById('dtY').addEventListener('change', updateDtXOptions);
+    }
+    
+    function switchTab(clickedButton, buttonClass, contentClass, dataAttribute) {
+        document.querySelectorAll(buttonClass).forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll(contentClass).forEach(content => content.classList.add('hidden'));
+        clickedButton.classList.add('active');
+        const tabName = clickedButton.getAttribute(dataAttribute);
+        document.getElementById(tabName + 'Content').classList.remove('hidden');
+    }
+
+    // --- Core Data Handling ---
+    function handleFileUpload() {
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) { alert('請先選擇一個 Excel 檔案'); return; }
+        document.getElementById('loadingIndicator').classList.remove('hidden');
+        document.getElementById('mainContent').classList.add('hidden');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+                if (jsonData.length === 0) throw new Error("Excel 工作表是空的或格式不正確。");
+                processData();
+            } catch (error) {
+                alert(`檔案處理失敗: ${error.message}`);
+                resetUI();
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function processData() {
+        headers = Object.keys(jsonData[0]);
+        classifyHeaders();
+        displayDataPreview();
+        populateSelects();
+        document.getElementById('mainContent').classList.remove('hidden');
+        runEDA();
+    }
+
+    function resetUI() {
+        document.getElementById('mainContent').classList.add('hidden');
+        document.getElementById('loadDataBtn').disabled = true;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileName').textContent = '';
+        jsonData = [], headers = [];
+    }
+
+    function classifyHeaders() {
+        numericHeaders = [], categoricalHeaders = [];
+        headers.forEach(header => {
+            const isNumeric = jsonData.slice(0, 10).filter(row => row[header] != null && row[header] !== '').every(row => typeof row[header] === 'number' && !isNaN(row[header]));
+            const isDate = jsonData.slice(0, 10).some(row => row[header] instanceof Date);
+            if (isNumeric && !isDate) numericHeaders.push(header);
+            else categoricalHeaders.push(header);
+        });
+    }
+
+    function displayDataPreview() {
+        const previewDiv = document.getElementById('dataPreview');
+        let tableHTML = `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>`;
+        headers.forEach(h => tableHTML += `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${h}</th>`);
+        tableHTML += `</tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+        jsonData.slice(0, 10).forEach(row => {
+            tableHTML += `<tr>`;
+            headers.forEach(h => {
+                let cellValue = row[h];
+                if (cellValue instanceof Date) cellValue = cellValue.toLocaleDateString();
+                tableHTML += `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cellValue != null ? cellValue : 'N/A'}</td>`;
+            });
+            tableHTML += `</tr>`;
+        });
+        tableHTML += `</tbody></table>`;
+        previewDiv.innerHTML = tableHTML;
+    }
+
+    function populateSelects() {
+        const binaryCategoricalHeaders = categoricalHeaders.filter(h => {
+            const uniqueValues = [...new Set(jsonData.map(row => row[h]).filter(v => v != null))];
+            return uniqueValues.length === 2;
+        });
+
+        const selects = [
+            { id: 'paretoCategoryVar', headers: categoricalHeaders },
+            { id: 'paretoValueVar', headers: numericHeaders },
+            { id: 'tTestCategoricalVar', headers: categoricalHeaders },
+            { id: 'tTestNumericalVar', headers: numericHeaders },
+            { id: 'regressionX', headers: numericHeaders },
+            { id: 'regressionY', headers: numericHeaders },
+            { id: 'forecastTimeVar', headers: headers },
+            { id: 'forecastValueVar', headers: numericHeaders },
+            { id: 'logisticY', headers: binaryCategoricalHeaders },
+            { id: 'logisticX', headers: numericHeaders },
+            { id: 'dtY', headers: numericHeaders }, // Decision Tree Y is now numeric
+            { id: 'dtX', headers: headers }
+        ];
+        selects.forEach(s => {
+            const selectEl = document.getElementById(s.id);
+            selectEl.innerHTML = selectEl.multiple ? '' : '<option value="">請選擇欄位</option>';
+            s.headers.forEach(header => {
+                const option = document.createElement('option');
+                option.value = header, option.textContent = header;
+                selectEl.appendChild(option);
+            });
+        });
+        updateDtXOptions(); // Initial call
+    }
+    
+    function updateDtXOptions() {
+        const yVar = document.getElementById('dtY').value;
+        const xSelect = document.getElementById('dtX');
+        const currentX = Array.from(xSelect.selectedOptions).map(opt => opt.value);
+        
+        xSelect.innerHTML = '';
+        headers.forEach(header => {
+            if (header !== yVar) {
+                const option = document.createElement('option');
+                option.value = header;
+                option.textContent = header;
+                if (currentX.includes(header)) {
+                    option.selected = true;
+                }
+                xSelect.appendChild(option);
+            }
+        });
+    }
+
+    // --- Analysis Functions ---
+    
+    function runEDA() {
+        const resultsDiv = document.getElementById('edaResults');
+        resultsDiv.innerHTML = '';
+        const stats = numericHeaders.map(header => {
+            const values = jsonData.map(row => row[header]).filter(v => typeof v === 'number');
+            if (values.length === 0) return null;
+            return { column: header, count: values.length, mean: ss.mean(values).toFixed(3), median: ss.median(values).toFixed(3), stdDev: ss.standardDeviation(values).toFixed(3), min: ss.min(values), max: ss.max(values) };
+        }).filter(s => s !== null);
+        let statsHtml = `<h3 class="text-lg font-semibold mb-2">數值資料摘要</h3>`;
+        if (stats.length > 0) {
+            statsHtml += `<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200 mb-6"><thead class="bg-gray-50"><tr><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">欄位</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">筆數</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">平均值</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">中位數</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">標準差</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">最小值</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">最大值</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            stats.forEach(s => { statsHtml += `<tr><td class="p-2 whitespace-nowrap text-sm font-medium text-gray-900">${s.column}</td><td class="p-2 text-sm text-gray-500">${s.count}</td><td class="p-2 text-sm text-gray-500">${s.mean}</td><td class="p-2 text-sm text-gray-500">${s.median}</td><td class="p-2 text-sm text-gray-500">${s.stdDev}</td><td class="p-2 text-sm text-gray-500">${s.min}</td><td class="p-2 text-sm text-gray-500">${s.max}</td></tr>`; });
+            statsHtml += `</tbody></table></div>`;
+        } else { statsHtml += `<p class="text-gray-500">找不到可計算摘要的數值資料欄位。</p>`; }
+        resultsDiv.innerHTML += statsHtml;
+        resultsDiv.innerHTML += `<h3 class="text-lg font-semibold mt-6 mb-2">資料視覺化</h3>`;
+        const plotsContainer = document.createElement('div');
+        plotsContainer.className = 'grid md:grid-cols-2 gap-6';
+        resultsDiv.appendChild(plotsContainer);
+        numericHeaders.forEach(header => {
+            const values = jsonData.map(row => row[header]).filter(v => typeof v === 'number');
+            if (values.length > 0) {
+                const plotId = `plot-${header.replace(/\s/g, '')}`, plotDiv = document.createElement('div');
+                plotDiv.id = plotId, plotsContainer.appendChild(plotDiv);
+                const trace1 = { x: values, type: 'histogram', name: '直方圖', marker: { color: 'rgba(100, 200, 102, 0.7)' } };
+                const trace2 = { x: values, type: 'box', name: '箱形圖', marker: { color: 'rgba(219, 64, 82, 0.7)' } };
+                Plotly.newPlot(plotId, [trace1, trace2], { title: `${header} 分佈圖`, barmode: 'overlay', xaxis: { title: header }, yaxis: { title: '頻率' }, margin: { t: 40, b: 40, l: 40, r: 20 }, paper_bgcolor: '#f9f9f9', plot_bgcolor: '#f9f9f9' }, {responsive: true});
+            }
+        });
+        categoricalHeaders.forEach(header => {
+            const values = jsonData.map(row => row[header]).filter(v => v != null);
+            if (values.length > 0) {
+                const counts = values.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {});
+                const plotId = `plot-${header.replace(/\s/g, '')}`, plotDiv = document.createElement('div');
+                plotDiv.id = plotId, plotsContainer.appendChild(plotDiv);
+                const trace = { x: Object.keys(counts), y: Object.values(counts), type: 'bar', marker: { color: 'rgba(55, 128, 191, 0.7)' } };
+                Plotly.newPlot(plotId, [trace], { title: `${header} 類別計數`, xaxis: { title: header }, yaxis: { title: '數量' }, margin: { t: 40, b: 40, l: 40, r: 20 }, paper_bgcolor: '#f9f9f9', plot_bgcolor: '#f9f9f9' }, {responsive: true});
+            }
+        });
+    }
+
+    function runPareto() {
+        const categoryVar = document.getElementById('paretoCategoryVar').value;
+        const valueVar = document.getElementById('paretoValueVar').value;
+        const resultsDiv = document.getElementById('paretoResults');
+        resultsDiv.innerHTML = '';
+        if (!categoryVar || !valueVar) { resultsDiv.innerHTML = `<p class="text-red-600">請選擇類別與數值欄位。</p>`; return; }
+
+        const sums = jsonData.reduce((acc, row) => {
+            const category = row[categoryVar];
+            const value = parseFloat(row[valueVar]);
+            if (category != null && !isNaN(value)) {
+                acc[category] = (acc[category] || 0) + value;
+            }
+            return acc;
+        }, {});
+
+        const sortedData = Object.entries(sums).sort(([, a], [, b]) => b - a);
+        if (sortedData.length === 0) { resultsDiv.innerHTML = `<p class="text-gray-500">找不到有效的配對資料來產生柏拉圖。</p>`; return; }
+
+        const totalSum = sortedData.reduce((sum, [, value]) => sum + value, 0);
+        
+        let cumulativePercentage = 0;
+        const labels = [], values = [], percentages = [];
+        sortedData.forEach(([label, value]) => {
+            labels.push(label);
+            values.push(value);
+            cumulativePercentage += (value / totalSum) * 100;
+            percentages.push(cumulativePercentage);
+        });
+
+        const plotDiv = document.createElement('div');
+        plotDiv.id = 'paretoPlot';
+        resultsDiv.appendChild(plotDiv);
+
+        const trace1 = { x: labels, y: values, type: 'bar', name: '數值', marker: { color: 'rgb(37, 99, 235)' } };
+        const trace2 = { x: labels, y: percentages, type: 'scatter', mode: 'lines+markers', name: '累積百分比 (%)', yaxis: 'y2', line: { color: 'rgb(220, 38, 38)' } };
+        
+        const layout = {
+            title: `柏拉圖分析: ${valueVar} by ${categoryVar}`,
+            xaxis: { title: categoryVar },
+            yaxis: { title: `加總 ${valueVar}` },
+            yaxis2: { title: '累積百分比 (%)', overlaying: 'y', side: 'right', range: [0, 105] },
+            showlegend: true,
+            legend: { x: 0.7, y: 1.15 }
+        };
+        Plotly.newPlot(plotDiv, [trace1, trace2], layout, {responsive: true});
+    }
+
+    function runAnovaStyleTest() {
+        const catVar = document.getElementById('tTestCategoricalVar').value;
+        const numVar = document.getElementById('tTestNumericalVar').value;
+        const resultsDiv = document.getElementById('tTestResults');
+        resultsDiv.innerHTML = '';
+        if (!catVar || !numVar) { resultsDiv.innerHTML = `<p class="text-red-600">請選擇分組變數與數值變數。</p>`; return; }
+        
+        const groupedData = jsonData.reduce((acc, row) => {
+            const groupKey = row[catVar], numValue = row[numVar];
+            if (groupKey != null && typeof numValue === 'number') {
+                if (!acc[groupKey]) acc[groupKey] = [];
+                acc[groupKey].push(numValue);
+            }
+            return acc;
+        }, {});
+
+        const groups = Object.keys(groupedData);
+        if (groups.length !== 2) { resultsDiv.innerHTML = `<p class="text-red-600">分組變數必須剛好有兩個組別才能執行 T 檢定。目前有 ${groups.length} 組。</p>`; return; }
+        
+        const data1 = groupedData[groups[0]], data2 = groupedData[groups[1]];
+        if (data1.length < 2 || data2.length < 2) { resultsDiv.innerHTML = `<p class="text-red-600">組別內沒有足夠的數值資料。</p>`; return; }
+        
+        const n1 = data1.length, n2 = data2.length;
+        const mean1 = ss.mean(data1), mean2 = ss.mean(data2);
+        const var1 = ss.variance(data1), var2 = ss.variance(data2);
+
+        if (var1 === 0 || var2 === 0) {
+            resultsDiv.innerHTML = `<p class="text-red-600">錯誤：至少有一個組別的變異數為零（所有值都相同），無法計算 T 檢定。</p>`;
+            return;
+        }
+
+        const tStat = (mean1 - mean2) / Math.sqrt(var1 / n1 + var2 / n2);
+        const df_num = Math.pow(var1 / n1 + var2 / n2, 2);
+        const df_den = (Math.pow(var1 / n1, 2) / (n1 - 1)) + (Math.pow(var2 / n2, 2) / (n2 - 1));
+        const df = df_num / df_den;
+        
+        const pValue = jStat.studentt.cdf(-Math.abs(tStat), df) * 2;
+
+        let resultHtml = `<h3 class="text-lg font-semibold mb-2">T 檢定結果: ${numVar} by ${catVar}</h3><div class="overflow-x-auto"><table class="min-w-full bg-white"><tbody class="divide-y divide-gray-200"><tr><td class="px-6 py-4 font-medium text-gray-900">比較組別</td><td class="px-6 py-4 text-gray-700">${groups[0]} vs ${groups[1]}</td></tr><tr><td class="px-6 py-4 font-medium text-gray-900">T 統計量</td><td class="px-6 py-4 text-gray-700 font-mono text-lg">${tStat.toFixed(4)}</td></tr><tr><td class="px-6 py-4 font-medium text-gray-900">P 值</td><td class="px-6 py-4 text-gray-700 font-mono text-lg">${pValue.toFixed(4)}</td></tr></tbody></table></div><div class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg"><h4 class="font-bold">結果判讀:</h4><p class="text-gray-700 mt-1">${pValue < 0.05 ? `由於 p-value (${pValue.toFixed(4)}) 小於 0.05，我們有足夠證據拒絕虛無假設。表示 <strong>${groups[0]}</strong> 與 <strong>${groups[1]}</strong> 兩組在 <strong>${numVar}</strong> 的平均值上存在<strong>顯著差異</strong>。` : `由於 p-value (${pValue.toFixed(4)}) 大於 0.05，我們沒有足夠證據拒絕虛無假設。表示 <strong>${groups[0]}</strong> 與 <strong>${groups[1]}</strong> 兩組在 <strong>${numVar}</strong> 的平均值上<strong>沒有顯著差異</strong>。`}</p></div>`;
+        resultsDiv.innerHTML = resultHtml;
+
+        const plotDiv = document.createElement('div');
+        plotDiv.id = 'tTestPlot', plotDiv.className = 'mt-6', resultsDiv.appendChild(plotDiv);
+        const trace1 = { y: data1, type: 'box', name: groups[0] }, trace2 = { y: data2, type: 'box', name: groups[1] };
+        Plotly.newPlot('tTestPlot', [trace1, trace2], { title: '兩組資料分佈比較', yaxis: { title: numVar }, paper_bgcolor: '#f9f9f9', plot_bgcolor: '#f9f9f9' }, {responsive: true});
+    }
+
+    function runRegression() {
+        const xVar = document.getElementById('regressionX').value;
+        const yVar = document.getElementById('regressionY').value;
+        const resultsDiv = document.getElementById('regressionResults');
+        resultsDiv.innerHTML = '';
+        if (!xVar || !yVar) { resultsDiv.innerHTML = `<p class="text-red-600">請選擇自變數 (X) 與應變數 (Y)。</p>`; return; }
+        if (xVar === yVar) { resultsDiv.innerHTML = `<p class="text-red-600">自變數與應變數不能相同。</p>`; return; }
+        const dataPairs = jsonData.map(row => [row[xVar], row[yVar]]).filter(pair => typeof pair[0] === 'number' && typeof pair[1] === 'number');
+        if (dataPairs.length < 2) { resultsDiv.innerHTML = `<p class="text-red-600">沒有足夠的配對數值資料進行迴歸分析。</p>`; return; }
+        
+        const linearModel = ss.linearRegression(dataPairs);
+        const rSquared = ss.rSquared(dataPairs, ss.linearRegressionLine(linearModel));
+        const line = ss.linearRegressionLine(linearModel);
+        
+        const xValues = dataPairs.map(p => p[0]), yValues = dataPairs.map(p => p[1]);
+        const xMin = ss.min(xValues), xMax = ss.max(xValues);
+        const lineX = [xMin, xMax], lineY = [line(xMin), line(xMax)];
+        let resultHtml = `<h3 class="text-lg font-semibold mb-2">簡單線性迴歸結果</h3><div class="overflow-x-auto"><table class="min-w-full bg-white"><tbody class="divide-y divide-gray-200"><tr><td class="px-6 py-4 font-medium text-gray-900">迴歸方程式</td><td class="px-6 py-4 text-gray-700 font-mono text-lg">Y = ${linearModel.m.toFixed(4)} * X + ${linearModel.b.toFixed(4)}</td></tr><tr><td class="px-6 py-4 font-medium text-gray-900">判定係數 (R-squared)</td><td class="px-6 py-4 text-gray-700 font-mono text-lg">${rSquared.toFixed(4)}</td></tr></tbody></table></div><div class="mt-4 p-4 bg-purple-50 border-l-4 border-purple-500 rounded-r-lg"><h4 class="font-bold">結果判讀:</h4><p class="text-gray-700 mt-1">判定係數 (R²) 為 <strong>${rSquared.toFixed(4)}</strong>，表示應變數 (Y) 的變異中，有 <strong>${(rSquared * 100).toFixed(2)}%</strong> 可以由自變數 (X) 來解釋。</p></div>`;
+        resultsDiv.innerHTML = resultHtml;
+        const plotDiv = document.createElement('div');
+        plotDiv.id = 'regressionPlot', plotDiv.className = 'mt-6', resultsDiv.appendChild(plotDiv);
+        const scatterTrace = { x: xValues, y: yValues, mode: 'markers', type: 'scatter', name: '原始數據' };
+        const lineTrace = { x: lineX, y: lineY, mode: 'lines', type: 'scatter', name: '迴歸線', line: { color: 'rgba(219, 64, 82, 1)' } };
+        Plotly.newPlot('regressionPlot', [scatterTrace, lineTrace], { title: `${yVar} vs ${xVar} 散佈圖`, xaxis: { title: xVar }, yaxis: { title: yVar }, showlegend: true, paper_bgcolor: '#f9f9f9', plot_bgcolor: '#f9f9f9' }, {responsive: true});
+    }
+
+    function holtWinters(series, alpha, beta, gamma, period, m) {
+        if (series.length < period * 2) throw new Error("需要至少兩個週期的數據來初始化 Holt-Winters 模型。");
+        let level = 0, trend = 0;
+        const seasons = new Array(period).fill(0);
+        let initialLevelSum = 0;
+        for (let i = 0; i < period; i++) initialLevelSum += series[i];
+        level = initialLevelSum / period;
+        let initialTrendSum = 0;
+        for (let i = 0; i < period; i++) initialTrendSum += (series[i + period] - series[i]);
+        trend = initialTrendSum / (period * period);
+        for (let i = 0; i < period; i++) seasons[i] = series[i] / level;
+        const smoothed = [], forecasts = [];
+        for (let i = 0; i < series.length; i++) {
+            const last_level = level, season_idx = i % period;
+            level = alpha * (series[i] / seasons[season_idx]) + (1 - alpha) * (level + trend);
+            trend = beta * (level - last_level) + (1 - beta) * trend;
+            seasons[season_idx] = gamma * (series[i] / level) + (1 - gamma) * seasons[season_idx];
+            smoothed.push(level + trend * seasons[i % period]);
+        }
+        for (let i = 0; i < m; i++) {
+            const season_idx = (series.length + i) % period;
+            forecasts.push((level + (i + 1) * trend) * seasons[season_idx]);
+        }
+        return { smoothed, forecasts };
+    }
+
+    function runForecast() {
+        const timeVar = document.getElementById('forecastTimeVar').value;
+        const valueVar = document.getElementById('forecastValueVar').value;
+        const period = parseInt(document.getElementById('forecastPeriod').value);
+        const steps = parseInt(document.getElementById('forecastSteps').value);
+        const alpha = parseFloat(document.getElementById('forecastAlpha').value);
+        const beta = parseFloat(document.getElementById('forecastBeta').value);
+        const gamma = parseFloat(document.getElementById('forecastGamma').value);
+        const resultsDiv = document.getElementById('forecastResults');
+        resultsDiv.innerHTML = '';
+
+        if (!timeVar || !valueVar || !period || !steps) { resultsDiv.innerHTML = `<p class="text-red-600">請選擇時間、數值欄位，並填寫季節長度與預測期數。</p>`; return; }
+        if (period <= 1) { resultsDiv.innerHTML = `<p class="text-red-600">季節長度 (Period) 必須大於 1。</p>`; return; }
+
+        const seriesData = jsonData.map(row => ({ time: row[timeVar], value: row[valueVar] })).filter(d => d.time != null && typeof d.value === 'number');
+        seriesData.sort((a, b) => a.time < b.time ? -1 : 1);
+        const yValues = seriesData.map(d => d.value);
+
+        if (yValues.length < period * 2) { resultsDiv.innerHTML = `<p class="text-red-600">數據不足。Holt-Winters 需要至少兩倍季節長度的數據 (需要 ${period*2} 筆，現有 ${yValues.length} 筆)。</p>`; return; }
+        
+        try {
+            const { smoothed, forecasts } = holtWinters(yValues, alpha, beta, gamma, period, steps);
+            
+            let absPercentErrors = [];
+            for(let i = 0; i < yValues.length; i++) {
+                if (yValues[i] !== 0) absPercentErrors.push(Math.abs((yValues[i] - smoothed[i]) / yValues[i]));
+            }
+            const mape = absPercentErrors.length > 0 ? ss.mean(absPercentErrors) * 100 : 0;
+
+            const plotDiv = document.createElement('div');
+            plotDiv.id = 'forecastPlot';
+            resultsDiv.appendChild(plotDiv);
+
+            const originalX = seriesData.map(d => d.time instanceof Date ? d.time.toLocaleDateString() : d.time);
+            const futureX = [];
+            const lastTime = seriesData[seriesData.length - 1].time;
+            if (lastTime instanceof Date) {
+                for (let i = 1; i <= steps; i++) {
+                    const nextDate = new Date(lastTime);
+                    nextDate.setMonth(nextDate.getMonth() + i); 
+                    futureX.push(nextDate.toLocaleDateString());
+                }
+            } else if (!isNaN(lastTime)) {
+                 for (let i = 1; i <= steps; i++) futureX.push(lastTime + i);
+            } else {
+                 for (let i = 1; i <= steps; i++) futureX.push(`預測 ${i}`);
+            }
+
+            const trace1 = { x: originalX, y: yValues, mode: 'lines+markers', name: '原始數據' };
+            const trace2 = { x: originalX, y: smoothed, mode: 'lines', name: '模型擬合值', line: { dash: 'dot', color: 'orange' } };
+            const trace3 = { x: futureX, y: forecasts, mode: 'lines+markers', name: '預測值', line: { color: 'red' } };
+            const layout = { title: `${valueVar} Holt-Winters 預測`, xaxis: { title: timeVar, type: 'category' }, yaxis: { title: valueVar }, showlegend: true, paper_bgcolor: '#f9f9f9', plot_bgcolor: '#f9f9f9' };
+            Plotly.newPlot('forecastPlot', [trace1, trace2, trace3], layout, {responsive: true});
+
+            let tableHtml = `<div class="mt-4 p-4 bg-sky-50 border-l-4 border-sky-500 rounded-r-lg"><h4 class="font-bold">模型準確度</h4><p class="text-gray-700 mt-1">平均絕對百分比誤差 (MAPE): <strong>${mape.toFixed(2)}%</strong> (越低越好)</p></div><h3 class="text-lg font-semibold mt-6 mb-2">預測值</h3><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">未來期數</th><th class="p-2 text-left text-xs font-medium text-gray-500 uppercase">預測值</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            forecasts.forEach((val, i) => {
+                tableHtml += `<tr><td class="p-2 whitespace-nowrap text-sm font-medium text-gray-900">${futureX[i]}</td><td class="p-2 text-sm text-gray-500">${val.toFixed(3)}</td></tr>`;
+            });
+            tableHtml += `</tbody></table></div>`;
+            resultsDiv.innerHTML += tableHtml;
+
+        } catch (error) {
+            resultsDiv.innerHTML = `<p class="text-red-600">預測時發生錯誤: ${error.message}</p>`;
+        }
+    }
+
+    // --- Lightweight matrix utilities (avoid jStat shape pitfalls) ---
+    function _eye(n){ return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=> i===j?1:0)); }
+    function _T(A){ const m=A.length, n=A[0].length; const AT=Array.from({length:n},()=>Array(m).fill(0));
+      for(let i=0;i<m;i++){ for(let j=0;j<n;j++){ AT[j][i]=A[i][j]; } } return AT; }
+    function _mul(A,B){ // (m×n)*(n×p) -> (m×p)
+      const m=A.length, n=A[0].length, p=B[0].length; const C=Array.from({length:m},()=>Array(p).fill(0));
+      for(let i=0;i<m;i++){ for(let k=0;k<n;k++){ const aik=A[i][k];
+        for(let j=0;j<p;j++){ C[i][j]+=aik*B[k][j]; } } } return C;
+    }
+    function _add(A,B){ return A.map((r,i)=> r.map((v,j)=> v+B[i][j])); }
+    function _scale(A,c){ return A.map(r=> r.map(v=> v*c)); }
+    function _invGauss(M){
+      const n=M.length; const A=M.map(r=>r.slice()); const I=_eye(n);
+      for(let i=0;i<n;i++){
+        let piv=i; for(let r=i+1;r<n;r++) if(Math.abs(A[r][i])>Math.abs(A[piv][i])) piv=r;
+        if(Math.abs(A[piv][i])<1e-12) throw new Error('矩陣不可逆（可能共線）');
+        if(piv!==i){ [A[i],A[piv]]=[A[piv],A[i]]; [I[i],I[piv]]=[I[piv],I[i]]; }
+        const d=A[i][i]; for(let j=0;j<n;j++){ A[i][j]/=d; I[i][j]/=d; }
+        for(let r=0;r<n;r++) if(r!==i){ const f=A[r][i];
+          for(let j=0;j<n;j++){ A[r][j]-=f*A[i][j]; I[r][j]-=f*I[i][j]; } }
+      }
+      return I;
+    }
+
+    // --- Logistic Regression with robust IRLS + Ridge ---
+    function runLogistic(){
+      const yVar = document.getElementById('logisticY').value;
+      const xVars = Array.from(document.getElementById('logisticX').selectedOptions).map(opt => opt.value);
+      const resultsDiv = document.getElementById('logisticResults');
+      resultsDiv.innerHTML = '';
+      logisticModel = null; // Reset the model
+
+      if (!yVar || xVars.length === 0) {
+        resultsDiv.innerHTML = `<p class="text-red-600">請選擇應變數 (Y) 和至少一個自變數 (X)。</p>`; return;
+      }
+
+      const uniqueY = [...new Set(jsonData.map(row => row[yVar]).filter(v => v != null))].sort();
+      if (uniqueY.length !== 2) {
+        resultsDiv.innerHTML = `<p class="text-red-600">應變數必須為二元類別 (只有兩種值)。</p>`; return;
+      }
+
+      const Xraw = [], y = [];
+      for(const row of jsonData){
+        if(row[yVar] == null) continue;
+        const feat = [];
+        let ok = true;
+        for(const k of xVars){
+          const v = Number(row[k]);
+          if(!Number.isFinite(v)){ ok=false; break; }
+          feat.push(v);
+        }
+        if(!ok) continue;
+        Xraw.push(feat);
+        y.push(row[yVar] === uniqueY[1] ? 1 : 0);
+      }
+
+      if (Xraw.length < xVars.length + 2) {
+        resultsDiv.innerHTML = `<p class="text-red-600">有效的數值資料列不足 (${Xraw.length} 筆)，至少需要 ${xVars.length + 2} 筆。</p>`; return;
+      }
+
+      const n = Xraw.length, p0 = xVars.length;
+      const means = Array(p0).fill(0), sds = Array(p0).fill(1);
+      for(let j=0;j<p0;j++){
+        const col = Xraw.map(r => r[j]);
+        const m = jStat.mean(col); let sd = jStat.stdev(col, true); if(sd===0) sd=1;
+        means[j]=m; sds[j]=sd;
+        for(let i=0;i<n;i++) Xraw[i][j] = (Xraw[i][j] - m) / sd;
+      }
+
+      const X = Xraw.map(r => [1, ...r]);
+      const p = X[0].length;
+      const lambda = 1e-4, maxIter = 50, tol = 1e-6;
+      let beta = Array(p).fill(0).map(v => [v]);
+
+      try{
+        for(let it=0; it<maxIter; it++){
+          const eta = _mul(X, beta);
+          const pHat = eta.map(e => 1/(1+Math.exp(-e[0])));
+          const Wdiag = pHat.map(pi => Math.max(pi*(1-pi), 1e-6));
+          const z = eta.map((e,i)=> [ e[0] + (y[i] - pHat[i]) / Wdiag[i] ]);
+          const WX = X.map((row,i) => row.map(v => v * Wdiag[i]));
+          let XTWX = _mul(_T(X), WX);
+          const reg = _eye(p); reg[0][0]=0;
+          XTWX = _add(XTWX, _scale(reg, lambda));
+          const XTWz = _mul(_T(WX), z);
+          const inv = _invGauss(XTWX);
+          const betaNew = _mul(inv, XTWz);
+          let diff = 0;
+          for(let j=0;j<p;j++){ const d = betaNew[j][0] - beta[j][0]; diff += d*d; }
+          beta = betaNew;
+          if(Math.sqrt(diff) < tol) break;
+        }
+
+        const etaF = _mul(X, beta).map(v => v[0]);
+        const Wf = etaF.map(e => { const pi=1/(1+Math.exp(-e)); return Math.max(pi*(1-pi),1e-6); });
+        const WXf = X.map((row,i)=> row.map(v=> v*Wf[i]));
+        let XTWXf = _mul(_T(X), WXf);
+        const reg_final = _eye(p); reg_final[0][0]=0;
+        XTWXf = _add(XTWXf, _scale(reg_final, lambda));
+        const cov = _invGauss(XTWXf);
+        const se = cov.map((row,i)=> Math.sqrt(Math.max(row[i], 0)));
+        const betaVec = beta.map(b=> b[0]);
+        const zScores = betaVec.map((b,i)=> se[i] === 0 ? 0 : b / se[i]);
+        const pVals = zScores.map(z => 2*(1 - jStat.normal.cdf(Math.abs(z), 0, 1)));
+        const OR = betaVec.map(b => Math.exp(b));
+
+        // Store model for prediction
+        logisticModel = { beta: betaVec, xVars, uniqueY, means, sds };
+
+        let html = `<h3 class="text-lg font-semibold mb-2">邏輯斯迴歸模型結果（IRLS + Ridge）</h3>
+          <p class="text-sm text-gray-600 mb-4">Y 編碼：${uniqueY[1]} = 1，${uniqueY[0]} = 0</p>
+          <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50"><tr>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">變數</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">β</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">SE</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">z</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">p</th>
+            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">OR</th>
+          </thead><tbody class="bg-white divide-y divide-gray-200">`;
+        const names = ['截距 (Intercept)', ...xVars];
+        for(let j=0;j<p;j++){
+          html += `<tr>
+            <td class="px-4 py-2 text-sm">${names[j]}</td>
+            <td class="px-4 py-2 text-sm text-right">${betaVec[j].toFixed(6)}</td>
+            <td class="px-4 py-2 text-sm text-right">${se[j].toFixed(6)}</td>
+            <td class="px-4 py-2 text-sm text-right">${zScores[j].toFixed(3)}</td>
+            <td class="px-4 py-2 text-sm text-right">${pVals[j] < 1e-6 ? '&lt;1e-6' : pVals[j].toFixed(6)}</td>
+            <td class="px-4 py-2 text-sm text-right">${OR[j].toFixed(4)}</td>
+          </tr>`;
+        }
+        html += `</tbody></table></div>
+          <div class="mt-3 p-3 bg-blue-50 border rounded text-xs">
+            解讀：OR>1 表示變數增加，事件（=1）勝算提高；OR<1 表示降低。若遇到分離或高度共線，請減少特徵或增大 Ridge λ。
+          </div>`;
+        resultsDiv.innerHTML = html;
+
+        // Add prediction interface
+        let predictionHtml = `<div id="logisticPredictionInterface" class="mt-8 pt-6 border-t">
+            <h3 class="text-lg font-semibold mb-4">進行預測</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+        xVars.forEach(v => {
+            predictionHtml += `<div>
+                <label for="pred_in_${v}" class="block text-sm font-medium text-gray-700">${v}</label>
+                <input type="number" id="pred_in_${v}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="請輸入數值">
+            </div>`;
+        });
+        predictionHtml += `</div>
+            <button id="runPredictionBtn" class="mt-4 bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">計算機率</button>
+            <div id="predictionResult" class="mt-4 text-lg font-semibold"></div>
+        </div>`;
+        resultsDiv.innerHTML += predictionHtml;
+        document.getElementById('runPredictionBtn').addEventListener('click', predictLogistic);
+
+      }catch(err){
+        resultsDiv.innerHTML = `<p class="text-red-600">建立模型時發生錯誤：${err.message}</p>`;
+      }
+    }
+
+    function predictLogistic() {
+        if (!logisticModel) return;
+        const { beta, xVars, uniqueY, means, sds } = logisticModel;
+        const resultDiv = document.getElementById('predictionResult');
+        
+        let inputValues = [];
+        let allValid = true;
+        xVars.forEach(v => {
+            const val = parseFloat(document.getElementById(`pred_in_${v}`).value);
+            if (isNaN(val)) {
+                allValid = false;
+            }
+            inputValues.push(val);
+        });
+
+        if (!allValid) {
+            resultDiv.innerHTML = `<p class="text-red-600">請為所有自變數輸入有效的數值。</p>`;
+            return;
+        }
+
+        // Standardize input
+        const standardizedInputs = inputValues.map((val, i) => (val - means[i]) / sds[i]);
+        
+        // Add intercept and calculate eta
+        const x_pred = [1, ...standardizedInputs];
+        let eta = 0;
+        for (let i = 0; i < x_pred.length; i++) {
+            eta += x_pred[i] * beta[i];
+        }
+
+        const probability = 1 / (1 + Math.exp(-eta));
+        const prob_y1 = probability;
+        const prob_y0 = 1 - probability;
+        
+        resultDiv.innerHTML = `
+            <div class="space-y-2">
+                <div>
+                    結果為 <span class="font-bold text-blue-600">${uniqueY[1]}</span> 的機率為: 
+                    <span class="text-2xl text-green-700">${(prob_y1 * 100).toFixed(2)}%</span>
+                </div>
+                <div>
+                    結果為 <span class="font-bold text-gray-600">${uniqueY[0]}</span> 的機率為: 
+                    <span class="text-2xl text-gray-700">${(prob_y0 * 100).toFixed(2)}%</span>
+                </div>
+            </div>`;
+    }
+
+    /**
+     * Robust feature importance from ml.js Decision Tree JSON.
+     * Directly accumulates the library-provided 'gain' at each split node.
+     * Supports multiple JSON shapes and field names across ml.js versions.
+     * @param {object} treeJson - regressor.toJSON() (or its .root)
+     * @param {number} numFeatures - number of X variables used in training
+     * @returns {number[]} normalized importance for each feature index (length = numFeatures)
+     */
+    function calculateDtImportance(treeJson, numFeatures) {
+        const importances = new Array(numFeatures).fill(0);
+        const root = (treeJson && typeof treeJson === 'object' && treeJson.root) ? treeJson.root : treeJson;
+
+        function childKeys(node) {
+            const keys = [];
+            if (!node || typeof node !== 'object') return keys;
+            if (node.left) keys.push('left');
+            if (node.right) keys.push('right');
+            if (node.trueBranch) keys.push('trueBranch');
+            if (node.falseBranch) keys.push('falseBranch');
+            if (Array.isArray(node.children)) return ['children'];
+            return keys;
+        }
+        function featureIndex(node) {
+            const cand = ['splitColumn', 'column', 'attribute', 'feature', 'index'];
+            for (const k of cand) {
+                if (node[k] !== undefined && node[k] !== null && Number.isFinite(+node[k])) return +node[k];
+            }
+            return null;
+        }
+        function nodeGain(node) {
+            const cand = ['gain', 'gainRatio', 'impurityReduction', 'varianceReduction'];
+            for (const k of cand) {
+                if (node[k] !== undefined && node[k] !== null && Number.isFinite(+node[k])) return +node[k];
+            }
+            return 0;
+        }
+        function traverse(node) {
+            if (!node || typeof node !== 'object') return;
+            const fi = featureIndex(node);
+            const g = nodeGain(node);
+            if (fi !== null && g > 0 && fi >= 0 && fi < importances.length) importances[fi] += g;
+            const cks = childKeys(node);
+            if (cks.includes('children')) {
+                for (const child of node.children) traverse(child);
+            } else {
+                if (node.left) traverse(node.left);
+                if (node.right) traverse(node.right);
+                if (node.trueBranch) traverse(node.trueBranch);
+                if (node.falseBranch) traverse(node.falseBranch);
+            }
+        }
+        traverse(root);
+        const total = importances.reduce((a,b)=>a+b, 0);
+        if (total > 0) for (let i=0;i<importances.length;i++) importances[i] /= total;
+        return importances;
+    }
+
+    function runDecisionTree() {
+        const yVar = document.getElementById('dtY').value;
+        const xVars = Array.from(document.getElementById('dtX').selectedOptions).map(opt => opt.value);
+        const maxDepth = parseInt(document.getElementById('dtMaxDepth').value);
+        const minSamplesLeaf = parseInt(document.getElementById('dtMinSamplesLeaf').value);
+        const resultsDiv = document.getElementById('dtResults');
+        resultsDiv.innerHTML = '';
+
+        if (!yVar || xVars.length === 0) {
+            resultsDiv.innerHTML = `<p class="text-red-600">請選擇應變數 (Y) 和至少一個自變數 (X)。</p>`;
+            return;
+        }
+
+        const encoders = {};
+        xVars.forEach(header => {
+            if (categoricalHeaders.includes(header)) {
+                const uniqueValues = [...new Set(jsonData.map(row => row[header]).filter(v => v != null))];
+                encoders[header] = {};
+                uniqueValues.forEach((val, i) => { encoders[header][val] = i; });
+            }
+        });
+
+        const X = [], y = [];
+        for (const row of jsonData) {
+            let isValidRow = true;
+            const featureRow = [];
+            for (const xVar of xVars) {
+                const val = row[xVar];
+                if (val == null) { isValidRow = false; break; }
+                featureRow.push(categoricalHeaders.includes(xVar) ? encoders[xVar][val] : val);
+            }
+            const yVal = row[yVar];
+            if (yVal == null || typeof yVal !== 'number') isValidRow = false;
+
+            if (isValidRow) {
+                X.push(featureRow);
+                y.push(yVal);
+            }
+        }
+
+        if (X.length < 5) {
+            resultsDiv.innerHTML = `<p class="text-red-600">有效的資料列不足 (${X.length} 筆)，無法建立決策樹模型。</p>`;
+            return;
+        }
+
+        try {
+            const options = { maxDepth: maxDepth, minNumSamples: minSamplesLeaf };
+            const regressor = new ML.DecisionTreeRegression(options);
+            regressor.train(X, y);
+            
+            const modelJSON = regressor.toJSON();
+            const importancesArray = calculateDtImportance(modelJSON, xVars.length);
+            const importances = importancesArray.map((imp, index) => ({
+                featureIndex: index,
+                importance: imp
+            })).sort((a, b) => b.importance - a.importance);
+            
+            let html = `<h3 class="text-lg font-semibold mb-2">迴歸決策樹模型結果</h3>
+                        <p class="text-sm text-gray-600 mb-4">模型已成功建立。以下為各個自變數對預測結果的貢獻度排序。</p>`;
+            html += `<div id="dtImportancePlot"></div>`;
+            html += `<h4 class="text-md font-semibold mt-6 mb-2">特徵貢獻度 (Variance Reduction)</h4>
+                     <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">
+                     <thead class="bg-gray-50"><tr>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">變數</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">貢獻度</th>
+                     </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+            importances.forEach(imp => {
+                html += `<tr>
+                            <td class="px-4 py-2 text-sm font-medium text-gray-900">${xVars[imp.featureIndex]}</td>
+                            <td class="px-4 py-2 text-sm text-right text-gray-500">${imp.importance.toFixed(4)}</td>
+                         </tr>`;
+            });
+            html += `</tbody></table></div>
+                     <div class="mt-3 p-3 bg-amber-50 border rounded text-xs">
+                        解讀：貢獻度越高，表示該變數在預測數值結果時，提供了越多的資訊，是越重要的因子。
+                     </div>`;
+            resultsDiv.innerHTML = html;
+
+            const plotLabels = importances.map(imp => xVars[imp.featureIndex]);
+            const plotValues = importances.map(imp => imp.importance);
+            const plotTrace = {
+                x: plotValues.reverse(),
+                y: plotLabels.reverse(),
+                type: 'bar',
+                orientation: 'h',
+                marker: { color: 'rgb(217, 119, 6)' }
+            };
+            const plotLayout = {
+                title: '特徵貢獻度排序',
+                xaxis: { title: '貢獻度 (基於變異數減少量)' },
+                margin: { l: 150 }
+            };
+            Plotly.newPlot('dtImportancePlot', [plotTrace], plotLayout, {responsive: true});
+
+        } catch(err) {
+            resultsDiv.innerHTML = `<p class="text-red-600">建立模型時發生錯誤：${err.message}</p>`;
+        }
+    }
+
+    function runCorrelationMatrix() {
+        const resultsDiv = document.getElementById('correlationMatrixResults');
+        resultsDiv.innerHTML = '';
+
+        if (numericHeaders.length < 2) {
+            resultsDiv.innerHTML = `<p class="text-red-600">需要至少兩個數值欄位才能計算相關係數矩陣。</p>`;
+            return;
+        }
+
+        const correlationMatrix = [];
+        const numVars = numericHeaders.length;
+
+        for (let i = 0; i < numVars; i++) {
+            correlationMatrix[i] = [];
+            for (let j = 0; j < numVars; j++) {
+                if (i === j) {
+                    correlationMatrix[i][j] = 1;
+                    continue;
+                }
+                if (j < i) { // Matrix is symmetric, copy value
+                    correlationMatrix[i][j] = correlationMatrix[j][i];
+                    continue;
+                }
+                
+                // Pairwise deletion for correlation calculation
+                const pairs = [];
+                for(let k = 0; k < jsonData.length; k++) {
+                    const val1 = jsonData[k][numericHeaders[i]];
+                    const val2 = jsonData[k][numericHeaders[j]];
+                    if (typeof val1 === 'number' && !isNaN(val1) && typeof val2 === 'number' && !isNaN(val2)) {
+                        pairs.push([val1, val2]);
+                    }
+                }
+                
+                if (pairs.length < 2) {
+                     correlationMatrix[i][j] = NaN; // Not enough data
+                     continue;
+                }
+
+                const seriesX = pairs.map(p => p[0]);
+                const seriesY = pairs.map(p => p[1]);
+                
+                const corr = ss.sampleCorrelation(seriesX, seriesY);
+                correlationMatrix[i][j] = isNaN(corr) ? 0 : corr; // Handle potential NaN from ss
+            }
+        }
+
+        const plotDiv = document.createElement('div');
+        plotDiv.id = 'correlationHeatmap';
+        resultsDiv.appendChild(plotDiv);
+
+        const data = [{
+            z: correlationMatrix,
+            x: numericHeaders,
+            y: numericHeaders,
+            type: 'heatmap',
+            colorscale: 'RdBu',
+            zmin: -1,
+            zmax: 1,
+            hoverongaps: false
+        }];
+
+        const layout = {
+            title: '數值變數相關係數矩陣',
+            xaxis: { ticks: '', side: 'top', automargin: true },
+            yaxis: { ticks: '', automargin: true },
+            annotations: correlationMatrix.map((row, i) =>
+                row.map((val, j) => ({
+                    x: numericHeaders[j],
+                    y: numericHeaders[i],
+                    text: isNaN(val) ? 'N/A' : val.toFixed(2),
+                    showarrow: false,
+                    font: {
+                        color: Math.abs(val) > 0.5 ? 'white' : 'black',
+                        size: 10
+                    }
+                }))
+            ).flat()
+        };
+
+        Plotly.newPlot(plotDiv, data, layout, { responsive: true });
+    }
+
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', setupEventListeners);
+</script>
+</body>
+</html>

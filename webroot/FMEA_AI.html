@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>失效模式及影響分析_控制計畫 FMEA_CP + AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc; /* A lighter gray background */
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #eef2ff;
+            color: #3b82f6;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+            padding: 2rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.75rem; text-align: left; }
+        .ai-output th { background-color: #f9fafb; font-weight: 600; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .ai-output h4 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-blue-600 mb-2">失效模式及影響分析_控制計畫 FMEA_CP + AI</h1>
+            <p class="text-md md:text-lg text-gray-600">一門為您打造的系統性風險分析與 AI 協作實戰課程</p>
+            <div class="mt-4 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-16 h-16 object-cover shadow-md">
+                <div>
+                    <p class="text-md font-semibold text-gray-700 text-left">Cliff Wang, Ph.D. 王啟岳博士</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls controlslist="nodownload" src="https://github.com/drcliffwang/course-material/raw/main/FMEA.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8" id="tab-nav">
+            <button class="tab-button active" onclick="showSection('overview')">課程概覽</button>
+            <button class="tab-button" onclick="showSection('ai-setup')">AI 設定</button>
+            <button class="tab-button" onclick="showSection('fmea-intro')">FMEA 基礎</button>
+            <button class="tab-button" onclick="showSection('dfmea')">DFMEA 設計</button>
+            <button class="tab-button" onclick="showSection('pfmea')">PFMEA 流程</button>
+            <button class="tab-button" onclick="showSection('cp')">Control Plan 控制計畫</button>
+            <button class="tab-button" onclick="showSection('conclusion')">結論與討論</button>
+        </nav>
+
+        <main>
+            <section id="overview" class="content-section active">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">新版 AIAG-VDA FMEA 七步法</h2>
+                    <p class="text-gray-600">一個結構化、系統化的風險分析與管理框架</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="p-6 bg-white rounded-lg shadow-lg col-span-full lg:col-span-1">
+                        <h3 class="font-bold text-xl mb-2 text-blue-600">第一階段：系統分析</h3>
+                        <ul class="text-left space-y-2 text-gray-700">
+                            <li><b>步驟 1: 規劃與準備</b> - 定義分析範圍與團隊 (5T)。</li>
+                            <li><b>步驟 2: 結構分析</b> - 拆解系統、子系統與元件。</li>
+                            <li><b>步驟 3: 功能分析</b> - 描述各結構層級的功能與需求。</li>
+                        </ul>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg col-span-full lg:col-span-1">
+                        <h3 class="font-bold text-xl mb-2 text-green-600">第二階段：失效分析與風險降低</h3>
+                        <ul class="text-left space-y-2 text-gray-700">
+                            <li><b>步驟 4: 失效分析</b> - 建立失效鏈 (效應-模式-原因)。</li>
+                            <li><b>步驟 5: 風險分析</b> - 評估 S/O/D 並決定行動優先級(AP)。</li>
+                            <li><b>步驟 6: 優化</b> - 制定並執行預防與探測措施。</li>
+                        </ul>
+                    </div>
+                    <div class="p-6 bg-white rounded-lg shadow-lg col-span-full lg:col-span-1">
+                        <h3 class="font-bold text-xl mb-2 text-purple-600">第三階段：風險溝通</h3>
+                        <ul class="text-left space-y-2 text-gray-700">
+                            <li><b>步驟 7: 結果文件化</b> - 記錄分析過程與結論，形成知識庫。</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ai-setup" class="content-section">
+                <div class="max-w-2xl mx-auto p-6 bg-blue-50 border-2 border-blue-200 rounded-lg card">
+                    <h3 class="text-xl font-bold text-blue-800 text-center mb-4 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        啟動 AI 互動功能
+                    </h3>
+                    <p class="text-center text-blue-700 mb-4">為了使用課程中的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                    
+                    <div class="mb-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                        <div class="flex items-center">
+                            <input type="password" id="api-key-input" class="w-full p-2 border border-blue-300 rounded-l-md focus:ring-2 focus:ring-blue-500" placeholder="在此貼上您選擇的服務金鑰...">
+                            <button onclick="saveApiKey()" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-r-md hover:bg-blue-600">儲存</button>
+                        </div>
+                    </div>
+                    
+                    <div id="copilot-endpoint-container" class="hidden mt-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                        <div class="flex items-center">
+                            <input type="text" id="endpoint-url-input" class="w-full p-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                        </div>
+                         <p class="text-xs text-center text-blue-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                    </div>
+
+                    <div class="text-xs text-center text-blue-600 mt-2 space-y-1">
+                        <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-blue-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-blue-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-blue-800">OpenAI/Azure</a> 免費取得。</p>
+                        <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fmea-intro" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center">FMEA 基礎 (Failure Mode and Effects Analysis)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center">失效模式與效應分析：一種系統性的風險預防工具</h3>
+                
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>FMEA 是一種團隊導向、系統性的定性分析方法，旨在於產品開發或製程規劃的早期階段，識別、評估並預防潛在的技術風險。其核心精神如同中醫的「上工治未病」，在問題發生前就採取行動，而非事後補救。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4>FMEA 的主要目的與場合</h4>
+                    <ul>
+                        <li><b>分析因果：</b>系統性地分析失效的「原因(Cause)」、「模式(Mode)」與「效應(Effect)」之間的關聯。</li>
+                        <li><b>評估風險：</b>透過嚴重度(S)、發生率(O)、探測度(D)來量化風險，並決定優化的優先順序。</li>
+                        <li><b>降低風險：</b>提出具體的「預防」與「探測」措施，以降低風險或其影響。</li>
+                        <li><b>運用場合：</b>
+                            <ul class="my-2">
+                                <li>- 新設計、新技術、新製程的導入。</li>
+                                <li>- 現有設計或製程應用於新的環境或條件。</li>
+                                <li>- 任何工程變更導入前。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">FMEA 基礎學習成效測驗</h3>
+                    <div id="quiz-fmea-intro" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="c">
+                            <p class="font-semibold mb-2">1. FMEA 最主要的核心精神是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-fmea-intro" value="a" class="mr-2">A. 快速解決已經發生的客訴問題</label>
+                                <label class="block"><input type="radio" name="q1-fmea-intro" value="b" class="mr-2">B. 計算產品的最終生產成本</label>
+                                <label class="block"><input type="radio" name="q1-fmea-intro" value="c" class="mr-2">C. 在問題發生前進行預防，是一種「事前」的風險分析</label>
+                                <label class="block"><input type="radio" name="q1-fmea-intro" value="d" class="mr-2">D. 僅用於分析軟體程式的漏洞</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="d">
+                            <p class="font-semibold mb-2">2. 在 FMEA 中，我們通常用哪三個指標來評估風險？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-fmea-intro" value="a" class="mr-2">A. 速度、品質、成本</label>
+                                <label class="block"><input type="radio" name="q2-fmea-intro" value="b" class="mr-2">B. 嚴重性、緊急性、未來性</label>
+                                <label class="block"><input type="radio" name="q2-fmea-intro" value="c" class="mr-2">C. 人、機、料、法、環</label>
+                                <label class="block"><input type="radio" name="q2-fmea-intro" value="d" class="mr-2">D. 嚴重度(S)、發生率(O)、探測度(D)</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('fmea-intro')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-fmea-intro" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="dfmea" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center">DFMEA: Design FMEA (設計 FMEA)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center">從設計源頭預防產品失效</h3>
+
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>DFMEA 專注於產品「設計」階段的潛在風險。它系統性地檢視產品從系統、子系統到元件的各個層級，分析因設計不良可能導致的失效模式，並在投入昂貴的模具與生產前，從設計面提出優化方案。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵步驟解析 (七步法應用)</h4>
+                    <ul>
+                        <li><b>1-3. 系統分析:</b> 透過結構樹或方塊圖，建立產品的層級結構 (例如：整車 -> 車門升降系統 -> 車門馬達 -> 保護盒)，並定義各層級的功能需求。</li>
+                        <li><b>4. 失效分析:</b> 建立「失效鏈」。例如：下一階「保護盒」因『材質強度不足』(原因 Cause)，導致標的物「車門馬達」發生『結構支撐不足』(模式 Mode)，最終造成上一階「車門升降系統」出現『玻璃無法升降』(效應 Effect)。</li>
+                        <li><b>5. 風險分析:</b> 針對失效原因，評估現有的「預防控制」(如：設計規範、模擬分析) 與「探測控制」(如：功能測試、可靠度測試)，並評定 S/O/D 分數，查表得出行動優先級(AP)。</li>
+                        <li><b>6. 優化:</b> 根據 AP 等級，提出降低風險的設計變更建議，例如更換材質、增加結構筋、修改公差等。</li>
+                        <li><b>7. 結果文件化:</b> 將分析結果記錄下來，成為未來新產品設計的重要參考。</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">DFMEA 學習成效測驗</h3>
+                    <div id="quiz-dfmea" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="c">
+                            <p class="font-semibold mb-2">1. DFMEA分析的「下一階」(Next Lower Level) 通常指的是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-dfmea" value="a" class="mr-2">A. 最終客戶</label>
+                                <label class="block"><input type="radio" name="q1-dfmea" value="b" class="mr-2">B. 整個產品系統</label>
+                                <label class="block"><input type="radio" name="q1-dfmea" value="c" class="mr-2">C. 組成子系統的元件或特性</label>
+                                <label class="block"><input type="radio" name="q1-dfmea" value="d" class="mr-2">D. 製造流程</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="c">
+                            <p class="font-semibold mb-2">2. 在DFMEA中，一個好的「預防控制(Prevention Control)」措施應該要能達到什麼效果？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-dfmea" value="a" class="mr-2">A. 確保失效發生時能被100%檢測到</label>
+                                <label class="block"><input type="radio" name="q2-dfmea" value="b" class="mr-2">B. 降低失效發生時對客戶的影響嚴重度(S)</label>
+                                <label class="block"><input type="radio" name="q2-dfmea" value="c" class="mr-2">C. 從設計上降低失效原因(FC)發生的可能性(O)</label>
+                                <label class="block"><input type="radio" name="q2-dfmea" value="d" class="mr-2">D. 讓產品更容易被維修</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('dfmea')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-dfmea" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-green-700 mb-4">DFMEA 實戰演練</h3>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="dfmea-input" class="font-semibold text-gray-700">請在此描述您想分析的產品及其功能：</label>
+                            <button onclick="loadExample('dfmea-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="dfmea-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500" rows="5" placeholder="例如：我想分析一款新的「智慧保溫瓶」。它的主要功能是透過瓶蓋上的LED螢幕顯示瓶內水溫，並能保溫12小時。結構上，它包含不鏽鋼瓶身、真空隔熱層、塑膠瓶蓋、內建溫度感測器、處理晶片和小型電池。請AI根據新版FMEA手冊，為我分析潛在失效並決定行動優先級(AP)。"></textarea>
+                        <button onclick="handleAI('dfmea')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
+                            ✨ 啟動 AI 風險分析
+                        </button>
+                        <div id="dfmea-output" class="ai-output hidden"></div>
+                        <div id="dfmea-optimization-container" class="mt-4 pt-4 border-t border-green-200 hidden">
+                             <button onclick="handleOptimizationAI('dfmea')" class="px-6 py-2 bg-green-700 text-white font-semibold rounded-lg shadow-md hover:bg-green-800">
+                                ✨ 產生優化建議 (FMEA 第六、七步)
+                            </button>
+                            <div id="dfmea-optimization-output" class="ai-output hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pfmea" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center">PFMEA: Process FMEA (流程 FMEA)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center">從製造流程預防產品變異</h3>
+
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>PFMEA 專注於「製造與組裝過程」中的潛在風險。它假設產品設計本身是完善的，但製造過程中的變異 (如：人員操作、機器設定、材料批次差異) 可能導致最終產品不符合設計要求。PFMEA 的目的就是在量產前，識別並控制這些流程風險。</p>
+                </div>
+                 <div class="content-block">
+                    <h4>關鍵步驟解析 (七步法應用)</h4>
+                    <ul>
+                        <li><b>1-3. 系統分析:</b> 透過流程圖，拆解整個製造流程 (上一階)，定義每個工作站 (標的流程)，並分析每個工作站的 4M (人/機/料/法) (下一階)。</li>
+                        <li><b>4. 失效分析:</b> 建立流程的「失效鏈」。例如：下一階「作業員」因『未依SOP操作』(原因 Cause)，導致標的流程「壓入軸承站」發生『軸承壓入深度不足』(模式 Mode)，最終造成上一階「馬達組裝」出現『成品異音』(效應 Effect)。</li>
+                        <li><b>5. 風險分析:</b> 針對失效原因(4M)，評估現有的「預防控制」(如：SOP、防呆治具) 與「探測控制」(如：AOI檢測、首件檢查)，並評定 S/O/D 分數，查表得出行動優先級(AP)。</li>
+                        <li><b>6. 優化:</b> 根據 AP 等級，提出改善流程的建議，例如增加防呆裝置、導入自動化檢測、修改作業指導書等。</li>
+                        <li><b>7. 結果文件化:</b> 分析結果可直接用於制定「控制計畫(Control Plan)」，指導量產時的品質管控。</li>
+                    </ul>
+                </div>
+                
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">PFMEA 學習成效測驗</h3>
+                    <div id="quiz-pfmea" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="b">
+                            <p class="font-semibold mb-2">1. PFMEA分析的「失效原因(FC)」通常與下列何者最相關？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-pfmea" value="a" class="mr-2">A. 產品的設計規格</label>
+                                <label class="block"><input type="radio" name="q1-pfmea" value="b" class="mr-2">B. 4M (人、機、料、法) 的變異</label>
+                                <label class="block"><input type="radio" name="q1-pfmea" value="c" class="mr-2">C. 市場競爭對手的策略</label>
+                                <label class="block"><input type="radio" name="q1-pfmea" value="d" class="mr-2">D. 最終客戶的使用習慣</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="c">
+                            <p class="font-semibold mb-2">2. PFMEA分析的直接產出，最常用來建立哪一份重要的品質文件？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-pfmea" value="a" class="mr-2">A. 產品設計圖</label>
+                                <label class="block"><input type="radio" name="q2-pfmea" value="b" class="mr-2">B. 供應商合約</label>
+                                <label class="block"><input type="radio" name="q2-pfmea" value="c" class="mr-2">C. 控制計畫 (Control Plan)</label>
+                                <label class="block"><input type="radio" name="q2-pfmea" value="d" class="mr-2">D. 市場行銷手冊</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('pfmea')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-pfmea" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-purple-700 mb-4">PFMEA 實戰演練</h3>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                           <label for="pfmea-input" class="font-semibold text-gray-700">請在此描述您想分析的製造流程：</label>
+                           <button onclick="loadExample('pfmea-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="pfmea-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500" rows="5" placeholder="例如：我想分析「手機螢幕貼合」的流程。主要步驟包含：1. 清潔：作業員手動使用酒精擦拭螢幕。2. 對位：作業員將保護貼對準螢幕位置。3. 貼合：使用小型滾壓機將保護貼壓實。4. 檢測：作業員目視檢查是否有氣泡或入塵。請AI根據新版FMEA手冊，為我分析潛在失效並決定行動優先級(AP)。"></textarea>
+                        <button onclick="handleAI('pfmea')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700">
+                            ✨ 啟動 AI 風險分析
+                        </button>
+                        <div id="pfmea-output" class="ai-output hidden"></div>
+                        <div id="pfmea-optimization-container" class="mt-4 pt-4 border-t border-purple-200 hidden">
+                             <button onclick="handleOptimizationAI('pfmea')" class="px-6 py-2 bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:bg-purple-800">
+                                ✨ 產生優化建議 (FMEA 第六、七步)
+                            </button>
+                            <div id="pfmea-optimization-output" class="ai-output hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="cp" class="content-section card">
+                <h2 class="text-2xl font-bold mb-4 text-center">Control Plan (控制計畫)</h2>
+                <h3 class="text-xl text-gray-600 mb-6 text-center">將分析轉為行動，確保量產品質穩定</h3>
+
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>控制計畫是 FMEA 分析的終點，也是品質管理的起點。它是一份動態的總結性文件，詳細描述了在量產過程中，為了確保產品與流程特性維持在穩定受控狀態下，所需要執行的所有測量、檢驗、評估方法與應變計畫。它將 PFMEA 的分析結果，轉化為生產現場每日執行的具體行動指南。</p>
+                </div>
+                 <div class="content-block">
+                    <h4>關鍵欄位解析</h4>
+                    <ul>
+                        <li><b>零件/過程編號 & 名稱:</b> 對應流程圖與 PFMEA 的步驟，確保追溯性。</li>
+                        <li><b>特性 (產品/流程):</b> 明確指出要管制的關鍵產品特性(CTQ)或流程參數(CTP)，特別是PFMEA中識別出的特殊特性。</li>
+                        <li><b>方法 (Methods):</b>
+                            <ul class="my-2">
+                                <li>- <b>規範/公差:</b> 該特性的允收標準。</li>
+                                <li>- <b>評估/測量技術:</b> 使用何種量具或技術進行測量 (例如：游標卡尺、CMM、目視)。</li>
+                                <li>- <b>樣本量/頻率:</b> 要檢查多少數量 (Size)，以及多久檢查一次 (Frequency)。</li>
+                                <li>- <b>控制方法:</b> 如何控制此流程 (例如：SPC管制圖、首件檢查、防呆裝置)。</li>
+                            </ul>
+                        </li>
+                        <li><b>反應計畫 (Reaction Plan):</b> 當監控發現異常 (失控或超出規格) 時，現場人員應採取的具體步驟 (例如：隔離產品、停機、通知領班)。</li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Control Plan 學習成效測驗</h3>
+                    <div id="quiz-cp" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="b">
+                            <p class="font-semibold mb-2">1. 控制計畫(Control Plan)最主要的功能是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-cp" value="a" class="mr-2">A. 分析產品設計的潛在失效模式</label>
+                                <label class="block"><input type="radio" name="q1-cp" value="b" class="mr-2">B. 作為量產階段，指導現場如何監控產品與流程的行動文件</label>
+                                <label class="block"><input type="radio" name="q1-cp" value="c" class="mr-2">C. 決定新產品開發的時程與預算</label>
+                                <label class="block"><input type="radio" name="q1-cp" value="d" class="mr-2">D. 腦力激盪新產品的創意點子</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="c">
+                            <p class="font-semibold mb-2">2. 在控制計畫中，「反應計畫(Reaction Plan)」欄位的用途是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-cp" value="a" class="mr-2">A. 規劃下一個新產品的開發流程</label>
+                                <label class="block"><input type="radio" name="q2-cp" value="b" class="mr-2">B. 記錄每日的生產數量</label>
+                                <label class="block"><input type="radio" name="q2-cp" value="c" class="mr-2">C. 描述當監控到異常時，應採取的具體步驟與負責人</label>
+                                <label class="block"><input type="radio" name="q2-cp" value="d" class="mr-2">D. 評估操作員的績效</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('cp')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-cp" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4">Control Plan 實戰演練</h3>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                           <label for="cp-input" class="font-semibold text-gray-700">請貼上先前 PFMEA 的分析結果，或描述一個製程與其關鍵特性：</label>
+                           <button onclick="loadExample('cp-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="cp-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" rows="5" placeholder="例如：基於手機螢幕貼合的PFMEA分析，我們識別出一個高風險項目：貼合壓力不足(流程特性)可能導致氣泡產生(產品特性)。失效原因為滾壓機壓力設定錯誤。我們需要為此建立一個控制計畫。"></textarea>
+                        <button onclick="handleAI('cp')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                            ✨ 啟動 AI 建立控制計畫
+                        </button>
+                        <div id="cp-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="conclusion" class="content-section card">
+                 <h2 class="text-2xl font-bold mb-6 text-center">結論與討論</h2>
+                 <div class="max-w-4xl mx-auto">
+                    <div class="mb-6">
+                        <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/fmea_mindmap.png" target="_blank" title="點擊放大">
+                            <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/fmea_mindmap.png" alt="FMEA 課程總結心智圖" class="w-full rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300">
+                        </a>
+                        <p class="text-center text-sm text-gray-500 mt-2">課程總結心智圖 (點擊放大)</p>
+                    </div>
+                    <ul class="list-none space-y-4 text-left text-lg">
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>FMEA 核心價值：</b>將品質管理的重心從「事後檢驗」轉移到「事前預防」。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>DFMEA vs. PFMEA：</b>DFMEA 關注「產品為何會失效」，從設計源頭找原因；PFMEA 關注「流程為何會失效」，從製造變異找原因。</li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>七步法框架：</b>提供一個結構化、跨功能的協作流程，確保分析的完整性與邏輯性。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>行動優先級 (AP)：</b>取代傳統的 RPN，提供更清晰的行動指引，幫助團隊聚焦於高風險項目。</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3 mt-1">✓</span> <span><b>AI 協作：</b>善用 AI 輔助進行腦力激盪、結構分析與報告撰寫，大幅提升 FMEA 的執行效率與品質。</span></li>
+                    </ul>
+                    
+                    <div class="mt-8 text-center">
+                        <a href="https://github.com/drcliffwang/course-material/raw/main/FMEA_Spreadsheet.xlsx" 
+                           download="FMEA_Spreadsheet.xlsx"
+                           class="inline-block px-8 py-3 bg-green-600 text-white font-bold text-lg rounded-lg shadow-lg hover:bg-green-700 transition-transform transform hover:-translate-y-1 duration-300">
+                           下載練習檔 (FMEA_Spreadsheet)
+                        </a>
+                    </div>
+    
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <p class="font-bold text-xl text-center text-gray-800"><b>最終目標：</b>將 FMEA 內化為組織的 DNA，建立持續改善、預防導向的品質文化，並結合 AI 工具，打造更穩健、更具競爭力的產品與流程。</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+    // --- Global variable to store the last analysis result ---
+    let lastAnalysisResult = {
+        dfmea: '',
+        pfmea: ''
+    };
+
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Show the first section by default
+        showSection('overview');
+    });
+
+    // --- Tab Navigation ---
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Deactivate all tabs
+        document.querySelectorAll('#tab-nav .tab-button').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Show selected section and activate corresponding tab
+        document.getElementById(sectionId).classList.add('active');
+        const activeButton = document.querySelector(`#tab-nav .tab-button[onclick="showSection('${sectionId}')"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            apiProvider = this.value;
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- AI Interaction Logic ---
+    async function callAI(prompt) {
+        const provider = apiProvider;
+        const apiKey = userApiKey;
+        const endpoint = userEndpointUrl;
+// ---> 新增：在這裡定義一個共用的系統提示詞
+    const systemPrompt = "你是一位專業的品質管理與風險分析顧問，請使用繁體中文回答。";
+
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+
+        try {
+            switch (provider) {
+                case 'gemini':
+    apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    // 將系統提示詞和使用者問題合併成一個字串
+    const combinedPrompt = `${systemPrompt}\n\n[使用者請求]\n${prompt}`;
+    
+    body = {
+        // 在 contents 中傳入合併後的完整提示詞
+        contents: [{ role: "user", parts: [{ text: combinedPrompt }] }],
+        safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+        ]
+    };
+    break;
+                case 'deepseek':
+                    if (!apiKey) throw new Error('Deepseek 需要 API 金鑰。');
+                    apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: "你是一位專業的品質管理與風險分析顧問，請使用繁體中文回答。" },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'chatgpt':
+                     if (!apiKey) throw new Error('ChatGPT 需要 API 金鑰。');
+                    apiUrl = 'https://api.openai.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "gpt-4o",
+                        messages: [
+                            { role: "system", content: "You are an expert quality and risk analysis consultant. Please respond in Traditional Chinese." },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'copilot':
+                    if (!apiKey || !endpoint) throw new Error('Copilot 需要 API 金鑰和 Endpoint。');
+                    apiUrl = endpoint;
+                    headers['api-key'] = apiKey;
+                    body = {
+                        messages: [
+                            { role: "system", content: "You are an expert quality and risk analysis consultant. Please respond in Traditional Chinese." },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                default:
+                    return { success: false, error: '未知的 AI 服務提供商。' };
+            }
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = result?.error?.message || JSON.stringify(result);
+                throw new Error(`API 請求失敗 (狀態碼 ${response.status}): ${errorMsg}`);
+            }
+
+            let textContent = '';
+            if (provider === 'gemini') {
+                if (result.promptFeedback?.blockReason) {
+                    return { success: false, error: `請求因安全因素被阻擋：${result.promptFeedback.blockReason}` };
+                }
+                textContent = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            } else {
+                textContent = result.choices?.[0]?.message?.content;
+            }
+            
+            if (textContent) {
+                return { success: true, text: textContent };
+            } else {
+                return { success: false, error: 'AI 回應格式有誤或為空。' };
+            }
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            let friendlyError = `無法連接至 AI 服務。請檢查您的網路連線、API 金鑰及 Endpoint (如適用) 是否正確。`;
+            if (error.message.includes("API 請求失敗")) {
+                friendlyError = error.message; 
+            } else if (error.name === 'TypeError') {
+                friendlyError += ' 可能的原因是網路問題或 CORS 跨域錯誤。'
+            }
+            return { success: false, error: friendlyError };
+        }
+    }
+
+    async function handleAI(type) {
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const optimizationContainer = document.getElementById(`${type}-optimization-container`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        // Reset previous results
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+        if (optimizationContainer) {
+            optimizationContainer.classList.add('hidden');
+            document.getElementById(`${type}-optimization-output`).classList.add('hidden');
+        }
+        if (lastAnalysisResult[type] !== undefined) {
+           lastAnalysisResult[type] = '';
+        }
+
+        let prompt = generatePrompt(type, userInput);
+        
+        const result = await callAI(prompt);
+
+        if (result.success) {
+            outputElement.innerHTML = marked.parse(result.text);
+            if (lastAnalysisResult[type] !== undefined) {
+                lastAnalysisResult[type] = result.text; // Save result for optimization step
+            }
+            if (optimizationContainer) {
+                optimizationContainer.classList.remove('hidden'); // Show the optimization button
+            }
+        } else {
+            outputElement.innerHTML = `<div class="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                <p class="font-bold">發生錯誤</p>
+                <p class="mt-2 text-sm">${result.error}</p>
+            </div>`;
+        }
+    }
+    
+    async function handleOptimizationAI(type) {
+        const previousResult = lastAnalysisResult[type];
+        if (!previousResult) {
+            alert('請先執行初步的風險分析。');
+            return;
+        }
+
+        const optimizationOutputElement = document.getElementById(`${type}-optimization-output`);
+        optimizationOutputElement.innerHTML = '<div class="loader"></div>';
+        optimizationOutputElement.classList.remove('hidden');
+
+        const prompt = generatePrompt(`${type}-optimization`, previousResult);
+        
+        const result = await callAI(prompt);
+
+        if (result.success) {
+            optimizationOutputElement.innerHTML = marked.parse(result.text);
+        } else {
+             optimizationOutputElement.innerHTML = `<div class="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                <p class="font-bold">發生錯誤</p>
+                <p class="mt-2 text-sm">${result.error}</p>
+            </div>`;
+        }
+    }
+
+
+    function generatePrompt(type, userInput) {
+        switch (type) {
+            case 'dfmea':
+                return `作為一名資深的產品設計與可靠度工程師，請對以下使用者描述的產品，進行初步的設計FMEA (DFMEA) 分析。請嚴格遵循**新版 AIAG-VDA FMEA** 的七步法思維，並以結構化的 Markdown 格式、繁體中文進行回覆：
+
+### DFMEA 分析報告
+
+**第一至三步：系統分析 (規劃、結構、功能)**
+- **分析標的：** ${userInput.split('。')[0]}
+- **結構與功能：** (請以條列式呈現至少三層的結構拆解，並描述各層級對應的功能)
+    - **上一階 (系統):** [系統名稱] - **功能:** [功能描述]
+    - **標的物 (子系統):** [子系統名稱] - **功能:** [功能描述]
+    - **下一階 (元件):** [元件名稱] - **功能:** [功能描述]
+
+**第四步：失效分析 (Failure Analysis)**
+請以「失效鏈」的形式，描述至少2個潛在的失效場景：
+- **失效場景1:**
+    - **失效效應 (FE) (發生在上一階):** - **失效模式 (FM) (發生在標的物):** - **失效原因 (FC) (來自下一階):** - **失效場景2:**
+    - **失效效應 (FE):** - **失效模式 (FM):** - **失效原因 (FC):** **第五步：風險分析 (Risk Analysis)**
+請為上述的失效原因，提出「目前的預防控制(PC)」與「目前的探測控制(DC)」。接著，**請你扮演專家的角色，為每個失效場景預估其嚴重度(S)、發生率(O)與探測度(D)的評級(1-10分)，並根據新版 AIAG-VDA FMEA 手冊的標準，查表決定其「行動優先級 (AP)」(高、中、或低)。嚴禁計算舊版的 RPN (S*O*D)。** 請將結果呈現在Markdown表格中。
+
+**使用者描述的產品：**
+${userInput}`;
+            case 'pfmea':
+                return `作為一名資深的製程與品質工程師，請對以下使用者描述的製造流程，進行初步的流程FMEA (PFMEA) 分析。請嚴格遵循**新版 AIAG-VDA FMEA** 的七步法思維，並以結構化的 Markdown 格式、繁體中文進行回覆：
+
+### PFMEA 分析報告
+
+**第一至三步：系統分析 (規劃、結構、功能)**
+- **分析流程：** ${userInput.split('。')[0]}
+- **結構與功能：** (請以條列式呈現流程的結構拆解，並描述各層級功能)
+    - **上一階 (整個流程):** [流程名稱] - **功能:** [流程目標]
+    - **標的流程 (工作站):** [工作站名稱] - **功能:** [工作站任務]
+    - **下一階 (4M - 工作要素):** [例如：作業員] - **功能:** [作業員的標準動作]
+
+**第四步：失效分析 (Failure Analysis)**
+請以「失效鏈」的形式，描述至少2個潛在的失效場景：
+- **失效場景1:**
+    - **失效效應 (FE) (對最終產品的影響):** - **失效模式 (FM) (發生在標的流程/工作站):** - **失效原因 (FC) (來自下一階的4M變異):** - **失效場景2:**
+    - **失效效應 (FE):** - **失效模式 (FM):** - **失效原因 (FC):** **第五步：風險分析 (Risk Analysis)**
+請為上述的失效原因，提出「目前的預防控制(PC)」與「目前的探測控制(DC)」。接著，**請你扮演專家的角色，為每個失效場景預估其嚴重度(S)、發生率(O)與探測度(D)的評級(1-10分)，並根據新版 AIAG-VDA FMEA 手冊的標準，查表決定其「行動優先級 (AP)」(高、中、或低)。嚴禁計算舊版的 RPN (S*O*D)。** 請將結果呈現在Markdown表格中。
+
+**使用者描述的流程：**
+${userInput}`;
+            case 'dfmea-optimization':
+            case 'pfmea-optimization':
+                return `作為一名頂尖的FMEA顧問，請基於以下已完成的初步FMEA分析報告，執行**第六步：優化 (Optimization)** 與 **第七步：結果文件化 (Results Documentation)**。
+
+### 第六步：優化 (Optimization)
+
+**任務：**
+1.  **識別目標：** 仔細閱讀報告，找出所有「行動優先級 (AP)」被評為「高 (High)」的失效場景。
+2.  **提出對策與重新評估：** 針對每一個高風險的失效場景，完成以下任務：
+    * **提出優化措施：** 提出具體、可行的「預防措施」(旨在降低O) 和/或「探測措施」(旨在降低D)。
+    * **重新評分 (Re-rating)：** 根據你提出的措施，專業地預估改善後的 **新O** 與 **新D** 分數。嚴重度(S)通常保持不變。
+    * **決定新AP：** 根據新的S, O, D分數，查表決定 **新的行動優先級(AP)**。
+    * **格式化輸出：** 請以清晰的Markdown表格呈現優化結果，表格應包含「失效場景」、「建議措施」、「改善後S」、「改善後O」、「改善後D」及「新AP」，以展現風險降低的成效。
+
+---
+
+### 第七步：結果文件化 (Results Documentation)
+
+在優化表格之後，請建立一個總結報告區塊，內容需包含：
+- **分析結果與結論:** 總結本次FMEA的主要發現，以及優化措施預期達成的風險降低效果。
+- **行動記錄與溝通:** 說明這些分析與行動計畫應被正式記錄，並傳達給相關的內外部利害關係人(如設計、製造部門、客戶或供應商)。
+- **風險水平確認:** 明確指出，在實施建議的優化措施後，原有的高風險項目已被有效降低至可接受的水平（例如，從「高」AP降至「中」或「低」AP）。
+
+**【待優化的初步FMEA分析報告】**
+${userInput}`;
+            case 'cp':
+                 return `作為一名資深的品質工程專家，請基於以下使用者提供的製程資訊或PFMEA分析結果，草擬一份「控制計畫(Control Plan)」。**你必須嚴格遵循 AIAG 於 2024 年發布的 Control Plan 第一版手冊格式與精神**。
+
+**任務：**
+1.  **判斷階段：** 首先，根據使用者提供的資訊，判斷這份控制計畫屬於哪個階段 (原型樣件, 試生產, 或生產)，並在報告開頭明確標示。
+2.  **建立表格：** 接著，以結構化的Markdown表格呈現控制計畫，並確保包含以下核心欄位：
+    * **過程名稱/操作說明**
+    * **製造用機器/設備/夾具/工裝**
+    * **特性 (產品/流程)**: 明確指出要管制的關鍵特性，並標示特殊特性分類。
+    * **產品/過程 規範/公差**
+    * **方法 - 評估/測量技術**: 使用的量具或方法。
+    * **方法 - 樣本 (大小/頻率)**
+    * **方法 - 控制方法**: 如SPC, 防呆, 100%檢驗等。
+    * **反應計畫**: 異常發生時的處理步驟與責任人。
+
+**使用者提供的資訊：**
+${userInput}`;
+        }
+    }
+
+    // --- Load Example & Dynamic Placeholder Logic ---
+    function loadExample(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        if (textarea && textarea.placeholder) {
+            const exampleText = textarea.placeholder.replace(/^例如：/, '').trim();
+            textarea.value = exampleText;
+            textarea.focus();
+        }
+    }
+    
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-fmea-intro': 'FMEA的核心價值在於「預防勝於治療」，它是一種前瞻性的風險管理工具，用於在設計或規劃階段就找出並解決潛在問題。',
+        'q2-fmea-intro': 'S(Severity)、O(Occurrence)、D(Detection)是FMEA中用來量化評估每一項潛在失效模式風險程度的三個關鍵維度。',
+        'q1-dfmea': 'DFMEA的結構分析是層層拆解的，標的物(子系統)的下一階就是構成它的零件或設計特性。',
+        'q2-dfmea': '預防控制的核心目的是「預防」，也就是直接針對失效原因下手，透過更穩健的設計來降低其發生的機率(O)。',
+        'q1-pfmea': 'PFMEA專注於製造流程，因此其失效原因通常來自於流程中的變異因子，也就是4M（或擴展到5M1E）。',
+        'q2-pfmea': 'PFMEA中識別出的高風險流程步驟及其控制措施，是制定量產階段「控制計畫(Control Plan)」最直接且重要的依據。',
+        'q1-cp': '控制計畫是將FMEA的分析結果轉化為生產現場的具體作業標準，確保品質穩定，是「行動」的指南。',
+        'q2-cp': '反應計畫是控制計畫的關鍵，它明確定義了「當問題發生時該怎麼辦」，確保異常能被即時且有效地處理。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('div[data-correct]');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.innerHTML = `✅ <strong>答對了！</strong> ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.innerHTML = `❌ <strong>答錯了。</strong>正確答案是 (${correctAnswer.toUpperCase()})。<br>${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.innerHTML = `<strong>您未選擇答案。</strong>正確答案是 (${correctAnswer.toUpperCase()})。<br>${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

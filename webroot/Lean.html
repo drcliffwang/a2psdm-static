@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精實管理 Lean Management + AI 課程 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #1d4ed8;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #2563eb;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .ai-output th { background-color: #f3f4f6; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #2563eb;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                精實管理 Lean + AI (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-600 nav-link">前言</a>
+                <a href="#principles" class="text-gray-600 hover:text-blue-600 nav-link">五大原則</a>
+                <a href="#wastes" class="text-gray-600 hover:text-blue-600 nav-link">八大浪費</a>
+                <a href="#vsm" class="text-gray-600 hover:text-blue-600 nav-link">價值流圖</a>
+                <a href="#stdwork" class="text-gray-600 hover:text-blue-600 nav-link">標準作業</a>
+                <a href="#ai-driven-factory" class="text-gray-600 hover:text-blue-600 nav-link">AI驅動工廠</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-600 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-700 mb-4 leading-tight">精實管理 Lean Management + AI</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">一門結合經典精實思維與現代 AI 技術的實戰課程，助您消除浪費，創造價值。</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f9ff/3b82f6?text=Image';">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="https://github.com/drcliffwang/course-material/raw/main/Lean.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Azure)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                     <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 Principles Overview -->
+        <section id="principles" class="mb-24">
+            <h2 class="section-title">精實思想五大原則</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                <div class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 class="font-bold text-xl mb-2 text-green-600">定義價值</h3>
+                    <p class="text-gray-600">由顧客視角出發，定義產品或服務的真正價值。</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 class="font-bold text-xl mb-2 text-blue-600">找出價值流</h3>
+                    <p class="text-gray-600">分析從原料到成品的所有步驟，識別並消除浪費。</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 class="font-bold text-xl mb-2 text-purple-600">加速流動</h3>
+                    <p class="text-gray-600">讓價值順暢地流動，消除瓶頸與延遲。</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 class="font-bold text-xl mb-2 text-yellow-600">建立後拉</h3>
+                    <p class="text-gray-600">由顧客需求拉動生產，避免過度生產與庫存。</p>
+                </div>
+                 <div class="p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <h3 class="font-bold text-xl mb-2 text-red-600">追求完善</h3>
+                    <p class="text-gray-600">透過持續改善(Kaizen)，不斷追求完美。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Wastes Section -->
+        <section id="wastes" class="mb-24">
+            <h2 class="section-title">三M與八大浪費</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                    <h3 class="card-title">識別並消除浪費 (Muda)</h3>
+                </div>
+                
+                <div class="content-block">
+                    <h4>核心理念：三M</h4>
+                    <p>精實思想的核心是徹底消除浪費。豐田生產方式提出了三個必須消除的「M」：</p>
+                    <ul>
+                        <li><b>Muda (無駄 - 浪費):</b> 任何不為顧客創造價值的活動。這是最直觀的浪費，分為八種類型。</li>
+                        <li><b>Muri (無理 - 過載):</b> 對人員或設備的要求超出其合理能力，導致疲勞、安全問題與品質下降。</li>
+                        <li><b>Mura (不均):</b> 生產流程或排程的不均衡、不穩定，導致時而閒置、時而過載，引發更多浪費。</li>
+                    </ul>
+                </div>
+
+                <div class="content-block">
+                    <h4>八大浪費 (DOWNTIME)</h4>
+                    <p>透過降低庫存水面，讓隱藏的問題礁石（浪費）浮現，才能逐一解決。</p>
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <li><b>D - 不良浪費 (Defects):</b> 生產出需要重工或報廢的產品。</li>
+                        <li><b>O - 過剩浪費 (Overproduction):</b> 生產過多或過早，是萬惡之首。</li>
+                        <li><b>W - 等待浪費 (Waiting):</b> 人員或機器因前工程未完成而閒置。</li>
+                        <li><b>N - 人才浪費 (Non-utilized Talent):</b> 未能善用員工的智慧與技能。</li>
+                        <li><b>T - 搬運浪費 (Transportation):</b> 不必要的物品移動。</li>
+                        <li><b>I - 庫存浪費 (Inventory):</b> 過多的原物料、在製品或成品。</li>
+                        <li><b>M - 動作浪費 (Motion):</b> 人員不必要的身體移動。</li>
+                        <li><b>E - 過度加工浪費 (Extra-processing):</b> 超出顧客要求的加工或檢驗。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for Wastes -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">浪費識別測驗</h3>
+                    <div id="quiz-wastes" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 在八大浪費中，哪一項被認為是「萬惡之首」，會引發其他所有浪費？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-wastes" value="a"> A. 庫存浪費 (Inventory)</label>
+                                <label><input type="radio" name="q1-wastes" value="b"> B. 過剩浪費 (Overproduction)</label>
+                                <label><input type="radio" name="q1-wastes" value="c"> C. 不良浪費 (Defects)</label>
+                                <label><input type="radio" name="q1-wastes" value="d"> D. 搬運浪費 (Transportation)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 對人員或設備要求超出其合理能力，導致安全問題與品質下降，這屬於三M中的哪一種？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-wastes" value="a"> A. Muda (浪費)</label>
+                                <label><input type="radio" name="q2-wastes" value="b"> B. Muri (過載)</label>
+                                <label><input type="radio" name="q2-wastes" value="c"> C. Mura (不均)</label>
+                                <label><input type="radio" name="q2-wastes" value="d"> D. Motion (動作浪費)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('wastes')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-wastes" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for Wastes -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">AI 浪費診斷</h3>
+                    <div class="ai-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="wastes-input" class="font-semibold text-gray-700">請在此描述您想分析的生產或工作流程：</label>
+                            <button onclick="loadExample('wastes-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="wastes-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="例如：從倉庫領料，搬運到A站加工，再送到B站組裝，最後入庫。A站常要等B站的料。"></textarea>
+                        <button onclick="handleAI('wastes')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 浪費分析
+                        </button>
+                        <div id="wastes-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VSM Section -->
+        <section id="vsm" class="mb-24">
+            <h2 class="section-title">VSM: Value Stream Mapping (價值流圖)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-12a2.25 2.25 0 01-2.25-2.25V3.75m16.5 0v16.5M3.75 16.5v1.5a2.25 2.25 0 002.25 2.25h12a2.25 2.25 0 002.25-2.25v-1.5" /></svg>
+                    <h3 class="card-title">描繪全局，看清流動與停滯</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>價值流圖 (VSM) 是一種視覺化工具，它不僅僅描繪單一的工序，而是將「物料流」與「資訊流」結合，呈現產品從供應商到顧客手中的完整路徑。VSM 的強大之處在於，它能清楚地區分「增值時間」與「非增值時間(浪費)」，讓我們看清總前置時間 (Lead Time) 中，有多少時間是真正的加工，又有多少時間是無謂的等待。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵步驟</h4>
+                    <ul>
+                        <li><b>1. 了解客戶與價值:</b> 確定分析的產品系列，並從客戶端開始，了解其需求節拍 (Takt Time)。</li>
+                        <li><b>2. 繪製現況圖 (Current State Map):</b> 實地走訪現場 (現地現物)，繪製出包含所有主要工序、庫存、資訊流的現況圖。標示出各工序的週期時間(CT)、換模時間(C/O)、稼動率、庫存量等關鍵數據。</li>
+                        <li><b>3. 計算總前置時間 vs. 總加工時間:</b> 將所有工序的加工時間相加，再將所有庫存等待時間相加。你會驚訝地發現，加工時間佔總前置時間的比例可能非常低。</li>
+                        <li><b>4. 繪製未來圖 (Future State Map):</b> 運用精實原則 (如連續流、後拉式系統、平準化) 來設計一個更理想的價值流，目標是大幅縮短前置時間、減少庫存。</li>
+                        <li><b>5. 制定實施計畫:</b> 將從現況到未來的轉變，分解為具體的改善活動 (Kaizen)，並逐一實施。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for VSM -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">VSM 學習成效測驗</h3>
+                    <div id="quiz-vsm" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 價值流圖(VSM)與一般流程圖最大的不同點是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-vsm" value="a"> A. 只畫出加工的步驟</label>
+                                <label><input type="radio" name="q1-vsm" value="b"> B. 只關心資訊的流動</label>
+                                <label><input type="radio" name="q1-vsm" value="c"> C. 結合了物料流與資訊流，並區分增值與非增值時間</label>
+                                <label><input type="radio" name="q1-vsm" value="d"> D. 只由高階主管在會議室繪製</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 在VSM中，「Takt Time (節拍時間)」是由什麼決定的？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-vsm" value="a"> A. 工廠的最大產能</label>
+                                <label><input type="radio" name="q2-vsm" value="b"> B. 供應商的交貨速度</label>
+                                <label><input type="radio" name="q2-vsm" value="c"> C. 顧客的需求速度</label>
+                                <label><input type="radio" name="q2-vsm" value="d"> D. 政府的規定</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('vsm')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-vsm" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for VSM -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-green-700">AI 價值流分析</h3>
+                    <div class="ai-card bg-green-50 border-green-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="vsm-input" class="font-semibold text-gray-700">請在此描述您的生產流程與相關數據：</label>
+                            <button onclick="loadExample('vsm-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="vsm-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" rows="4" placeholder="例如：工序A加工10秒，庫存2天；工序B加工20秒，庫存3天；工序C加工15秒。客戶需求是每天100件。"></textarea>
+                        <button onclick="handleAI('vsm')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 價值流分析
+                        </button>
+                        <div id="vsm-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Standard Work Section -->
+        <section id="stdwork" class="mb-24">
+            <h2 class="section-title">標準作業與產線平衡</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                    <h3 class="card-title">建立改善的基石</h3>
+                </div>
+                 <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>標準作業 (Standardized Work) 並非一成不變的規定，而是「當下」完成一項工作的最佳、最安全、最有效率的方法。它是持續改善的基礎，沒有標準，就沒有改善的依據。標準作業的核心是消除變異，確保每個人都用同樣的優化方法工作，從而穩定品質、成本與交期。</p>
+                </div>
+                 <div class="content-block">
+                    <h4>三大核心要素</h4>
+                    <ul>
+                        <li><b>1. 節拍時間 (Takt Time):</b> 顧客需求的節奏。計算公式為：`每日可用工作時間 / 每日顧客需求量`。它決定了我們生產的脈搏。</li>
+                        <li><b>2. 標準作業順序 (Standard Work Sequence):</b> 執行工作的最佳步驟順序，確保效率與品質。</li>
+                        <li><b>3. 標準在製品庫存 (Standard In-Process Stock):</b> 維持流程順暢所需的最小在製品數量，包含機器內與工站間的物料。</li>
+                    </ul>
+                    <h4>產線平衡</h4>
+                    <p>產線平衡 (Line Balancing) 的目標是將各工站的作業時間調整得盡可能與節拍時間相近，以消除瓶頸 (Cycle Time > Takt Time) 和等待 (Cycle Time < Takt Time) 的浪費。透過ECRS (消除、合併、重組、簡化) 等手法，重新分配工作，可以大幅提高產線的平衡率與整體效率。</p>
+                </div>
+
+                <!-- Quiz Section for Standard Work -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">標準作業學習測驗</h3>
+                    <div id="quiz-stdwork" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 如果客戶每天需要400個產品，而你每天的有效工作時間是8小時 (28800秒)，那麼節拍時間(Takt Time)是多少秒？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-stdwork" value="a"> A. 72秒</label>
+                                <label><input type="radio" name="q1-stdwork" value="b"> B. 400秒</label>
+                                <label><input type="radio" name="q1-stdwork" value="c"> C. 0.013秒</label>
+                                <label><input type="radio" name="q1-stdwork" value="d"> D. 28800秒</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 標準作業的主要目的，並非為了限制員工，而是為了什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-stdwork" value="a"> A. 讓主管更容易管理</label>
+                                <label><input type="radio" name="q2-stdwork" value="b"> B. 建立一個穩定、可重複的基準，以便進行持續改善</label>
+                                <label><input type="radio" name="q2-stdwork" value="c"> C. 減少員工思考的時間</label>
+                                <label><input type="radio" name="q2-stdwork" value="d"> D. 方便計算薪資</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('stdwork')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-stdwork" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for Standard Work -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">AI 標準作業輔助</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <div class="flex justify-between items-center mb-2">
+                           <label for="stdwork-input" class="font-semibold text-gray-700">請描述您的任務、各步驟耗時及目標節拍時間：</label>
+                           <button onclick="loadExample('stdwork-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="stdwork-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：目標節拍時間60秒。組裝任務包含：步驟A(25秒)，步驟B(40秒)，步驟C(15秒)。"></textarea>
+                        <button onclick="handleAI('stdwork')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 產線平衡分析
+                        </button>
+                        <div id="stdwork-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Driven Factory Section -->
+        <section id="ai-driven-factory" class="mb-24">
+            <h2 class="section-title">AI 驅動的智慧精實工廠</h2>
+            <div class="card">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <svg class="icon text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 21v-1.5M15.75 3v1.5M12 6.75v10.5M15.75 21v-1.5" /></svg>
+                        <h3 class="card-title mt-2 md:mt-0 md:ml-4">從「可視化」到「可預測化」</h3>
+                    </div>
+                    <a id="blueprint-link" href="AI 驅動精實工廠.html" target="_blank" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75 transition-colors">
+                        前往互動式策略藍圖
+                    </a>
+                </div>
+                 <div class="content-block">
+                    <h4>AI 賦能實踐案例</h4>
+                    <p>傳統精實擅長消除「可見浪費」，而AI則能挖掘隱藏在數據中的「不可見浪費」。以下是AI在製造業的具體應用：</p>
+                    <ul>
+                        <li><b>智慧品質管理 (日月光ASE):</b> 導入AI異常偵測技術，只需少量正常品影像即可訓練模型，自動識別瑕疵品，大幅減少人工複檢。</li>
+                        <li><b>預測性維護 (上銀科技HIWIN):</b> 在滾珠螺桿中嵌入感測器與AI演算法，實時監控運作狀態，提前預警保養需求，延長元件壽命並提升精度。</li>
+                        <li><b>產線自動化與模擬 (鴻海Foxconn):</b> 運用數位孿生(Digital Twin)在虛擬環境中訓練與優化機器人協同作業，再部署到實體產線，大幅縮短試誤時間。</li>
+                        <li><b>生成式AI與知識傳承 (西門子Siemens):</b> AI系統學習維修技師的處理對策，當類似故障發生時，能自動提供處理建議，有效縮短維修時間(MTTR)。</li>
+                    </ul>
+                </div>
+                 <div class="content-block">
+                    <h4>人機協作新模式</h4>
+                    <p>AI的成功導入，終究取決於人。我們應將AI視為強大的「副駕(Copilot)」，而非取代者。成功的關鍵在於：</p>
+                    <ul>
+                        <li><b>數據基礎建設:</b> 打通MES、ERP等系統的數據孤島，建立統一的數據平台是AI應用的基礎。</li>
+                        <li><b>培訓與文化建立:</b> 提升員工的提問能力(Prompt)與批判性思考能力，學會與AI高效協作，並能審慎判斷AI輸出的合理性。</li>
+                        <li><b>正視AI陷阱:</b> 鼓勵「先用大腦思考，再用AI優化」的工作模式，避免過度依賴導致的「認知債務」。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for AI Driven Factory -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">AI與精實整合測驗</h3>
+                    <div id="quiz-ai-driven-factory" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 上銀科技(HIWIN)開發的智慧滾珠螺桿，透過感測器與AI演算法提前預警保養需求，這是AI在哪個領域的典型應用？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-ai-driven-factory" value="a"> A. 智慧品質管理</label>
+                                <label><input type="radio" name="q1-ai-driven-factory" value="b"> B. 預測性維護 (PdM)</label>
+                                <label><input type="radio" name="q1-ai-driven-factory" value="c"> C. 產線自動化</label>
+                                <label><input type="radio" name="q1-ai-driven-factory" value="d"> D. 生成式設計</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 在推動智慧精實工廠時，人機協作的健康心態應該是？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-ai-driven-factory" value="a"> A. AI是最終決策者，人類只需執行</label>
+                                <label><input type="radio" name="q2-ai-driven-factory" value="b"> B. 完全依賴AI，取代人類的思考過程</label>
+                                <label><input type="radio" name="q2-ai-driven-factory" value="c"> C. 將AI視為強大的分析助理，但人類需保有批判性思考與最終決策權</label>
+                                <label><input type="radio" name="q2-ai-driven-factory" value="d"> D. AI只應用於重複性高的低階任務</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('ai-driven-factory')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-ai-driven-factory" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論：人與AI協作的智慧精實工廠</h2>
+            <div class="card max-w-4xl mx-auto">
+                <div class="mb-6">
+                    <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/Lean%20Mindmap.png" target="_blank" title="點擊放大">
+                        <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Lean%20Mindmap.png" alt="精實管理總結心智圖" class="w-full rounded-lg shadow-lg cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/800x600/f0f9ff/3b82f6?text=Lean+Mindmap+Not+Found';">
+                    </a>
+                    <p class="text-center text-sm text-gray-500 mt-2">精實管理總結心智圖 (點擊放大)</p>
+                </div>
+                <div class="content-block text-left">
+                    <h4>AI 賦能精實管理</h4>
+                    <p>AI 技術正在為傳統的精實管理工具箱帶來革命性的提升。從價值定義、流程分析到持續改善，AI 都能扮演強大的「輔助」與「增強」角色：</p>
+                    <ul>
+                        <li><b>數據洞察輔助：</b>AI 能從大量生產數據中找出與問題(果)最相關的潛在因子(因)，為團隊分析時提供客觀線索。</li>
+                        <li><b>演算法最佳化：</b>AI 能在幾分鐘內模擬數千種排程或佈置情境，找到人力難以企及的最佳解。</li>
+                        <li><b>智慧SOP與知識管理：</b>AI 可透過AR裝置提供數位工作指導，並將最佳實踐快速更新至知識庫，加速新人學習。</li>
+                    </ul>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800">AI 的成功導入，終究取決於人。人的改善意識與 AI 的速度、精度結合，才能真正築起新一代的智慧精實工廠，在追求零浪費、零缺陷、零停機的道路上，持續創造競爭優勢。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 Lean Management + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            // Use sessionStorage to hold the key for the current session
+            sessionStorage.setItem('userApiKey', userApiKey);
+            sessionStorage.setItem('apiProvider', apiProvider);
+
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    sessionStorage.setItem('userEndpointUrl', userEndpointUrl);
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 sessionStorage.removeItem('userEndpointUrl');
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+            keyInput.value = ''; // Clear for security
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- AI Interaction Logic ---
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+        const systemPrompt = "你是一位專業的精實管理顧問，請使用繁體中文回答。";
+
+        // Prepare the request based on the provider
+        if (provider === 'gemini') {
+     apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    
+    // 將系統提示詞和使用者問題合併成一個字串
+    const combinedPrompt = `${systemPrompt}\n\n[使用者請求]\n${prompt}`;
+
+    body = {
+        // 在 contents 中傳入合併後的完整提示詞
+        contents: [{ 
+            role: "user", 
+            parts: [{ text: combinedPrompt }] 
+        }]
+        // 移除了整個 systemInstruction 欄位
+    };
+        } else if (provider === 'deepseek') {
+            apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt }
+                ]
+            };
+        } else if (provider === 'chatgpt') {
+            apiUrl = 'https://api.openai.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "gpt-3.5-turbo",
+                messages: [
+                    // FIX: Use consistent Traditional Chinese system prompt
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt }
+                ]
+            };
+        } else if (provider === 'copilot') {
+            apiUrl = endpoint; // The user provides the full endpoint URL
+            headers['api-key'] = apiKey;
+            body = {
+                messages: [
+                    // FIX: Use consistent Traditional Chinese system prompt
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt }
+                ]
+            };
+        }
+
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API 請求失敗，狀態碼： ${response.status}. ${errorBody}`);
+            }
+
+            const result = await response.json();
+            
+            // Parse the response based on the provider
+            if (provider === 'gemini') {
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+            } else if (provider === 'deepseek' || provider === 'chatgpt' || provider === 'copilot') {
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return result.choices[0].message.content;
+                }
+            }
+            
+            console.error("Unexpected API response structure:", result);
+            if (result.error) return `發生錯誤：${result.error.message}`;
+            if (result.promptFeedback?.blockReason) return `您的請求被阻擋，原因：${result.promptFeedback.blockReason}.`;
+            return "抱歉，AI 回應的格式有誤，請稍後再試。";
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            return `無法連接至 AI 服務。請檢查您的網路連線或 API 金鑰是否正確。\n錯誤詳情: ${error.message}`;
+        }
+    }
+
+    async function handleAI(type) {
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        switch (type) {
+            case 'wastes':
+                prompt = `請使用八大浪費(DOWNTIME: Defects, Overproduction, Waiting, Non-utilized talent, Transportation, Inventory, Motion, Extra-processing)的框架，分析以下使用者描述的流程，並找出潛在的浪費點，提出具體的改善建議。請將結果以 Markdown 表格呈現。\n\n使用者流程：${userInput}`;
+                break;
+            case 'vsm':
+                prompt = `請協助我為以下描述的流程，建立一個初步的價值流圖(Value Stream Map)分析。請根據我的描述，識別出主要的加工程序、庫存點(I)，並計算總前置時間(Lead Time)與總加工時間(Processing Time)。最後，請以文字描述和 Markdown 表格呈現這個價值流的分析結果，並指出改善機會。\n\n使用者流程描述：${userInput}`;
+                break;
+            case 'stdwork':
+                prompt = `你是一位資深的IE工程師，請協助我為以下任務進行產線平衡分析。請根據我描述的作業步驟與各步驟耗時，以及目標節拍時間(Takt Time)，分析瓶頸，並用ECRS原則提出工作重組建議，最後設計一份改善後的標準作業組合表(Standardized Work Combination Table)。請將結果以 Markdown 表格呈現。\n\n使用者任務描述：${userInput}`;
+                break;
+        }
+        
+        const aiResponse = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+        outputElement.innerHTML = marked.parse(aiResponse);
+    }
+
+    function loadExample(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        if (textarea && textarea.placeholder) {
+            const exampleText = textarea.placeholder.replace(/^例如：/, '').trim();
+            textarea.value = exampleText;
+            textarea.focus();
+        }
+    }
+    
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-wastes': '過剩生產會導致過多的庫存、搬運、等待等一系列連鎖反應，因此被視為最根本的浪費。',
+        'q2-wastes': 'Muri (過載) 專指對人或設備的不合理要求，是造成變異與浪費的根源之一。',
+        'q1-vsm': 'VSM的獨特之處在於它同時呈現物料和資訊的流動，並量化了時間，讓我們能清楚看到價值創造與浪費所在。',
+        'q2-vsm': 'Takt Time 完全由顧客需求決定，是整個價值流生產節奏的基準。',
+        'q1-stdwork': '節拍時間 = 每日有效工作時間 / 每日客戶需求量。所以是 28800 / 400 = 72 秒。',
+        'q2-stdwork': '沒有穩定的標準，就無法衡量改善的成效。標準作業是持續改善(Kaizen)的起點。',
+        'q1-ai-driven-factory': '預測性維護(Predictive Maintenance)是AI在工業領域的重要應用，透過分析數據預測設備潛在故障，從而提前安排維護，避免無預警停機。',
+        'q2-ai-driven-factory': 'AI是強大的工具與助理，能處理複雜的數據分析，但最終的決策與批判性思考仍需由人類主導，以確保方向正確並管理風險。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

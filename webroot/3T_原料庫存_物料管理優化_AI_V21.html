@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3T 原料庫存與物料管理優化 + AI (互動更新版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .ai-output th { background-color: #f9fafb; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                3T 原料庫存與物料管理優化 + AI (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#strategy" class="text-gray-600 hover:text-blue-500 nav-link">策略心態</a>
+                <a href="#analysis" class="text-gray-600 hover:text-blue-500 nav-link">分類分析</a>
+                <a href="#forecasting" class="text-gray-600 hover:text-blue-500 nav-link">需求預測</a>
+                <a href="#models" class="text-gray-600 hover:text-blue-500 nav-link">訂購模型</a>
+                <a href="#improvement" class="text-gray-600 hover:text-blue-500 nav-link">流程改善</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-500 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">3T 原料庫存與物料管理優化</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">一門融合策略、數據與 AI 實踐的現代化物料管理課程</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/6f8e0dad1a7128a900c460b570e7588b7b33fc5b/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="https://github.com/drcliffwang/course-material/raw/refs/heads/main/Optimizing%20Inventory%20and%20Material%20Management%20with%20AI.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                     <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 Modules Overview -->
+        <section class="mb-24">
+            <h2 class="section-title">五大管理優化模塊</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-blue-600">策略與心態</h3>
+                    <p class="text-5xl mb-2">綜!</p><p>綜觀全局</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-green-600">分類與分析</h3>
+                    <p class="text-5xl mb-2">焦!</p><p>聚焦重點</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-purple-600">需求預測</h3>
+                    <p class="text-5xl mb-2">驅!</p><p>數據驅動</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-yellow-600">訂購模型</h3>
+                    <p class="text-5xl mb-2">衡!</p><p>權衡成本</p>
+                </div>
+                 <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-red-600">流程改善</h3>
+                    <p class="text-5xl mb-2">優!</p><p>持續優化</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 1: Strategy & Mindset -->
+        <section id="strategy" class="mb-24">
+            <h2 class="section-title">策略與心態: 為何優化物料管理?</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l-1.5-1.5m1.5 1.5l1.5-1.5m-1.5 1.5V21a2.25 2.25 0 002.25 2.25h6.75a2.25 2.25 0 002.25-2.25V13.5m-1.5-1.5l1.5-1.5m-1.5 1.5l-1.5-1.5m0 0l-1.5 1.5m1.5-1.5V3a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 3v9" />
+                    </svg>
+                    <h3 class="card-title">從策略高度看懂庫存</h3>
+                </div>
+                
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>有效的庫存管理不僅是倉庫或採購部門的日常工作，更是企業營運策略的核心。它關乎現金流、生產效率與客戶滿意度。本課程的「3T」思維，旨在將傳統的物料管理提升到策略層次，透過優化<b>前置時間(Lead Time)</b>、<b>在製品/週轉率(WIP/Turnover)</b>與<b>生產力(Productivity)</b>，直接應對庫存短缺、資金積壓、呆滯料等核心痛點，最終接軌智慧製造與 AI 應用，提升企業整體競爭力。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4>關鍵心態轉變</h4>
+                    <ul>
+                        <li><b>從被動反應到主動規劃：</b> 根據課程緣由，高層期許建立一支兼具學理與實務經驗的團隊，從被動處理庫存異常，轉變為主動、定期地檢視規則合理性並持續改善。</li>
+                        <li><b>從部門孤島到跨部協作：</b> 解決庫存問題需要採購、儲運、生管、業務甚至財務的通力合作。討論並拆解 MOQ、超額成本與短缺成本，是打破部門壁壘的第一步。</li>
+                        <li><b>從經驗導向到數據驅動：</b> 依賴直覺和經驗已不足夠。必須學會收集並分析訂單頻率、交貨時間、缺貨頻率等歷史數據，以驗證假設並找出問題的根源。</li>
+                        <li><b>從單點改善到系統優化：</b> 建立一個整合的籌料系統、優化庫存水位、提升需求預測、改善供應商溝通，是實現智慧製造與 AI 應用的基礎。</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">策略心態 學習成效測驗</h3>
+                    <div id="quiz-strategy" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 根據課程緣由(Origin)，高層對庫存管理團隊的主要期許是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-strategy" value="a"> A. 只需要會使用 ERP 系統</label>
+                                <label><input type="radio" name="q1-strategy" value="b"> B. 盡可能壓低所有庫存至零</label>
+                                <label><input type="radio" name="q1-strategy" value="c"> C. 結合學理與經驗，定期檢視與改善庫存規則</label>
+                                <label><input type="radio" name="q1-strategy" value="d"> D. 每次都採購最大批量以獲得折扣</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="a">
+                            <p>2. 課程中提到的「3T」管理指標主要包含哪三項？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-strategy" value="a"> A. 前置時間(Lead Time)、在製品/週轉率(WIP/Turnover)、生產力(Productivity)</label>
+                                <label><input type="radio" name="q2-strategy" value="b"> B. TPS、TPM、TQM</label>
+                                <label><input type="radio" name="q2-strategy" value="c"> C. 時間(Time)、團隊(Team)、目標(Target)</label>
+                                <label><input type="radio" name="q2-strategy" value="d"> D. 技術(Technology)、人才(Talent)、資金(Treasure)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('strategy')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-strategy" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">策略實戰演練</h3>
+                    <div class="ai-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="strategy-input" class="font-semibold text-gray-700">請描述您公司目前最主要的庫存管理痛點：</label>
+                            <button onclick="loadExample('strategy')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded-md shrink-0">載入範例</button>
+                        </div>
+                        <textarea id="strategy-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="例如：我們的備品倉庫呆滯料金額一直降不下來，但同時產線又時常因為缺料而停線..."></textarea>
+                        <button onclick="handleAI('strategy')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 策略分析
+                        </button>
+                        <div id="strategy-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Analysis -->
+        <section id="analysis" class="mb-24">
+            <h2 class="section-title">分類與分析: 聚焦高價值管理 (ABC/XYZ)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>
+                    <h3 class="card-title">將精力花在刀口上</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>並非所有庫存品項都值得同等的管理精力。ABC/XYZ 分析法是一種強大的二維分類工具，它幫助管理者擺脫「一視同仁」的低效管理模式。<b>ABC 分析</b>按「價值」將物料分類，遵循帕雷托法則；而 <b>XYZ 分析</b>則按「需求波動性」分類。將兩者結合，形成一個九宮格策略地圖，使我們能對不同特性的物料採取差異化、高效率的管理策略。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵步驟解析</h4>
+                    <ul>
+                        <li><b>1. ABC 分析 (依價值分類):</b>
+                            <ul>
+                                <li>計算每項物料的「年總成本」(或年總金額)。</li>
+                                <li>將所有物料按年總成本由高到低排序，並計算累計百分比。</li>
+                                <li><b>A 類:</b> 佔總成本約 70% 的少數關鍵物料。需嚴格控管。</li>
+                                <li><b>B 類:</b> 佔總成本約 20% 的次要物料。採中度管理。</li>
+                                <li><b>C 類:</b> 佔總成本約 10% 的大量低價物料。可簡化管理，如採用雙箱法。</li>
+                            </ul>
+                        </li>
+                        <li><b>2. XYZ 分析 (依波動性分類):</b>
+                            <ul>
+                                <li>計算每項物料需求的「變異係數 (CV)」= 需求標準差 / 需求平均數。</li>
+                                <li><b>X 類:</b> 需求穩定，CV 值低 (e.g., CV < 0.5)。可預測性高。</li>
+                                <li><b>Y 類:</b> 需求有一定波動性，CV 值中等。</li>
+                                <li><b>Z 類:</b> 需求極不穩定，CV 值高 (e.g., CV > 1)。可預測性低，如備品或冷門料。</li>
+                            </ul>
+                        </li>
+                         <li><b>3. 制定矩陣策略:</b> 結合兩者，對九宮格中的物料採取不同策略。例如：
+                            <ul>
+                                <li><b>AZ/BZ 類物料:</b> 是管理重點。價值高且需求不穩，需設置合理的安全庫存並加強供應商溝通。</li>
+                                <li><b>CX 類物料:</b> 價值低且需求穩定，最適合採用「雙箱懶人訂貨法」，簡化管理。</li>
+                                <li><b>CZ 類物料:</b> 價值低且需求極不穩，應採「零(或超低)庫存水位」，有訂單才生產或採購。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">分類分析 學習成效測驗</h3>
+                    <div id="quiz-analysis" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 在 ABC 分析法中，A 類物料通常具有什麼特性？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-analysis" value="a"> A. 品項數量少，但佔用資金總額高</label>
+                                <label><input type="radio" name="q1-analysis" value="b"> B. 品項數量多，且佔用資金總額高</label>
+                                <label><input type="radio" name="q1-analysis" value="c"> C. 品項數量少，且佔用資金總額低</label>
+                                <label><input type="radio" name="q1-analysis" value="d"> D. 品項數量多，但佔用資金總額低</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 對於需求極不穩定、價值又低的「CZ」類物料，最建議的庫存策略是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-analysis" value="a"> A. 保持大量安全庫存</label>
+                                <label><input type="radio" name="q2-analysis" value="b"> B. 採用精確的需求預測模型</label>
+                                <label><input type="radio" name="q2-analysis" value="c"> C. 每次都使用 EOQ 大批量訂購</label>
+                                <label><input type="radio" name="q2-analysis" value="d"> D. 盡可能維持零庫存或極低庫存，依訂單生產/採購</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('analysis')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-analysis" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-green-700">分類實戰演練</h3>
+                    <div class="ai-card bg-green-50 border-green-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="analysis-input" class="font-semibold text-gray-700">請提供物料數據：</label>
+                            <button onclick="loadExample('analysis')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded-md shrink-0">載入範例</button>
+                        </div>
+                        <textarea id="analysis-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" rows="6" placeholder="請您以「料號, 單價, 需求 (以逗號分隔的 12 個月數據)」的格式提供數據，例如：
+料號A,500,10,12,11,10,13,11,10,12,11,10,12,11
+料號B,5,0,0,20,0,0,30,0,0,0,15,0,0
+料號C,100,20,22,31,11,15,19,15,18,12,11,13,15
+料號D,50,1,1,10,5,0,30,0,6,0,25,1,1
+請盡可能提供您所有物料的數據，數據越多，分析結果越精準。"></textarea>
+                        <button onclick="handleAI('analysis')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 分類分析
+                        </button>
+                        <div id="analysis-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Forecasting -->
+        <section id="forecasting" class="mb-24">
+            <h2 class="section-title">需求預測: 數據驅動的決策基礎</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                     <svg class="icon text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m1-1.5l1 1.5m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.5-1.5l.5-1.5m9 0l-1 1.5" />
+                    </svg>
+                    <h3 class="card-title">洞見未來，選擇最佳預測模型</h3>
+                </div>
+                 <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>預測是庫存管理的基石，其目的不是追求 100% 的準確，而是為了「降低不確定性」。沒有任何單一模型能適用所有情況。智慧的管理者會根據需求的特性——是穩定、有趨勢、具季節性，還是偶發性——來選擇最適合的預測工具。同時，必須持續追蹤預測誤差指標 (如 RMSE, MAPE)，動態地找出並優化最適合的模型。</p>
+                </div>
+                 <div class="content-block">
+                    <h4>關鍵模型解析</h4>
+                    <ul>
+                        <li><b>移動平均法 (Moving Average):</b> 最簡單的方法，適用於需求相對穩定的 X 類物料。透過計算最近幾期的平均值來撫平短期波動。但缺點是對趨勢反應遲鈍。</li>
+                        <li><b>指數平滑法 (Exponential Smoothing):</b> 移動平均的升級版，給予越近的數據越高的權重。
+                            <ul>
+                                <li><b>單指數平滑:</b> 適用於沒有趨勢和季節性的水平數據。</li>
+                                <li><b>雙指數平滑 (Holt's):</b> 加入了「趨勢」因子，能更好地預測持續上升或下降的需求。</li>
+                                <li><b>三指數平滑 (Holt-Winters):</b> 在趨勢基礎上再加入「季節性」因子，是處理具備明顯週期性需求的強大工具。</li>
+                            </ul>
+                        </li>
+                        <li><b>克羅斯頓法 (Croston's Method):</b> 專為 Z 類「間歇性需求」設計。它不直接預測需求量，而是分別對「需求發生間隔」和「非零需求量」進行指數平滑，再將兩者相除得到預期需求率。</li>
+                        <li><b>巴斯擴散模型 (Bass Model):</b> 專用於「新產品」上市預測。它沒有歷史數據可參考，而是透過模擬「創新者」(p係數) 和「模仿者」(q係數) 的行為來預測產品的採用曲線。</li>
+                         <li><b>AI 預測模型 (ARIMA, Prophet):</b> 透過 AI 可自動分析時間序列數據中的趨勢、季節性與殘差，建立更複雜精準的模型。Excel 內建的 FORECAST.ETS 功能即是三指數平滑的應用。</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">需求預測 學習成效測驗</h3>
+                    <div id="quiz-forecasting" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 哪一種預測模型最適合用來預測像「備用零件」這類偶爾才會有一次需求的物料？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-forecasting" value="a"> A. 簡單移動平均法</label>
+                                <label><input type="radio" name="q1-forecasting" value="b"> B. 三指數平滑法 (Holt-Winters)</label>
+                                <label><input type="radio" name="q1-forecasting" value="c"> C. 克羅斯頓法 (Croston's Method)</label>
+                                <label><input type="radio" name="q1-forecasting" value="d"> D. 巴斯擴散模型 (Bass Model)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 在評估預測模型好壞時，MAPE (平均絕對百分比誤差) 指標低於多少通常被認為是可接受的良好預測？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-forecasting" value="a"> A. 50%</label>
+                                <label><input type="radio" name="q2-forecasting" value="b"> B. 30%</label>
+                                <label><input type="radio" name="q2-forecasting" value="c"> C. 20%</label>
+                                <label><input type="radio" name="q2-forecasting" value="d"> D. 10%</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('forecasting')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-forecasting" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+                
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">預測實戰演練</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                         <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇預測情境：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="forecast-method" value="time-series" checked> 歷史數據預測</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="forecast-method" value="new-product"> 新產品預測</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                             <label for="forecasting-input" class="font-semibold text-gray-700">請根據您選擇的情境輸入數據：</label>
+                             <button onclick="loadExample('forecasting')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded-md shrink-0">載入範例</button>
+                        </div>
+                        <textarea id="forecasting-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder=""></textarea>
+                        <button onclick="handleAI('forecasting')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 需求預測
+                        </button>
+                        <div id="forecasting-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Ordering Models -->
+        <section id="models" class="mb-24">
+            <h2 class="section-title">訂購模型: 在成本與服務間取得平衡</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5v-9m17.25 9v-9m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V5.25" />
+                    </svg>
+                    <h3 class="card-title">回答「何時訂?」與「訂多少?」</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>在預測完需求後，物料管理的核心就是回答兩個問題：「庫存低於多少時要下訂單？」以及「一次要訂多少數量？」。這背後是在<b>訂購成本</b>、<b>持有成本</b>與<b>缺貨風險</b>之間做出權衡。訂購模型提供了一套科學的計算框架，幫助我們從「感覺」管理走向「量化」決策。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵模型與參數</h4>
+                    <ul>
+                        <li><b>安全庫存 (Safety Stock, SS):</b> 為了應對需求或前置時間的不確定性而保有的緩衝庫存。它是服務水準的直接體現。
+                            <p class="text-sm text-gray-500 mt-1"><b>公式: 安全庫存 = 服務水準(Z) × 需求波動(σD) × √平均前置時間(μL)</b></p>
+                        </li>
+                        <li><b>再訂購點 (Re-Order Point, ROP):</b> 觸發訂購流程的庫存水位。當庫存量降到 ROP 時，就該下單了。
+                            <p class="text-sm text-gray-500 mt-1"><b>公式: 再訂購點 = 平均需求量 × 購備前置時間 + 安全庫存</b></p>
+                        </li>
+                        <li><b>經濟訂購量 (Economic Order Quantity, EOQ):</b> 計算能使「總庫存成本」(訂購成本+持有成本) 最小化的訂單數量。
+                             <p class="text-sm text-gray-500 mt-1"><b>公式: 經濟訂購量 = √ [ (2 × 年需求量 × 訂購成本) / 年單位持有成本 ]</b></p>
+                        </li>
+                        <li><b>雙箱法 (Two-Bin System):</b> 一種簡單直觀的定量不定期方法，特別適用於低價值的 C 類物料。將庫存分為兩箱，當第一箱用完時，即觸發訂單來補充第一箱，此時第二箱的量就是這段前置時間內的緩衝。</li>
+                    </ul>
+                </div>
+
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">訂購模型 學習成效測驗</h3>
+                    <div id="quiz-models" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 在庫存管理中，「再訂購點 (ROP)」的定義是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-models" value="a"> A. 每次應該訂購的經濟數量</label>
+                                <label><input type="radio" name="q1-models" value="b"> B. 為了防止缺貨而保有的最高庫存量</label>
+                                <label><input type="radio" name="q1-models" value="c"> C. 觸發下新訂單的庫存水位</label>
+                                <label><input type="radio" name="q1-models" value="d"> D. 倉庫中物料的實際數量</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 經濟訂購量 (EOQ) 模型主要是在平衡哪兩種成本？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-models" value="a"> A. 運輸成本與缺貨成本</label>
+                                <label><input type="radio" name="q2-models" value="b"> B. 人力成本與倉租成本</label>
+                                <label><input type="radio" name="q2-models" value="c"> C. 原料成本與製造成本</label>
+                                <label><input type="radio" name="q2-models" value="d"> D. 訂購成本與持有成本</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('models')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-models" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-yellow-700">訂購模型實戰演練</h3>
+                    <div class="ai-card bg-yellow-50 border-yellow-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="models-input" class="font-semibold text-gray-700">請提供物料的相關數據：</label>
+                            <button onclick="loadExample('models')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded-md shrink-0">載入範例</button>
+                        </div>
+                        <textarea id="models-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" rows="4" placeholder="例如：週平均需求200，週需求標準差50，前置時間2週，服務水準95% (Z=1.65)，年需求10000，單次訂購成本$50，單位年持有成本$2..."></textarea>
+                        <button onclick="handleAI('models')" class="mt-4 px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 計算最佳訂購策略
+                        </button>
+                        <div id="models-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Improvement -->
+        <section id="improvement" class="mb-24">
+            <h2 class="section-title">流程改善: 用 8D 方法根除庫存問題</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.695v-2.695A8.25 8.25 0 0010.5 2.25 8.25 8.25 0 002.25 10.5v2.695m18 0V10.5a8.25 8.25 0 00-16.5 0v2.695m16.5 0v1.125c0 .621-.504 1.125-1.125 1.125H3.375c-.621 0-1.125-.504-1.125-1.125V13.5" />
+                    </svg>
+                    <h3 class="card-title">建立持續優化的改善循環</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>當庫存問題反覆發生，例如呆滯料持續攀升或某類物料頻繁缺貨，這代表系統流程中存在根本性的缺失。8D (8 Disciplines) 是一個嚴謹、有紀律的團隊導向問題解決方法論。它不僅僅是找到問題答案，更強調透過「圍堵」、「治本」與「防呆」的完整循環，確保問題被徹底根除，不再重蹈覆轍。</p>
+                </div>
+                <div class="content-block">
+                    <h4>8D 流程在物料管理的應用</h4>
+                    <ul>
+                        <li><b>D1: 組建團隊:</b> 成立跨職能團隊，成員應包含採購、儲運、生管、業務、甚至財務人員。</li>
+                        <li><b>D2: 描述問題 (Y):</b> 用數據精確定義問題。例如：「過去六個月，GW 產品線的呆滯庫存 (庫齡>1年) 金額從 289 百萬增加到 648 百萬，淨去化率為負。」</li>
+                        <li><b>D3: 實施暫時圍堵措施 (治標):</b> 立即止血。例如：「全面暫停所有庫齡>1年物料的採購單」、「針對庫存金額最高的 Top 10 冷門規格料號，凍結其自動補貨」。</li>
+                        <li><b>D4: 根本原因分析 (因 X):</b> 深入探討。使用魚骨圖或 5 Why 分析法，探討原因，如案例中歸納出的 A: 內部管理(政策性備貨問題)、B: 客戶取消、C: 去化週轉低 (MOQ/購備期長)。</li>
+                        <li><b>D5: 選擇與驗證永久對策 (治本):</b> 提出根治方案。例如：「建立業務主管對冷門規格的每季預測準確度指標」、「與關鍵供應商重新協商 MOQ 與購備期」。</li>
+                        <li><b>D6: 實施永久對策:</b> 將方案落實到日常工作中。例如：「在 ERP 系統中導入新的安全庫存水位公式」、「正式啟動每月 S&OP (銷售與運營計畫) 會議」。</li>
+                        <li><b>D7: 防止再發生 (防呆):</b> 將改善制度化。例如：「將『新料號建立前的 EOL 風險評估』納入標準作業流程 (SOP)」、「建立庫存健康儀表板，自動發出呆滯風險預警」。</li>
+                         <li><b>D8: 團隊肯定,持續改善:</b> 公開表揚團隊的努力與貢獻，建立持續改善的文化。</li>
+                    </ul>
+                </div>
+                
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">流程改善 學習成效測驗</h3>
+                    <div id="quiz-improvement" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 在 8D 流程中，D3 (實施暫時圍堵措施) 和 D5 (選擇永久對策) 的主要區別是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-improvement" value="a"> A. D3 由主管決定，D5 由團隊決定</label>
+                                <label><input type="radio" name="q1-improvement" value="b"> B. D3 是快速止血的治標方法，D5 是根除病因的治本方法</label>
+                                <label><input type="radio" name="q1-improvement" value="c"> C. D3 成本較低，D5 成本較高</label>
+                                <label><input type="radio" name="q1-improvement" value="d"> D. D3 是預防措施，D5 是補救措施</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 根據課程中的案例分析，造成呆滯庫存的「根本原因 (因 X)」不包含下列哪一項？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-improvement" value="a"> A. End-of-Life (EOL) 產品生命週期管理問題</label>
+                                <label><input type="radio" name="q2-improvement" value="b"> B. 客戶取消訂單 (Customer Cancel)</label>
+                                <label><input type="radio" name="q2-improvement" value="c"> C. 倉庫儲位不足</label>
+                                <label><input type="radio" name="q2-improvement" value="d"> D. 採購批量 (MOQ) 或購備期過長</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('improvement')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-improvement" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-red-700">8D 實戰演練</h3>
+                    <div class="ai-card bg-red-50 border-red-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="improvement-input" class="font-semibold text-gray-700">請簡要描述您公司一個反覆發生的庫存問題：</label>
+                            <button onclick="loadExample('improvement')" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-2 py-1 rounded-md shrink-0">載入範例</button>
+                        </div>
+                        <textarea id="improvement-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500" rows="8" placeholder="[8D 報告範本]
+D0: 問題規劃與準備
+問題：A款馬達在每年Q1都會發生缺貨，導致產線停線，但在Q4又會產生呆滯庫存。
+D1: 成立團隊
+- 團隊負責人：王經理 (生管部)
+- 團隊成員：李課長 (採購), 陳組長 (倉儲), 張工程師 (業務), 林專員 (財務)
+D2: 描述問題 (5W2H)
+- What: A款馬達庫存水位不穩，Q1缺貨，Q4呆滯。
+- Where: 主要影響B產線。
+- When: 問題自三年前開始，每年重複發生。
+- Who: 倉管、採購、生管、業務皆受影響。
+- How: Q4業務預估過於樂觀，導致超額採購；Q1實際訂單超出預期，安全庫存不足。
+- How much: 過去三年平均缺貨損失約50萬/年，呆滯處理成本約30萬/年。
+D3: 執行並驗證暫時圍堵措施
+1. 緊急採購一批A款馬達空運，滿足Q1急單 (已完成)。
+2. 凍結所有A款馬達的自動補貨訂單，改為人工審核 (已實施)。
+D4: 根本原因分析 (RCA)
+- 為何Q4呆滯？ -> 業務為達年度目標，高估Q4預測 -> 未與客戶確認長期訂單。
+- 為何Q1缺貨？ -> 安全庫存公式未考慮季節性波動 -> 採購前置時間計算不準確。
+D5: 選擇並驗證永久對策
+1. 導入季節性指數修正預測模型。
+2. 要求業務提供客戶的年度訂單框架協議。
+3. 與供應商重新確認並縮短前置時間。
+4. 在採購系統中對 A 款馬達設置季節性安全庫存提醒。
+D6: 執行永久對策
+1. 在ERP系統中更新A款馬達的安全庫存與再訂購點公式。
+2. 舉辦業務預測準確度訓練。
+3. 與主要供應商簽訂新的供貨協議。
+D7: 防止再發生
+1. 將季節性料號的審核流程納入SOP。
+2. 建立每月庫存健康檢查會議，追蹤Top 10高風險料號。
+D8: 團隊肯定,持續改善
+- 在公司月會上表揚此專案團隊的貢獻，分享成功經驗。"></textarea>
+                        <button onclick="handleAI('improvement')" class="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 引導 8D 分析
+                        </button>
+                        <div id="improvement-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論與討論</h2>
+            <div class="card max-w-4xl mx-auto">
+                <ul class="list-none space-y-3 text-left text-lg">
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>策略優先：</b>庫存管理是手段，不是目的。一切優化都應圍繞公司的現金流、生產效率與客戶服務水準等策略目標。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>數據為王：</b>拋棄純粹的經驗主義，學會用數據說話。透過 ABC/XYZ 分析找到管理重點，透過預測模型降低不確定性。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>模型權衡：</b>沒有完美的模型，只有適合的模型。理解 EOQ、ROP、SS 等模型的假設與應用場景，在成本與風險間取得動態平衡。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>流程改善：</b>問題是改善的契機。運用 8D 等結構化方法，將「救火」轉為「防災」，建立持續優化的管理循環。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>AI 協作：</b>善用 AI 進行複雜的數據分析、模型運算與策略模擬，將管理者從繁瑣的計算中解放，專注於更高層次的判斷與決策。</li>
+                </ul>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800">最終目標：培養具備系統思維與數據分析能力的管理人才，駕馭 AI 工具，打造敏捷、高效、且具韌性的現代化供應鏈體系。</p>
+                </div>
+                
+                <!-- Mindmap Section Added Here -->
+                <div class="mt-8 pt-8 border-t border-gray-200 text-center">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">課程總結心智圖 (點擊放大)</h4>
+                    <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/MM_Mindmap.png" target="_blank">
+                        <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/MM_Mindmap.png" alt="課程總結心智圖" class="mx-auto rounded-lg shadow-md max-w-full h-auto cursor-pointer transition-transform transform hover:scale-105">
+                    </a>
+                </div>
+
+                <!-- Download Button -->
+                <div class="mt-8 text-center">
+                    <a href="https://github.com/drcliffwang/course-material/raw/main/3T_%E5%8E%9F%E6%96%99%E5%BA%AB%E5%AD%98_%E7%89%A9%E6%96%99%E7%AE%A1%E7%90%86%E5%84%AA%E5%8C%96Dr_Hiwin.xlsx" download class="inline-block px-8 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-transform transform hover:scale-105">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        下載課程練習 Excel 檔案
+                    </a>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 3T Raw Material Inventory & Material Management Optimization + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+            // Do not clear the key input for user convenience during a session.
+            // keyInput.value = ''; 
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- Load Example & Dynamic Placeholder Logic ---
+    const examplePlaceholders = {
+        strategy: "我們的備品倉庫呆滯料金額一直降不下來，但同時產線又時常因為缺料而停線...",
+        analysis: `料號A,500,10,12,11,10,13,11,10,12,11,10,12,11
+料號B,5,0,0,20,0,0,30,0,0,0,15,0,0
+料號C,100,20,22,31,11,15,19,15,18,12,11,13,15
+料號D,50,1,1,10,5,0,30,0,6,0,25,1,1`,
+        models: "週平均需求200，週需求標準差50，前置時間2週，服務水準95% (Z=1.65)，年需求10000，單次訂購成本$50，單位年持有成本$2",
+        improvement: `[8D 報告範本]
+D0: 問題規劃與準備
+問題：A款馬達在每年Q1都會發生缺貨，導致產線停線，但在Q4又會產生呆滯庫存。
+D1: 成立團隊
+- 團隊負責人：王經理 (生管部)
+- 團隊成員：李課長 (採購), 陳組長 (倉儲), 張工程師 (業務), 林專員 (財務)
+D2: 描述問題 (5W2H)
+- What: A款馬達庫存水位不穩，Q1缺貨，Q4呆滯。
+- Where: 主要影響B產線。
+- When: 問題自三年前開始，每年重複發生。
+- Who: 倉管、採購、生管、業務皆受影響。
+- How: Q4業務預估過於樂觀，導致超額採購；Q1實際訂單超出預期，安全庫存不足。
+- How much: 過去三年平均缺貨損失約50萬/年，呆滯處理成本約30萬/年。
+D3: 執行並驗證暫時圍堵措施
+1. 緊急採購一批A款馬達空運，滿足Q1急單 (已完成)。
+2. 凍結所有A款馬達的自動補貨訂單，改為人工審核 (已實施)。
+D4: 根本原因分析 (RCA)
+- 為何Q4呆滯？ -> 業務為達年度目標，高估Q4預測 -> 未與客戶確認長期訂單。
+- 為何Q1缺貨？ -> 安全庫存公式未考慮季節性波動 -> 採購前置時間計算不準確。
+D5: 選擇並驗證永久對策
+1. 導入季節性指數修正預測模型。
+2. 要求業務提供客戶的年度訂單框架協議。
+3. 與供應商重新確認並縮短前置時間。
+D6: 執行永久對策
+1. 在ERP系統中更新A款馬達的安全庫存與再訂購點公式。
+2. 舉辦業務預測準確度訓練。
+3. 與主要供應商簽訂新的供貨協議。
+D7: 防止再發生
+1. 將季節性料號的審核流程納入SOP。
+2. 建立每月庫存健康檢查會議，追蹤Top 10高風險料號。
+D8: 團隊肯定,持續改善
+- 在公司月會上表揚此專案團隊的貢獻，分享成功經驗。`
+    };
+
+    const forecastPlaceholders = {
+        'time-series': "請提供過去至少12期的需求，例如：[120, 130, 100, 170, 155, 180, 210, 190, 165, 140, 125, 135]",
+        'new-product': "請提供預估的市場潛力(m), 創新者係數(p), 模仿者係數(q)。例如：m=10000, p=0.01, q=0.2"
+    };
+
+    function loadExample(type) {
+        const inputElement = document.getElementById(`${type}-input`);
+        if (inputElement) {
+            if (type === 'forecasting') {
+                const selectedMethod = document.querySelector('input[name="forecast-method"]:checked').value;
+                inputElement.value = forecastPlaceholders[selectedMethod];
+            } else {
+                inputElement.value = examplePlaceholders[type];
+            }
+            inputElement.focus();
+        }
+    }
+    
+    const forecastingInput = document.getElementById('forecasting-input');
+
+    function updateForecastPlaceholder() {
+        const selectedMethod = document.querySelector('input[name="forecast-method"]:checked').value;
+        if (forecastingInput) {
+            forecastingInput.placeholder = forecastPlaceholders[selectedMethod];
+        }
+    }
+
+    document.querySelectorAll('input[name="forecast-method"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+             updateForecastPlaceholder();
+             if (forecastingInput) forecastingInput.value = ''; // Clear input when changing method
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateForecastPlaceholder();
+    });
+
+    // --- AI Interaction Logic (REVISED & ROBUST) ---
+
+    /**
+     * A robust function to call the selected AI API with better error handling.
+     * @param {string} prompt - The user's prompt.
+     * @param {string} apiKey - The user's API key.
+     * @param {string} provider - The selected AI provider ('gemini', 'deepseek', etc.).
+     * @param {string} endpoint - The endpoint URL for Azure/Copilot.
+     * @returns {Promise<{success: boolean, text?: string, error?: string}>} - A promise that resolves to an object indicating success or failure.
+     */
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+        const system_prompt = "你是一位精通供應鏈管理、庫存優化與數據科學的頂尖顧問，請使用繁體中文，以專業、結構化的方式回答使用者的問題。";
+
+        try {
+            // Prepare the request based on the provider
+            switch (provider) {
+                case 'gemini':
+                    // **修正點: 移除 systemInstruction 欄位，將系統提示合併到使用者提示中**
+                    apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                    
+                    // 將系統指令和使用者提示合併為一個 contents 元素
+                    const geminiPrompt = `${system_prompt}\n\n[使用者請求]\n${prompt}`;
+                    
+                    body = {
+                        contents: [{ role: "user", parts: [{ text: geminiPrompt }] }],
+                        // systemInstruction: { parts: [{ text: system_prompt }] }, // 移除此行，因為它導致 400 錯誤
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                        ]
+                    };
+                    break;
+                case 'deepseek':
+                    apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: system_prompt },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'chatgpt':
+                    apiUrl = 'https://api.openai.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = {
+                        model: "gpt-4o",
+                        messages: [
+                            { role: "system", content: system_prompt },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                case 'copilot':
+                    apiUrl = endpoint;
+                    headers['api-key'] = apiKey;
+                    body = {
+                        messages: [
+                            { role: "system", content: system_prompt },
+                            { role: "user", content: prompt }
+                        ]
+                    };
+                    break;
+                default:
+                    return { success: false, error: '未知的 AI 服務提供商。' };
+            }
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = result?.error?.message || JSON.stringify(result);
+                throw new Error(`API 請求失敗 (狀態碼 ${response.status}): ${errorMsg}`);
+            }
+
+            if (provider === 'gemini') {
+                if (result.promptFeedback?.blockReason) {
+                    return { success: false, error: `請求因安全因素被阻擋：${result.promptFeedback.blockReason}` };
+                }
+                if (result.candidates && result.candidates.length > 0) {
+                    const candidate = result.candidates[0];
+                    if (candidate.finishReason !== "STOP" && candidate.finishReason !== "MAX_TOKENS") {
+                         return { success: false, error: `AI 回應因 '${candidate.finishReason}' 而中止。請檢查您的提示或 API 設定。` };
+                    }
+                    if (candidate.content?.parts[0]?.text) {
+                        return { success: true, text: candidate.content.parts[0].text };
+                    }
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空 (Gemini)。' };
+            } else { // For OpenAI-compatible APIs
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return { success: true, text: result.choices[0].message.content };
+                }
+                if (result.choices && result.choices[0]?.finish_reason) {
+                     return { success: false, error: `AI 回應因 '${result.choices[0].finish_reason}' 而中止。` };
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空。' };
+            }
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            let friendlyError = `無法連接至 AI 服務。請檢查您的網路連線、API 金鑰及 Endpoint (如適用) 是否正確。`;
+            if (error.message.includes("API 請求失敗")) {
+                friendlyError = error.message; 
+            } else if (error.name === 'TypeError') {
+                friendlyError += ' 可能的原因是網路問題或 CORS 跨域錯誤。'
+            }
+            return { success: false, error: friendlyError };
+        }
+    }
+
+    /**
+     * Main handler for single-turn AI interactions.
+     * Uses the new callAI function and handles UI updates.
+     */
+    async function handleAI(type) {
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        // This switch statement generates the specific prompt for each analysis type.
+        // It remains unchanged from the original logic.
+        switch (type) {
+            case 'strategy':
+                prompt = `你是一位資深供應鏈顧問。請基於 3T (Lead Time, WIP/Turnover, Productivity) 與 ESG 原則，分析以下使用者描述的庫存管理痛點，並提出具體的策略性建議。請以結構化、條列式的方式呈現。使用者情境：\n\n${userInput}`;
+                break;
+            case 'analysis':
+                prompt = `你是一位庫存管理專家。我將提供一些物料數據，請幫我執行 ABC 與 XYZ 分析。你的任務是：\n1. 根據我提供的數據格式（料號, 單價, 12個月需求...），解析數據。\n2. 根據物料價值進行 ABC 分類。\n3. 根據需求波動性 (變異係數) 進行 XYZ 分類。\n4. 將每個物料歸類到九宮格中 (例如 AX, BZ, CX)。\n5. 針對每個九宮格分類，提出具體、可行的庫存管理策略建議。\n請將結果以 Markdown 表格與條列式建議呈現。\n\n使用者數據：\n${userInput}`;
+                break;
+            case 'forecasting':
+                 const selectedForecastMethod = document.querySelector('input[name="forecast-method"]:checked').value;
+                if (selectedForecastMethod === 'time-series') {
+                    prompt = `你是一位數據科學家，專精於時間序列預測。請根據以下使用者提供的歷史需求數據：\n1. 分析數據的特性 (例如：是否有趨勢、季節性、或是間歇性)。\n2. 推薦最適合的預測模型 (例如：指數平滑法、ARIMA、克羅斯頓法)。\n3. 產生未來 3 期的預測值，並計算預測的信賴區間。\n4. 簡單說明你選擇該模型的原因。\n\n使用者歷史數據：\n${userInput}`;
+                } else if (selectedForecastMethod === 'new-product') {
+                     prompt = `你是一位市場分析專家，專精於新產品擴散模型。請使用巴斯擴散模型 (Bass Diffusion Model)，根據以下使用者提供的參數，進行分析：\n1. 計算並條列出前 10 期的新採用人數 (需求量)。\n2. 繪製出預期的產品生命週期 S 型曲線的文字描述或簡圖。\n3. 解釋需求高峰大約會出現在第幾期，以及其對生產與行銷的意涵。\n\n使用者參數：\n${userInput}`;
+                }
+                break;
+            case 'models':
+                prompt = `你是一位作業研究專家。我需要為一項物料決定最佳的庫存策略。請根據我提供的數據，計算出：\n1. 安全庫存 (Safety Stock, SS)\n2. 再訂購點 (Re-Order Point, ROP)\n3. 經濟訂購量 (Economic Order Quantity, EOQ)\n最後，請用一句話總結這個庫存策略：「當庫存降至 [ROP值] 時，下訂單採購 [EOQ值] 的數量。」\n請詳細列出你的計算過程。\n\n使用者數據：\n${userInput}`;
+                break;
+            case 'improvement':
+                prompt = `你是一位資深的品質與流程改善顧問，精通 8D 問題解決流程。現在有一個客戶提供了一份 8D 報告草稿。請你根據他提供的內容，以專業顧問的角度，優化這份報告，使其更加完整、專業、且具備可執行性。請針對每個D（D0-D8）提出具體的分析與建議，並以結構化的報告形式呈現。\n\n客戶提供的 8D 報告草稿：\n${userInput}`;
+                break;
+        }
+        
+        const result = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+
+        if (result.success) {
+            outputElement.innerHTML = marked.parse(result.text);
+        } else {
+            // Display a formatted error message
+            outputElement.innerHTML = `<div class="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+                <p class="font-bold">發生錯誤</p>
+                <p class="mt-2 text-sm">${result.error}</p>
+            </div>`;
+        }
+    }
+
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-strategy': '課程緣由中明確提到董事長的期許是「訓練一組人,有經驗,也有庫存相關學理知識...定期檢視庫存、籌料系統裡面的相關規則、合理性...當場討論、決議、改善&追蹤效果」。這強調了理論與實務結合，並持續改善的精神。',
+        'q2-strategy': '根據課程大綱 Day 1，明確指出「庫存管理與3T: Lead Time/WIP/Productivity vs. 庫存管理指標」。',
+        'q1-analysis': 'ABC分析是基於帕雷托法則（80/20法則），A類品項雖然數量少，但其年消耗金額佔了總金額的絕大部分（約70-80%）。',
+        'q2-analysis': 'CZ類物料價值低且需求難以預測，持有庫存的風險（資金積壓、呆滯）遠大於收益。因此最佳策略是盡量不備庫存，接到訂單後再進行採購或生產，以最大程度地規避風險。',
+        'q1-forecasting': '克羅斯頓法是專門為了解決「間歇性需求」(Intermittent Demand) 而設計的預測模型。這類需求有大量的零需求期，傳統模型難以處理。',
+        'q2-forecasting': '在業界實務中，MAPE (Mean Absolute Percentage Error) 若能低於 10%，通常被認為是一個相當準確且可靠的預測模型。',
+        'q1-models': '再訂購點 (ROP) 是一個「觸發點」。當倉庫的實際庫存量因為不斷出貨而下降到這個預設的水位時，系統或人員就必須啟動補貨程序，下達新的訂單。',
+        'q2-models': 'EOQ 的核心精神是在兩種相反的成本之間找尋平衡點：訂購次數越多，「訂購成本」就越高，但平均庫存量越低，「持有成本」就越低。EOQ 就是找到那個能讓「訂購成本+持有成本」總和最低的訂購批量。',
+        'q1-improvement': 'D3 旨在「快速控制損害」，防止問題擴大，是治標；D5 則是針對已驗證的根本原因，提出能「永久根除問題」的對策，是治本。',
+        'q2-improvement': '根據課程講義中根本原因(因X)的分析圖，明確列出了 End-of-Life (EOL) 問題、客戶取消訂單 (Customer Cancel)、去化週轉低 (定太多, MOQ, 購備期...) 等，而「倉庫儲位不足」屬於資源限制問題，通常不是造成呆滯料的根本原因。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

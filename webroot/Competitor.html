@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>光學組件產業領導者財務透視 (2024年)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js will be loaded dynamically by the script at the end of the body -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; color: #334155; line-height: 1.7; }
+        .container-main { max-width: 1280px; margin: auto; padding: 1.5rem; }
+        .header-main { text-align: center; margin-bottom: 2.5rem; padding: 1.5rem; background-color: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .title-main { font-size: 2.25rem; md:font-size: 2.75rem; font-weight: 700; color: #0d47a1; margin-bottom: 0.75rem; }
+        .subtitle-main { font-size: 1.125rem; color: #475569; }
+        .nav-sticky { position: sticky; top: 0; z-index: 50; background-color: rgba(255,255,255,0.95); backdrop-filter: blur(8px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; }
+        .nav-link { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; color: #334155; transition: all 0.2s ease-in-out; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background-color: #1e3a8a; color: #ffffff; }
+        .card-main { background-color: #ffffff; border-radius: 0.75rem; padding: 1.5rem; md:padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 2rem; }
+        .title-section { font-size: 1.75rem; md:font-size: 2rem; font-weight: 700; color: #1565c0; margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid #42a5f5; }
+        .chart-container { position: relative; width: 100%; max-width: 550px; margin: 1.5rem auto; height: 300px; max-height: 350px; padding: 1rem; background-color: #f8fafc; border-radius: 0.5rem; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+        @media (min-width: 768px) { .chart-container { height: 350px; max-height: 400px; } }
+        .table-responsive-container { overflow-x: auto; margin-top: 1rem; margin-bottom: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
+        .table-data { width: 100%; border-collapse: collapse; }
+        .table-data th, .table-data td { padding: 0.75rem 1rem; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
+        .table-data th { background-color: #e3f2fd; font-weight: 600; cursor: pointer; }
+        .table-data tr:last-child td { border-bottom: none; }
+        .table-data tr:hover { background-color: #eff6ff; }
+        .accordion-btn { background-color: #e3f2fd; padding: 0.75rem 1.25rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; margin-bottom: 0.25rem; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s ease; }
+        .accordion-btn:hover { background-color: #bbdefb; }
+        .accordion-panel { padding: 1rem 1.25rem; background-color: #ffffff; border: 1px solid #e0f2f7; border-top: none; border-radius: 0 0 0.5rem 0.5rem; display: none; overflow: hidden; }
+        .accordion-panel.active { display: block; }
+        .stat-card { background-color: #e3f2fd; padding: 1.25rem; border-radius: 0.5rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 1.875rem; font-weight: 700; line-height: 1.2; }
+        .stat-label-card { font-size: 0.875rem; color: #475569; margin-top: 0.25rem; }
+        .positive { color: #16a34a; } .negative { color: #dc2626; }
+        .company-lg-text { color: #1976D2; } .company-sunny-text { color: #388E3C; } .company-cowell-text { color: #F57C00; }
+        .toggle-button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s ease; margin: 0 0.25rem; }
+        .toggle-button.active { background-color: #1e3a8a; color: #ffffff; }
+        .toggle-button:not(.active) { background-color: #e2e8f0; color: #334155; }
+        .footer-main { text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #cbd5e1; }
+        .footer-text { font-size: 0.875rem; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container-main">
+        <header class="header-main">
+            <h1 class="title-main">光學組件產業領導者2024年財務透視</h1>
+            <p class="subtitle-main">互動式分析比較：樂金伊諾特 (LG Innotek)、舜宇光學科技 (Sunny Optical) 及高偉電子 (Cowell e Holdings)</p>
+        </header>
+
+        <nav id="mainNav" class="nav-sticky">
+            <a href="#intro" class="nav-link">公司簡介</a>
+            <a href="#overview" class="nav-link">總體概覽</a>
+            <a href="#revenue" class="nav-link">營收與增長</a>
+            <a href="#profitability" class="nav-link">盈利能力</a>
+            <a href="#financial-structure" class="nav-link">財務結構</a>
+            <a href="#rd-investment" class="nav-link">研發投入</a>
+            <a href="#market-outlook" class="nav-link">市場洞察</a>
+            <a href="#conclusion" class="nav-link">總結</a>
+        </nav>
+
+        <main>
+            <section id="intro" class="card-main">
+                <h2 class="title-section">公司簡介</h2>
+                <p class="mb-4 text-slate-600">本節將簡要介紹三家光學組件產業領導者的核心業務與市場定位。</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-5 border border-blue-200 rounded-lg bg-blue-50">
+                        <h3 class="font-bold text-lg company-lg-text mb-2">樂金伊諾特 (LG Innotek)</h3>
+                        <p class="text-sm text-slate-700">韓國LG集團旗下核心電子零組件製造商，業務涵蓋光學解決方案、基板材料及電氣元件，是全球領先的相機模組供應商之一。</p>
+                    </div>
+                    <div class="p-5 border border-green-200 rounded-lg bg-green-50">
+                        <h3 class="font-bold text-lg company-sunny-text mb-2">舜宇光學科技 (Sunny Optical)</h3>
+                        <p class="text-sm text-slate-700">全球領先的綜合光學零件及產品製造商，產品應用於手機、汽車、XR（擴展現實）及光學儀器等領域，尤其在手機鏡頭和車載鏡頭市場佔有重要地位。</p>
+                    </div>
+                    <div class="p-5 border border-orange-200 rounded-lg bg-orange-50">
+                        <h3 class="font-bold text-lg company-cowell-text mb-2">高偉電子 (Cowell e Holdings)</h3>
+                        <p class="text-sm text-slate-700">主要從事精密光學模組的設計、開發、生產及銷售，應用於智慧型手機、平板電腦及其他移動終端，近年來在後端相機模組領域表現突出。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="overview" class="card-main">
+                <h2 class="title-section">總體財務表現概覽 (2024年)</h2>
+                <p class="mb-6 text-slate-600">快速了解三家公司在2024年的核心財務指標表現。</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="stat-card">
+                        <h3 class="font-semibold text-lg company-lg-text mb-2">樂金伊諾特</h3>
+                        <p class="stat-value" id="overview-lg-revenue">US$0十億</p><p class="stat-label-card">營收</p>
+                        <p class="stat-value" id="overview-lg-npm">0%</p><p class="stat-label-card">淨利率</p>
+                        <p class="stat-value" id="overview-lg-roe">0%</p><p class="stat-label-card">ROE</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="font-semibold text-lg company-sunny-text mb-2">舜宇光學科技</h3>
+                        <p class="stat-value" id="overview-sunny-revenue">US$0十億</p><p class="stat-label-card">營收</p>
+                        <p class="stat-value" id="overview-sunny-npm">0%</p><p class="stat-label-card">淨利率</p>
+                        <p class="stat-value" id="overview-sunny-roe">0%</p><p class="stat-label-card">ROE</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 class="font-semibold text-lg company-cowell-text mb-2">高偉電子</h3>
+                        <p class="stat-value" id="overview-cowell-revenue">US$0十億</p><p class="stat-label-card">營收</p>
+                        <p class="stat-value" id="overview-cowell-npm">0%</p><p class="stat-label-card">淨利率</p>
+                        <p class="stat-value" id="overview-cowell-roe">0%</p><p class="stat-label-card">ROE</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="revenue" class="card-main">
+                <h2 class="title-section">一、營收規模與增長動力</h2>
+                <p class="mb-6 text-slate-600">營收是衡量企業市場地位和業務擴張能力的基礎。本節將三家公司2024年的營收統一換算為十億美元，以便於直接比較，並分析其相較於2023年的增長情況。您可以點擊表頭進行排序。</p>
+                <div class="table-responsive-container">
+                    <table class="table-data">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0, 'revenueTableBody')">公司 ↕</th>
+                                <th onclick="sortTable(1, 'revenueTableBody', true)">2024年營收 (十億美元) ↕</th>
+                                <th onclick="sortTable(2, 'revenueTableBody', true)">2023年營收 (十億美元) ↕</th>
+                                <th onclick="sortTable(3, 'revenueTableBody', true)">2024年營收年增長率 (YoY) ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="revenueTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="chart-container mt-8">
+                    <canvas id="revenueChart2024"></canvas>
+                </div>
+                <p class="mt-6 text-sm text-slate-500">上圖表顯示，高偉電子展現了爆發性的營收增長，舜宇光學科技實現了強勁的雙位數增長，而樂金伊諾特則呈現相對平穩的增長態勢。這反映了各公司在市場策略和產品週期上的不同階段。</p>
+            </section>
+
+            <section id="profitability" class="card-main">
+                <h2 class="title-section">二、盈利能力剖析</h2>
+                <p class="mb-6 text-slate-600">盈利能力是衡量企業經營效益的核心指標，反映其獲利效率和為股東創造價值的能力。本節比較毛利率、淨利率及股東權益報酬率(ROE)。</p>
+                <div class="table-responsive-container">
+                    <table class="table-data">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0, 'profitabilityTableBody')">公司 ↕</th>
+                                <th onclick="sortTable(1, 'profitabilityTableBody', true)">2024年毛利率 (%) ↕</th>
+                                <th onclick="sortTable(2, 'profitabilityTableBody', true)">2024年淨利率 (%) ↕</th>
+                                <th onclick="sortTable(3, 'profitabilityTableBody', true)">2024年股東權益報酬率 (ROE %) ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profitabilityTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="chart-container">
+                        <canvas id="profitMarginsChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="roeChart"></canvas>
+                    </div>
+                </div>
+                <p class="mt-6 text-sm text-slate-500">數據顯示，舜宇光學科技在毛利率與淨利率上均表現最佳。高偉電子雖然毛利率略降，但股東權益報酬率 (ROE) 大幅提升，顯示其整體獲利效率佳。樂金伊諾特則在利潤率方面面臨挑戰，可能與其產品組合或成本結構有關。</p>
+            </section>
+
+            <section id="financial-structure" class="card-main">
+                <h2 class="title-section">三、財務結構與償債穩健性</h2>
+                <p class="mb-6 text-slate-600">穩健的財務結構和充足的償債能力是企業持續經營的基石。本節將分析各公司的負債水平和短期償債能力。點擊按鈕切換查看2024年或2023年數據。</p>
+                <div class="flex justify-center mb-6">
+                    <button id="btn2024" class="toggle-button active">顯示2024年數據</button>
+                    <button id="btn2023" class="toggle-button">顯示2023年數據</button>
+                </div>
+                <div class="table-responsive-container">
+                     <table class="table-data">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0, 'financialStructureTableBody')">公司 ↕</th>
+                                <th onclick="sortTable(1, 'financialStructureTableBody', true)">負債權益比 (%) <span class="text-xs">(LG)</span> / 資本化比率 (%) <span class="text-xs">(舜宇/高偉)</span> ↕</th>
+                                <th onclick="sortTable(2, 'financialStructureTableBody', true)">流動比率 (倍) ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="financialStructureTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="chart-container">
+                        <canvas id="debtRatiosChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="currentRatioChart"></canvas>
+                    </div>
+                </div>
+                <p class="mt-6 text-sm text-slate-500">樂金伊諾特的負債權益比較高。舜宇光學科技的資本化比率最低，顯示其長期償債風險較低。高偉電子的資本化比率有所上升，且流動比率下降，需關注其高速擴張下的短期流動性。</p>
+                 <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 rounded-lg">
+                    <p class="font-semibold">比率定義提醒：</p>
+                    <ul class="list-disc list-inside text-sm">
+                        <li>**負債權益比 (LG Innotek):** 總負債 ÷ 股東權益。衡量整體財務槓桿。</li>
+                        <li>**資本化比率 (舜宇光學, 高偉電子):** 有息負債 ÷ (有息負債 + 股東權益)。衡量有息負債在資本結構中的比重。</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="rd-investment" class="card-main">
+                <h2 class="title-section">四、研發創新投入</h2>
+                <p class="mb-6 text-slate-600">研發投入是高科技企業維持競爭力、驅動產品創新和未來成長的關鍵。</p>
+                 <div class="table-responsive-container">
+                    <table class="table-data">
+                        <thead>
+                            <tr>
+                                <th onclick="sortTable(0, 'rdTableBody')">公司 ↕</th>
+                                <th onclick="sortTable(1, 'rdTableBody', true)">2024年研發費用佔營收比 (%) ↕</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rdTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="chart-container mx-auto mt-8" style="max-width: 700px;">
+                    <canvas id="rdInvestmentChart"></canvas>
+                </div>
+                <p class="mt-6 text-sm text-slate-500 text-center">舜宇光學科技的研發投入強度最高。樂金伊諾特次之。高偉電子的研發佔比較低，但其營收成長強勁，可能反映其研發效率或策略重點不同。</p>
+            </section>
+
+            <section id="market-outlook" class="card-main">
+                <h2 class="title-section">五、市場洞察與未來展望</h2>
+                <p class="mb-6 text-slate-600">光學組件產業正處於快速變革和發展的時期，多重驅動因素將塑造其未來格局。點擊下方標題展開詳細洞察。</p>
+                <div id="accordionContainer" class="space-y-2">
+                    </div>
+            </section>
+
+            <section id="conclusion" class="card-main">
+                <h2 class="title-section">六、總結：成長、獲利與風險的平衡</h2>
+                <p class="mb-6 text-slate-600">綜合來看，三家光學組件產業領導者在2024年展現了不同的發展軌跡和財務特徵，各自在「成長、獲利、風險」的平衡點上有所側重：</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-6 border border-blue-300 rounded-lg bg-blue-50 hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="font-bold text-xl company-lg-text mb-3">樂金伊諾特 (LG Innotek)</h3>
+                        <p class="text-sm text-slate-700">營收溫和增長，但利潤率面臨壓力。財務結構相對穩健，研發投入維持一定水平。可能處於業務調整或轉型期，尋求新的增長點。</p>
+                    </div>
+                    <div class="p-6 border border-green-300 rounded-lg bg-green-50 hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="font-bold text-xl company-sunny-text mb-3">舜宇光學科技 (Sunny Optical)</h3>
+                        <p class="text-sm text-slate-700">營收實現強勁增長，毛利率和淨利率顯著改善，研發投入領先，財務槓桿低，現金流充裕，展現出技術驅動下的穩健成長態勢。</p>
+                    </div>
+                    <div class="p-6 border border-orange-300 rounded-lg bg-orange-50 hover:shadow-xl transition-shadow duration-300">
+                        <h3 class="font-bold text-xl company-cowell-text mb-3">高偉電子 (Cowell e Holdings)</h3>
+                        <p class="text-sm text-slate-700">實現了爆發性的營收增長和卓越的股東回報，但伴隨的是流動性的下降和財務槓桿的提升，是典型「高速擴張期」的財務圖像，需關注其成長的可持續性與風險控制。</p>
+                    </div>
+                </div>
+                <p class="mt-6 text-slate-600">對於高階主管而言，理解這些財務數據背後的戰略意涵、市場動態及風險因素，將有助於制定更精準的企業發展策略，在激烈的市場競爭中把握機遇，實現「成長、獲利、風險」三者的最佳平衡。</p>
+            </section>
+        </main>
+
+        <footer class="footer-main">
+            <p class="footer-text">&copy; 2025 財務透視分析互動應用程式。本內容僅供教學與參考，不構成任何投資建議。所有數據均來自各公司2024年度財務報告及已公開資訊，匯率換算僅供參考（樂金伊諾特：1美元=1350韓元，舜宇光學：1美元=7.2人民幣）。</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data is hardcoded here for simplicity in a single file.
+        const companyRawData = {
+            lg: { name: '樂金伊諾特', color: '#1976D2', 
+                  revenue2024KRW: 21200755, revenue2023KRW: 20605290, 
+                  gpm2024: 8.22, npm2024: 2.12, roe2024: 8.39, 
+                  debtEquity2024: 112.5, currentRatio2024: 1.48, rdRatio2024: 3.5,
+                  debtEquity2023: 137.6, currentRatio2023: 1.27,
+                  currency: 'KRW', exchangeRateToUSD: 1350, unit: '百萬韓元'
+            },
+            sunny: { name: '舜宇光學科技', color: '#388E3C', 
+                     revenue2024CNY: 38294.5, revenue2023CNY: 31681.3, 
+                     gpm2024: 18.30, npm2024: 7.05, roe2024: 10.90, 
+                     capitalization2024: 19.53, currentRatio2024: 1.67, rdRatio2024: 7.6,
+                     capitalization2023: 20.14, currentRatio2023: 1.65,
+                     currency: 'CNY', exchangeRateToUSD: 7.2, unit: '百萬人民幣'
+            },
+            cowell: { name: '高偉電子', color: '#F57C00', 
+                      revenue2024USD_Million: 2494.3, revenue2023USD_Million: 923.8, 
+                      gpm2024: 11.66, npm2024: 4.77, roe2024: 23.06, 
+                      capitalization2024: 40.85, currentRatio2024: 1.35, rdRatio2024: 2.8,
+                      capitalization2023: 41.05, currentRatio2023: 1.45,
+                      currency: 'USD', exchangeRateToUSD: 1, unit: '百萬美元'
+            }
+        };
+        
+        const marketInsightsData = [
+            { title: "智慧型手機市場復甦與升級", content: "經過兩年調整後，全球智慧型手機市場在2024年迎來復甦。AI技術的深度整合以及摺疊螢幕等新形態產品的普及，正推動高階機種相機規格的持續升級，為光學鏡頭、相機模組等精密組件帶來新的市場需求與價值提升空間。" },
+            { title: "車用光學市場方興未艾", content: "汽車的智能化與電動化趨勢已不可逆轉。高級駕駛輔助系統(ADAS)的滲透率不斷提升，以及對更高階自動駕駛技術的追求，使得車載鏡頭、車載感測模組、激光雷達(LiDAR)等光學產品的需求持續強勁增長，成為光學產業的重要成長引擎。" },
+            { title: "XR 與 AIoT 新興應用拓展", content: "擴展現實(XR)技術在AI的賦能下，其應用場景正從娛樂向工業、醫療、教育等多領域拓寬。同時，機器人產業的蓬勃發展，無論是工業機器人還是服務型機器人，均對高精度的光學感測與顯示模組產生大量需求，這些新興領域為光學組件開闢了廣闊的藍海市場。" },
+            { title: "產業競爭格局與供應鏈韌性", content: "全球貿易環境依然存在不確定性，地緣政治因素也為供應鏈的穩定性帶來挑戰。光學組件產業技術迭代迅速，市場競爭激烈。企業除了持續的技術創新和產品差異化外，建立具有韌性的全球供應鏈體系、有效的成本控制以及快速的市場反應能力，將是保持長期競爭優勢的關鍵。" }
+        ];
+
+        let currentYearView = 2024;
+        let debtRatiosChartInstance, currentRatioChartInstance;
+
+        function initializeApp() {
+            // Calculate USD revenues and YoY growth
+            Object.values(companyRawData).forEach(co => {
+                if (co.currency === 'KRW') {
+                    co.revenue2024USD_Billion = co.revenue2024KRW / co.exchangeRateToUSD / 1000; 
+                    co.revenue2023USD_Billion = co.revenue2023KRW / co.exchangeRateToUSD / 1000;
+                } else if (co.currency === 'CNY') {
+                    co.revenue2024USD_Billion = co.revenue2024CNY / co.exchangeRateToUSD / 1000;
+                    co.revenue2023USD_Billion = co.revenue2023CNY / co.exchangeRateToUSD / 1000;
+                } else if (co.currency === 'USD') { 
+                    co.revenue2024USD_Billion = co.revenue2024USD_Million / 1000; 
+                    co.revenue2023USD_Billion = co.revenue2023USD_Million / 1000;
+                }
+                co.yoyGrowth = ((co.revenue2024USD_Billion / co.revenue2023USD_Billion) - 1) * 100;
+            });
+            
+            const companyDisplayData = Object.values(companyRawData);
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) { return label.join(' '); }
+                return label;
+            };
+            const chartTooltipConfig = { plugins: { tooltip: { callbacks: { title: tooltipTitleCallback }, bodyFont: { family: 'Noto Sans TC'}, titleFont: { family: 'Noto Sans TC'} } } };
+
+            function wrapLabel(label, maxWidth = 10) {
+                if (typeof label !== 'string' || label.length <= maxWidth) return label;
+                const chars = label.split('');
+                let lines = []; let currentLine = "";
+                chars.forEach(char => {
+                    if ((currentLine + char).length > maxWidth && currentLine.length > 0) {
+                        lines.push(currentLine);
+                        currentLine = char;
+                    } else {
+                        currentLine += char;
+                    }
+                });
+                lines.push(currentLine);
+                return lines;
+            }
+            
+            function populateTable(tbodyId, dataArray, dataKeys) {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                tbody.innerHTML = ''; 
+                dataArray.forEach(item => {
+                    const row = tbody.insertRow();
+                    dataKeys.forEach(keyInfo => {
+                        const cell = row.insertCell();
+                        let value = item[keyInfo.key];
+                        if (typeof value === 'number') {
+                             value = value.toFixed(keyInfo.decimals !== undefined ? keyInfo.decimals : 2);
+                        }
+                        cell.textContent = value !== null && value !== undefined ? (keyInfo.suffix ? value + keyInfo.suffix : value) : 'N/A';
+                        if (keyInfo.key === 'yoyGrowth' && parseFloat(value) > 0) cell.classList.add('positive');
+                        if (keyInfo.key === 'yoyGrowth' && parseFloat(value) < 0) cell.classList.add('negative');
+                    });
+                });
+            }
+
+            window.sortTable = function(columnIndex, tbodyId, isNumeric = false) {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                const rows = Array.from(tbody.rows);
+                const currentSortOrder = tbody.getAttribute('data-sort-column') == columnIndex && tbody.getAttribute('data-sort-order') === 'asc' ? 'desc' : 'asc';
+                
+                tbody.setAttribute('data-sort-column', columnIndex);
+                tbody.setAttribute('data-sort-order', currentSortOrder);
+
+                rows.sort((a, b) => {
+                    let valA = a.cells[columnIndex].textContent.replace('%','').replace('N/A','0').trim();
+                    let valB = b.cells[columnIndex].textContent.replace('%','').replace('N/A','0').trim();
+
+                    if (isNumeric) {
+                        valA = parseFloat(valA);
+                        valB = parseFloat(valB);
+                    }
+                    
+                    if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+                    return 0;
+                });
+                rows.forEach(row => tbody.appendChild(row));
+            }
+            
+            function createRevenueChart() {
+                const ctx = document.getElementById('revenueChart2024')?.getContext('2d');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: companyDisplayData.map(co => wrapLabel(co.name)),
+                        datasets: [{
+                            label: '2024年營收 (十億美元)',
+                            data: companyDisplayData.map(co => co.revenue2024USD_Billion.toFixed(2)),
+                            backgroundColor: companyDisplayData.map(co => co.color),
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '金額 (十億美元)' } } }, plugins: { title: { display: true, text: '2024年公司營收比較', font: { size: 16, family: 'Noto Sans TC' } }, legend: { display: false } }, ...chartTooltipConfig }
+                });
+            }
+
+            function createProfitabilityCharts() {
+                const marginsCtx = document.getElementById('profitMarginsChart')?.getContext('2d');
+                if(!marginsCtx) return;
+                new Chart(marginsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: companyDisplayData.map(co => wrapLabel(co.name)),
+                        datasets: [
+                            { label: '毛利率 (%)', data: companyDisplayData.map(co => co.gpm2024), backgroundColor: '#42a5f5' },
+                            { label: '淨利率 (%)', data: companyDisplayData.map(co => co.npm2024), backgroundColor: '#66bb6a' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '百分比 (%)' } } }, plugins: { title: { display: true, text: '毛利率與淨利率 (2024年)', font: { size: 16, family: 'Noto Sans TC' } } }, ...chartTooltipConfig }
+                });
+                const roeCtx = document.getElementById('roeChart')?.getContext('2d');
+                if(!roeCtx) return;
+                new Chart(roeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: companyDisplayData.map(co => wrapLabel(co.name)),
+                        datasets: [{ label: '股東權益報酬率 (ROE %)', data: companyDisplayData.map(co => co.roe2024), backgroundColor: companyDisplayData.map(co => co.color) }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '百分比 (%)' } } }, plugins: { title: { display: true, text: '股東權益報酬率 (ROE) (2024年)', font: { size: 16, family: 'Noto Sans TC' } }, legend: { display: false } }, ...chartTooltipConfig }
+                });
+            }
+
+            function createFinancialStructureCharts(year) {
+                const debtKey = `debtEquity${year}`;
+                const capKey = `capitalization${year}`;
+                const currentKey = `currentRatio${year}`;
+
+                const debtCtx = document.getElementById('debtRatiosChart')?.getContext('2d');
+                if(!debtCtx) return;
+                if (debtRatiosChartInstance) debtRatiosChartInstance.destroy();
+                debtRatiosChartInstance = new Chart(debtCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [wrapLabel(companyRawData.lg.name + ' (負債權益比)'), wrapLabel(companyRawData.sunny.name + ' (資本化比率)'), wrapLabel(companyRawData.cowell.name + ' (資本化比率)')],
+                        datasets: [{ label: `負債相關比率 (%) - ${year}年`, data: [companyRawData.lg[debtKey], companyRawData.sunny[capKey], companyRawData.cowell[capKey]], backgroundColor: [companyRawData.lg.color, companyRawData.sunny.color, companyRawData.cowell.color] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '百分比 (%)' } } }, plugins: { title: { display: true, text: `負債結構比率 (${year}年)`, font: { size: 16, family: 'Noto Sans TC' } }, legend: { display: false } }, ...chartTooltipConfig }
+                });
+
+                const currentCtx = document.getElementById('currentRatioChart')?.getContext('2d');
+                if(!currentCtx) return;
+                if (currentRatioChartInstance) currentRatioChartInstance.destroy();
+                currentRatioChartInstance = new Chart(currentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: companyDisplayData.map(co => wrapLabel(co.name)),
+                        datasets: [{ label: `流動比率 (倍) - ${year}年`, data: companyDisplayData.map(co => co[currentKey]), backgroundColor: companyDisplayData.map(co => co.color) }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '倍數' } } }, plugins: { title: { display: true, text: `流動比率 (${year}年)`, font: { size: 16, family: 'Noto Sans TC' } }, legend: { display: false } }, ...chartTooltipConfig }
+                });
+            }
+            
+            function createRDChart() {
+                const ctx = document.getElementById('rdInvestmentChart')?.getContext('2d');
+                if(!ctx) return;
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: companyDisplayData.map(co => wrapLabel(co.name)),
+                        datasets: [{ label: '研發費用佔營收比 (%)', data: companyDisplayData.map(co => co.rdRatio2024), backgroundColor: companyDisplayData.map(co => co.color) }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: '百分比 (%)' } } }, plugins: { title: { display: true, text: '研發投入佔營收比重 (2024年)', font: { size: 16, family: 'Noto Sans TC' } }, legend: { display: false } }, ...chartTooltipConfig }
+                });
+            }
+
+            function createAccordions() {
+                const container = document.getElementById('accordionContainer');
+                if (!container) return;
+                container.innerHTML = ''; // Clear previous accordions
+                marketInsightsData.forEach(item => {
+                    const btn = document.createElement('div');
+                    btn.className = 'accordion-btn';
+                    btn.innerHTML = `<span>${item.title}</span><span class="arrow text-xl transition-transform duration-300">&#9660;</span>`; // Down arrow
+                    const panel = document.createElement('div');
+                    panel.className = 'accordion-panel';
+                    panel.innerHTML = `<p class="text-slate-600">${item.content}</p>`;
+                    container.appendChild(btn);
+                    container.appendChild(panel);
+                    btn.addEventListener('click', () => {
+                        const isActive = panel.classList.contains('active');
+                        document.querySelectorAll('.accordion-panel.active').forEach(p => {
+                            if (p !== panel) {
+                                p.classList.remove('active');
+                                p.style.maxHeight = null;
+                                p.previousElementSibling.querySelector('.arrow').style.transform = 'rotate(0deg)';
+                            }
+                        });
+                        panel.classList.toggle('active');
+                        btn.querySelector('.arrow').style.transform = panel.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+                        if (panel.classList.contains('active')) {
+                            panel.style.maxHeight = panel.scrollHeight + "px";
+                        } else {
+                            panel.style.maxHeight = null;
+                        }
+                    });
+                });
+            }
+            
+            function updateFinancialStructureTable(year) {
+                const dataArray = [
+                    { company: companyRawData.lg.name, debtRatio: companyRawData.lg[year === 2024 ? 'debtEquity2024' : 'debtEquity2023'], currentRatio: companyRawData.lg[year === 2024 ? 'currentRatio2024' : 'currentRatio2023'] },
+                    { company: companyRawData.sunny.name, debtRatio: companyRawData.sunny[year === 2024 ? 'capitalization2024' : 'capitalization2023'], currentRatio: companyRawData.sunny[year === 2024 ? 'currentRatio2024' : 'currentRatio2023'] },
+                    { company: companyRawData.cowell.name, debtRatio: companyRawData.cowell[year === 2024 ? 'capitalization2024' : 'capitalization2023'], currentRatio: companyRawData.cowell[year === 2024 ? 'currentRatio2024' : 'currentRatio2023'] }
+                ];
+                const dataKeys = [
+                    { key: 'company' },
+                    { key: 'debtRatio', suffix: '%' },
+                    { key: 'currentRatio' }
+                ];
+                populateTable('financialStructureTableBody', dataArray, dataKeys);
+            }
+
+            function populateOverviewCards() {
+                document.getElementById('overview-lg-revenue').textContent = `US$${companyRawData.lg.revenue2024USD_Billion.toFixed(2)}十億`;
+                document.getElementById('overview-lg-npm').textContent = `${companyRawData.lg.npm2024.toFixed(2)}%`;
+                document.getElementById('overview-lg-npm').classList.toggle('positive', companyRawData.lg.npm2024 > 0);
+                document.getElementById('overview-lg-npm').classList.toggle('negative', companyRawData.lg.npm2024 < 0);
+                document.getElementById('overview-lg-roe').textContent = `${companyRawData.lg.roe2024.toFixed(2)}%`;
+                document.getElementById('overview-lg-roe').classList.toggle('positive', companyRawData.lg.roe2024 > 5);
+                document.getElementById('overview-lg-roe').classList.toggle('negative', companyRawData.lg.roe2024 < 5);
+
+                document.getElementById('overview-sunny-revenue').textContent = `US$${companyRawData.sunny.revenue2024USD_Billion.toFixed(2)}十億`;
+                document.getElementById('overview-sunny-npm').textContent = `${companyRawData.sunny.npm2024.toFixed(2)}%`;
+                document.getElementById('overview-sunny-npm').classList.toggle('positive', companyRawData.sunny.npm2024 > 0);
+                document.getElementById('overview-sunny-npm').classList.toggle('negative', companyRawData.sunny.npm2024 < 0);
+                document.getElementById('overview-sunny-roe').textContent = `${companyRawData.sunny.roe2024.toFixed(2)}%`;
+                document.getElementById('overview-sunny-roe').classList.toggle('positive', companyRawData.sunny.roe2024 > 5);
+                document.getElementById('overview-sunny-roe').classList.toggle('negative', companyRawData.sunny.roe2024 < 5);
+
+                document.getElementById('overview-cowell-revenue').textContent = `US$${companyRawData.cowell.revenue2024USD_Billion.toFixed(2)}十億`;
+                document.getElementById('overview-cowell-npm').textContent = `${companyRawData.cowell.npm2024.toFixed(2)}%`;
+                document.getElementById('overview-cowell-npm').classList.toggle('positive', companyRawData.cowell.npm2024 > 0);
+                document.getElementById('overview-cowell-npm').classList.toggle('negative', companyRawData.cowell.npm2024 < 0);
+                document.getElementById('overview-cowell-roe').textContent = `${companyRawData.cowell.roe2024.toFixed(2)}%`;
+                document.getElementById('overview-cowell-roe').classList.toggle('positive', companyRawData.cowell.roe2024 > 5);
+                document.getElementById('overview-cowell-roe').classList.toggle('negative', companyRawData.cowell.roe2024 < 5);
+            }
+            
+            // --- Main Execution Block ---
+            populateOverviewCards();
+            createRevenueChart();
+            createProfitabilityCharts();
+            createFinancialStructureCharts(currentYearView);
+            createRDChart();
+            createAccordions();
+
+            populateTable('revenueTableBody', companyDisplayData, [ {key: 'name'}, {key: 'revenue2024USD_Billion', decimals:2}, {key: 'revenue2023USD_Billion', decimals:2}, {key: 'yoyGrowth', suffix:'%', decimals:2} ]);
+            populateTable('profitabilityTableBody', companyDisplayData, [ {key: 'name'}, {key: 'gpm2024'}, {key: 'npm2024'}, {key: 'roe2024'} ]);
+            updateFinancialStructureTable(currentYearView);
+            populateTable('rdTableBody', companyDisplayData, [ {key: 'name'}, {key: 'rdRatio2024'} ]);
+            
+            document.getElementById('btn2024').addEventListener('click', () => {
+                currentYearView = 2024;
+                createFinancialStructureCharts(currentYearView);
+                updateFinancialStructureTable(currentYearView);
+                document.getElementById('btn2024').classList.add('active');
+                document.getElementById('btn2023').classList.remove('active');
+            });
+            document.getElementById('btn2023').addEventListener('click', () => {
+                currentYearView = 2023;
+                createFinancialStructureCharts(currentYearView);
+                updateFinancialStructureTable(currentYearView);
+                document.getElementById('btn2023').classList.add('active');
+                document.getElementById('btn2024').classList.remove('active');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section[id]');
+            const navBar = document.getElementById('mainNav');
+
+            function changeActiveLink() {
+                let index = sections.length;
+                const navHeight = navBar.offsetHeight + 20; 
+                while(--index >= 0 && window.scrollY + navHeight < sections[index].offsetTop) {}
+                
+                navLinks.forEach((link) => link.classList.remove('active'));
+                if (index >= 0 && navLinks[index]) { 
+                  navLinks[index].classList.add('active');
+                } else if (sections.length > 0 && window.scrollY < (sections[0].offsetTop - navHeight)) {
+                    navLinks[0].classList.add('active'); 
+                }
+            }
+            
+            if (sections.length > 0 && navLinks.length > 0) { 
+                changeActiveLink(); 
+                window.addEventListener('scroll', changeActiveLink);
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    if (targetSection) {
+                        const navHeight = navBar.offsetHeight;
+                        const targetPosition = targetSection.offsetTop - navHeight - 10; 
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Use a robust script loader to ensure Chart.js is ready
+        function loadScript(url, callback) {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+            // Most browsers
+            script.onload = callback;
+            // IE
+            script.onreadystatechange = function() {
+                if (this.readyState == 'complete') {
+                    callback();
+                }
+            }
+            document.head.appendChild(script);
+        }
+
+        // Start the application after Chart.js is loaded
+        loadScript('https://cdn.jsdelivr.net/npm/chart.js', initializeApp);
+    </script>
+</body>
+</html>

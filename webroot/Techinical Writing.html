@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技術報告撰寫技巧 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 2rem;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { 
+            margin-top: 1rem; 
+            margin-bottom: 1rem; 
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .ai-output table th,
+        .ai-output table td {
+            border: 1px solid #d1d5db;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .ai-output table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #d1d5db;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        .process-step {
+            background-color: #3b82f6;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 0.5rem;
+            flex: 1;
+            text-align: center;
+            min-width: 150px;
+        }
+        .process-arrow {
+            font-size: 1.5rem;
+            color: #3b82f6;
+            margin: 0 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                技術報告撰寫技巧 (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#perspectives" class="text-gray-600 hover:text-blue-500 nav-link">三大視角</a>
+                <a href="#process" class="text-gray-600 hover:text-blue-500 nav-link">流程構面</a>
+                <a href="#logic" class="text-gray-600 hover:text-blue-500 nav-link">邏輯構面</a>
+                <a href="#data" class="text-gray-600 hover:text-blue-500 nav-link">數據構面</a>
+                <a href="#8d" class="text-gray-600 hover:text-blue-500 nav-link">8D分析</a>
+                <a href="#pm" class="text-gray-600 hover:text-blue-500 nav-link">專案管理</a>
+                <a href="#km" class="text-gray-600 hover:text-blue-500 nav-link">知識管理</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">技術報告撰寫技巧</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">掌握流程、邏輯、數據三大構面，提升技術文件品質與效率</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <i class="fas fa-university text-2xl text-blue-600 mb-2"></i>
+                    <h4 class="font-semibold">學術背景</h4>
+                    <p class="text-sm text-gray-600">清華大學學士<br>美國密西根大學碩博士</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <i class="fas fa-industry text-2xl text-green-600 mb-2"></i>
+                    <h4 class="font-semibold">產業經驗</h4>
+                    <p class="text-sm text-gray-600">Philips電子<br>品管/製造/研發經理</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-md">
+                    <i class="fas fa-patent text-2xl text-purple-600 mb-2"></i>
+                    <h4 class="font-semibold">專業成就</h4>
+                    <p class="text-sm text-gray-600">美台中日專利30+項<br>MIT數據分析研習</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                     <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Three Perspectives Overview -->
+        <section id="perspectives" class="mb-16">
+            <h2 class="section-title">技術報告撰寫三大視角</h2>
+            <div class="grid md:grid-cols-3 gap-6 text-center">
+                <div class="card">
+                    <i class="fas fa-project-diagram text-4xl text-blue-600 mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2 text-blue-600">流程構面</h3>
+                    <p class="text-gray-600">Process Aspect</p>
+                    <p class="mt-2">標準化的報告結構<br>中英文對照格式<br>完整的撰寫流程</p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-brain text-4xl text-green-600 mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2 text-green-600">邏輯構面</h3>
+                    <p class="text-gray-600">Logic Aspect</p>
+                    <p class="mt-2">因果關係分析<br>演繹歸納思維<br>問題解決邏輯</p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-chart-bar text-4xl text-purple-600 mb-4"></i>
+                    <h3 class="font-bold text-xl mb-2 text-purple-600">數據構面</h3>
+                    <p class="text-gray-600">Data Aspect</p>
+                    <p class="mt-2">數據整理比較<br>統計分析關聯<br>預測控制模型</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Aspect Section -->
+        <section id="process" class="mb-16">
+            <h2 class="section-title">流程構面：技術報告標準結構</h2>
+            
+            <div class="card">
+                <h3 class="card-title">中英文技術報告對照</h3>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>中文技術報告</th>
+                            <th>English Technical Report</th>
+                            <th>說明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>前置 (Preliminary)</strong></td>
+                            <td><strong>Front Matter</strong></td>
+                            <td>報告的準備階段</td>
+                        </tr>
+                        <tr>
+                            <td>• 封面頁</td>
+                            <td>• Title Page</td>
+                            <td>報告標題、作者、日期</td>
+                        </tr>
+                        <tr>
+                            <td>• 摘要</td>
+                            <td>• Summary/Abstract</td>
+                            <td>簡潔概述研究內容</td>
+                        </tr>
+                        <tr>
+                            <td>• 目錄</td>
+                            <td>• Table of Contents</td>
+                            <td>章節結構導覽</td>
+                        </tr>
+                        <tr>
+                            <td><strong>正文 (Body)</strong></td>
+                            <td><strong>Main Body</strong></td>
+                            <td>報告的核心內容</td>
+                        </tr>
+                        <tr>
+                            <td>• 背景與目標</td>
+                            <td>• Introduction & Objectives</td>
+                            <td>研究動機與目標說明</td>
+                        </tr>
+                        <tr>
+                            <td>• 方法與實驗</td>
+                            <td>• Methods & Experiments</td>
+                            <td>具體實施方案</td>
+                        </tr>
+                        <tr>
+                            <td>• 結果與分析</td>
+                            <td>• Results & Analysis</td>
+                            <td>數據呈現與解釋</td>
+                        </tr>
+                        <tr>
+                            <td>• 結論與建議</td>
+                            <td>• Conclusions & Recommendations</td>
+                            <td>發現總結與後續建議</td>
+                        </tr>
+                        <tr>
+                            <td><strong>參考 (Reference)</strong></td>
+                            <td><strong>Back Matter</strong></td>
+                            <td>支持資料與附錄</td>
+                        </tr>
+                        <tr>
+                            <td>• 參考文獻</td>
+                            <td>• References/Bibliography</td>
+                            <td>引用資料來源</td>
+                        </tr>
+                        <tr>
+                            <td>• 附錄</td>
+                            <td>• Appendices</td>
+                            <td>詳細數據與補充資料</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Process Flow -->
+                <div class="content-block">
+                    <h4>報告撰寫流程</h4>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <i class="fas fa-search mb-2"></i>
+                            <div>需求分析</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step">
+                            <i class="fas fa-edit mb-2"></i>
+                            <div>架構規劃</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step">
+                            <i class="fas fa-file-alt mb-2"></i>
+                            <div>內容撰寫</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step">
+                            <i class="fas fa-check mb-2"></i>
+                            <div>審核校對</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step">
+                            <i class="fas fa-share mb-2"></i>
+                            <div>發布分享</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">流程構面測驗</h3>
+                    <div id="quiz-process" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 技術報告的「前置(Preliminary)」部分主要包含哪些內容？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-process" value="a"> A. 實驗方法與結果分析</label>
+                                <label><input type="radio" name="q1-process" value="b"> B. 封面頁、摘要、目錄</label>
+                                <label><input type="radio" name="q1-process" value="c"> C. 結論與建議</label>
+                                <label><input type="radio" name="q1-process" value="d"> D. 參考文獻與附錄</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 英文技術報告中的「Abstract」對應中文報告的哪個部分？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-process" value="a"> A. 目錄</label>
+                                <label><input type="radio" name="q2-process" value="b"> B. 背景</label>
+                                <label><input type="radio" name="q2-process" value="c"> C. 摘要</label>
+                                <label><input type="radio" name="q2-process" value="d"> D. 結論</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('process')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-process" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">AI 報告結構規劃</h3>
+                    <div class="ai-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="process-input" class="font-semibold text-gray-700">請描述您要撰寫的技術報告主題：</label>
+                            <button onclick="loadExample('process-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="process-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="例如：我需要撰寫一份關於新材料耐溫性能測試的技術報告..."></textarea>
+                        <button onclick="handleAI('process')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                            ✨ 啟動 AI 結構規劃
+                        </button>
+                        <div id="process-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logic Aspect Section -->
+        <section id="logic" class="mb-16">
+            <h2 class="section-title">邏輯構面：因果分析與問題解決</h2>
+            
+            <div class="card">
+                <h3 class="card-title">邏輯思維框架</h3>
+                
+                <div class="content-block">
+                    <h4>果因行動 (Effects → Causes → Actions)</h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-red-800 mb-2">Effects (果)</h5>
+                            <p class="text-sm text-red-700">觀察到的現象<br>問題的表徵<br>異常的狀況</p>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <i class="fas fa-search text-yellow-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-yellow-800 mb-2">Causes (因)</h5>
+                            <p class="text-sm text-yellow-700">根本原因分析<br>多層次探討<br>驗證推理</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <i class="fas fa-tools text-green-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-green-800 mb-2">Actions (行動)</h5>
+                            <p class="text-sm text-green-700">改善措施<br>預防機制<br>標準化流程</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h4>演繹法 vs 歸納法</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h5 class="font-bold text-blue-800 mb-2">演繹法 (Deductive)</h5>
+                            <p class="text-sm text-blue-700">從一般到特殊<br>基於理論推導<br>邏輯嚴密但可能受限於既有知識</p>
+                            <div class="mt-2 text-xs text-blue-600">
+                                <div>大前提：所有金屬都會熱膨脹</div>
+                                <div>小前提：銅是金屬</div>
+                                <div>結論：銅會熱膨脹</div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                            <h5 class="font-bold text-purple-800 mb-2">歸納法 (Inductive)</h5>
+                            <p class="text-sm text-purple-700">從特殊到一般<br>基於觀察總結<br>可能發現新規律但結論不絕對</p>
+                            <div class="mt-2 text-xs text-purple-600">
+                                <div>觀察1：鐵加熱膨脹</div>
+                                <div>觀察2：銅加熱膨脹</div>
+                                <div>觀察3：鋁加熱膨脹</div>
+                                <div>結論：金屬加熱會膨脹</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">邏輯構面測驗</h3>
+                    <div id="quiz-logic" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 在「果因行動」邏輯框架中，「因」的階段主要任務是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-logic" value="a"> A. 進行根本原因分析</label>
+                                <label><input type="radio" name="q1-logic" value="b"> B. 觀察問題現象</label>
+                                <label><input type="radio" name="q1-logic" value="c"> C. 制定改善措施</label>
+                                <label><input type="radio" name="q1-logic" value="d"> D. 標準化流程</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 「從觀察多個具體案例中總結出一般性規律」屬於哪種推理方法？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-logic" value="a"> A. 演繹法</label>
+                                <label><input type="radio" name="q2-logic" value="b"> B. 歸納法</label>
+                                <label><input type="radio" name="q2-logic" value="c"> C. 類比法</label>
+                                <label><input type="radio" name="q2-logic" value="d"> D. 假設法</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('logic')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-logic" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-green-700">AI 邏輯分析</h3>
+                    <div class="ai-card bg-green-50 border-green-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析方法：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="logic-method" value="causal" checked> 因果分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="logic-method" value="whywhy"> 5 Whys分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="logic-method" value="fishbone"> 魚骨圖分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="logic-method" value="isisnot"> IS/IS NOT分析</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="logic-input" class="font-semibold text-gray-700">請描述您要分析的問題或現象：</label>
+                            <button onclick="loadExample('logic-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="logic-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" rows="4" placeholder="例如：產品在測試階段通過，但到客戶端卻出現20%的故障率..."></textarea>
+                        <button onclick="handleAI('logic')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
+                            ✨ 啟動 AI 邏輯分析
+                        </button>
+                        <div id="logic-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Aspect Section -->
+        <section id="data" class="mb-16">
+            <h2 class="section-title">數據構面：從數據到智慧的轉換</h2>
+            
+            <div class="card">
+                <h3 class="card-title">數據分析四個層次</h3>
+                
+                <div class="content-block">
+                    <h4>Data → Information → Knowledge → Wisdom</h4>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
+                            <i class="fas fa-database text-gray-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-gray-800">Data</h5>
+                            <p class="text-sm text-gray-600">原始數據<br>未處理事實</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                            <i class="fas fa-info-circle text-blue-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-blue-800">Information</h5>
+                            <p class="text-sm text-blue-600">整理後資訊<br>有意義數據</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-lightbulb text-green-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-green-800">Knowledge</h5>
+                            <p class="text-sm text-green-600">理解與洞察<br>可應用知識</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                            <i class="fas fa-brain text-purple-600 text-2xl mb-2"></i>
+                            <h5 class="font-bold text-purple-800">Wisdom</h5>
+                            <p class="text-sm text-purple-600">判斷與決策<br>行動指導</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h4>數據分析四大技巧</h4>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h5 class="font-bold text-blue-800 mb-2">1. 整理 (Aggregation & Stratification)</h5>
+                                <ul class="text-sm text-blue-700 list-disc list-inside">
+                                    <li>數據分類與歸納</li>
+                                    <li>層別化分析</li>
+                                    <li>統計描述</li>
+                                </ul>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h5 class="font-bold text-green-800 mb-2">2. 比較 (Comparison)</h5>
+                                <ul class="text-sm text-green-700 list-disc list-inside">
+                                    <li>時間序列比較</li>
+                                    <li>組間差異分析</li>
+                                    <li>標竿對照</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                                <h5 class="font-bold text-yellow-800 mb-2">3. 關聯 (Correlation)</h5>
+                                <ul class="text-sm text-yellow-700 list-disc list-inside">
+                                    <li>相關性分析</li>
+                                    <li>迴歸分析</li>
+                                    <li>多變數關係</li>
+                                </ul>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <h5 class="font-bold text-purple-800 mb-2">4. 預測控制 (Control & Forecasting)</h5>
+                                <ul class="text-sm text-purple-700 list-disc list-inside">
+                                    <li>趨勢預測</li>
+                                    <li>統計過程控制</li>
+                                    <li>預警機制</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Example -->
+                <div class="content-block">
+                    <h4>數據視覺化範例</h4>
+                    <div style="height: 400px;">
+                        <canvas id="dataChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">數據構面測驗</h3>
+                    <div id="quiz-data" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 在數據轉換的層次中，「Information」相對於「Data」的主要特徵是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-data" value="a"> A. 數量更多</label>
+                                <label><input type="radio" name="q1-data" value="b"> B. 已經整理並具有意義</label>
+                                <label><input type="radio" name="q1-data" value="c"> C. 更加複雜</label>
+                                <label><input type="radio" name="q1-data" value="d"> D. 更加精確</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 「相關性分析」和「迴歸分析」屬於數據分析四大技巧中的哪一類？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-data" value="a"> A. 整理 (Aggregation)</label>
+                                <label><input type="radio" name="q2-data" value="b"> B. 比較 (Comparison)</label>
+                                <label><input type="radio" name="q2-data" value="c"> C. 關聯 (Correlation)</label>
+                                <label><input type="radio" name="q2-data" value="d"> D. 預測控制 (Forecasting)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('data')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-data" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">AI 數據分析</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析類型：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="data-method" value="descriptive" checked> 描述性統計</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="data-method" value="correlation"> 相關分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="data-method" value="trend"> 趨勢分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="data-method" value="spc"> SPC控制</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="data-input" class="font-semibold text-gray-700">請提供您的數據或分析需求：</label>
+                            <button onclick="loadExample('data-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="data-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：我有30天的產品缺陷率數據：3.2%, 2.8%, 4.1%, 3.5%... 請幫我進行統計分析"></textarea>
+                        <button onclick="handleAI('data')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700">
+                            ✨ 啟動 AI 數據分析
+                        </button>
+                        <div id="data-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8D Analysis Section -->
+        <section id="8d" class="mb-16">
+            <h2 class="section-title">8D 問題分析與解決</h2>
+            
+            <div class="card">
+                <h3 class="card-title">8D 八個步驟 (8 Disciplines)</h3>
+                
+                <div class="content-block">
+                    <h4>完整的問題解決流程</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-red-50 p-3 rounded-lg border-l-4 border-red-500">
+                                <h5 class="font-bold text-red-800">D1 - 建立團隊</h5>
+                                <p class="text-sm text-red-700">組建跨功能問題解決小組</p>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-lg border-l-4 border-orange-500">
+                                <h5 class="font-bold text-orange-800">D2 - 描述問題</h5>
+                                <p class="text-sm text-orange-700">詳細定義問題現象與影響</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg border-l-4 border-yellow-500">
+                                <h5 class="font-bold text-yellow-800">D3 - 臨時措施</h5>
+                                <p class="text-sm text-yellow-700">實施緊急圍堵行動</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                                <h5 class="font-bold text-green-800">D4 - 根本原因</h5>
+                                <p class="text-sm text-green-700">確定與驗證真正原因</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                                <h5 class="font-bold text-blue-800">D5 - 選擇對策</h5>
+                                <p class="text-sm text-blue-700">選擇與驗證永久對策</p>
+                            </div>
+                            <div class="bg-indigo-50 p-3 rounded-lg border-l-4 border-indigo-500">
+                                <h5 class="font-bold text-indigo-800">D6 - 實施對策</h5>
+                                <p class="text-sm text-indigo-700">實施與驗證永久對策</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                                <h5 class="font-bold text-purple-800">D7 - 防止再發</h5>
+                                <p class="text-sm text-purple-700">系統性預防措施</p>
+                            </div>
+                            <div class="bg-pink-50 p-3 rounded-lg border-l-4 border-pink-500">
+                                <h5 class="font-bold text-pink-800">D8 - 團隊肯定</h5>
+                                <p class="text-sm text-pink-700">確認成果並表揚團隊</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">8D分析測驗</h3>
+                    <div id="quiz-8d" class="quiz-container">
+                        <div class="quiz-question" data-correct="d">
+                            <p>1. 在8D流程中，「D4 - 根本原因」階段的主要任務是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-8d" value="a"> A. 組建問題解決團隊</label>
+                                <label><input type="radio" name="q1-8d" value="b"> B. 實施緊急圍堵措施</label>
+                                <label><input type="radio" name="q1-8d" value="c"> C. 選擇永久對策</label>
+                                <label><input type="radio" name="q1-8d" value="d"> D. 確定與驗證真正原因</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="a">
+                            <p>2. 8D流程的「D3 - 臨時措施」主要目的是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-8d" value="a"> A. 防止問題繼續擴散造成更大損失</label>
+                                <label><input type="radio" name="q2-8d" value="b"> B. 找出問題的根本原因</label>
+                                <label><input type="radio" name="q2-8d" value="c"> C. 預防類似問題再次發生</label>
+                                <label><input type="radio" name="q2-8d" value="d"> D. 表揚問題解決團隊</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('8d')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-8d" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-red-700">AI 8D報告生成</h3>
+                    <div class="ai-card bg-red-50 border-red-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="8d-input" class="font-semibold text-gray-700">請描述您遇到的品質問題：</label>
+                            <button onclick="loadExample('8d-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="8d-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500" rows="4" placeholder="例如：客戶投訴上一批交付的零件有10%出現表面刮痕，影響產品外觀..."></textarea>
+                        <button onclick="handleAI('8d')" class="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">
+                            ✨ 啟動 AI 8D分析
+                        </button>
+                        <div id="8d-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Management Section -->
+        <section id="pm" class="mb-16">
+            <h2 class="section-title">專案管理報告</h2>
+            
+            <div class="card">
+                <h3 class="card-title">五大流程 × 十大知識領域</h3>
+                
+                <div class="content-block">
+                    <h4>專案管理五大流程</h4>
+                    <div class="process-flow">
+                        <div class="process-step bg-blue-600">
+                            <i class="fas fa-play mb-2"></i>
+                            <div>起始</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-green-600">
+                            <i class="fas fa-clipboard-list mb-2"></i>
+                            <div>規劃</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-yellow-600">
+                            <i class="fas fa-cogs mb-2"></i>
+                            <div>執行</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-orange-600">
+                            <i class="fas fa-chart-line mb-2"></i>
+                            <div>監控</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-purple-600">
+                            <i class="fas fa-flag-checkered mb-2"></i>
+                            <div>結案</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h4>十大知識領域</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <div class="bg-blue-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-project-diagram text-blue-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-blue-800">整合管理</h5>
+                                    <p class="text-xs text-blue-600">Integration</p>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-bullseye text-green-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-green-800">範疇管理</h5>
+                                    <p class="text-xs text-green-600">Scope</p>
+                                </div>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-clock text-yellow-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-yellow-800">時間管理</h5>
+                                    <p class="text-xs text-yellow-600">Schedule</p>
+                                </div>
+                            </div>
+                            <div class="bg-red-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-dollar-sign text-red-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-red-800">成本管理</h5>
+                                    <p class="text-xs text-red-600">Cost</p>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-medal text-purple-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-purple-800">品質管理</h5>
+                                    <p class="text-xs text-purple-600">Quality</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="bg-indigo-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-users text-indigo-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-indigo-800">人力資源</h5>
+                                    <p class="text-xs text-indigo-600">Resource</p>
+                                </div>
+                            </div>
+                            <div class="bg-teal-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-comments text-teal-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-teal-800">溝通管理</h5>
+                                    <p class="text-xs text-teal-600">Communication</p>
+                                </div>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-exclamation-triangle text-orange-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-orange-800">風險管理</h5>
+                                    <p class="text-xs text-orange-600">Risk</p>
+                                </div>
+                            </div>
+                            <div class="bg-pink-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-shopping-cart text-pink-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-pink-800">採購管理</h5>
+                                    <p class="text-xs text-pink-600">Procurement</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-lg flex items-center">
+                                <i class="fas fa-handshake text-gray-600 mr-3"></i>
+                                <div>
+                                    <h5 class="font-semibold text-gray-800">利害關係人</h5>
+                                    <p class="text-xs text-gray-600">Stakeholder</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">專案管理測驗</h3>
+                    <div id="quiz-pm" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 專案管理的五大流程中，「規劃」階段的主要任務是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-pm" value="a"> A. 正式啟動專案</label>
+                                <label><input type="radio" name="q1-pm" value="b"> B. 詳細制定專案執行計畫</label>
+                                <label><input type="radio" name="q1-pm" value="c"> C. 實際執行專案活動</label>
+                                <label><input type="radio" name="q1-pm" value="d"> D. 正式結束專案</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 在十大知識領域中，「確保專案產出符合需求與期望」主要屬於哪個領域？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-pm" value="a"> A. 範疇管理 (Scope)</label>
+                                <label><input type="radio" name="q2-pm" value="b"> B. 時間管理 (Schedule)</label>
+                                <label><input type="radio" name="q2-pm" value="c"> C. 品質管理 (Quality)</label>
+                                <label><input type="radio" name="q2-pm" value="d"> D. 成本管理 (Cost)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('pm')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-pm" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-yellow-700">AI 專案計畫書</h3>
+                    <div class="ai-card bg-yellow-50 border-yellow-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="pm-input" class="font-semibold text-gray-700">請描述您的專案內容：</label>
+                            <button onclick="loadExample('pm-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="pm-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" rows="4" placeholder="例如：導入新的ERP系統，預計6個月完成，涉及財務、人資、製造三個部門..."></textarea>
+                        <button onclick="handleAI('pm')" class="mt-4 px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600">
+                            ✨ 啟動 AI 專案規劃
+                        </button>
+                        <div id="pm-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Knowledge Management Section -->
+        <section id="km" class="mb-16">
+            <h2 class="section-title">知識管理與 AI 應用</h2>
+            
+            <div class="card">
+                <h3 class="card-title">知識管理系統建構</h3>
+                
+                <div class="content-block">
+                    <h4>知識管理三要素</h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                            <i class="fas fa-cogs text-blue-600 text-3xl mb-3"></i>
+                            <h5 class="font-bold text-blue-800 mb-2">技術 (Technology)</h5>
+                            <ul class="text-sm text-blue-700 list-disc list-inside text-left">
+                                <li>知識庫系統</li>
+                                <li>搜尋引擎</li>
+                                <li>協作平台</li>
+                                <li>AI工具</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                            <i class="fas fa-users text-green-600 text-3xl mb-3"></i>
+                            <h5 class="font-bold text-green-800 mb-2">人員 (People)</h5>
+                            <ul class="text-sm text-green-700 list-disc list-inside text-left">
+                                <li>知識工作者</li>
+                                <li>知識管理員</li>
+                                <li>主題專家</li>
+                                <li>使用者社群</li>
+                            </ul>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                            <i class="fas fa-book text-purple-600 text-3xl mb-3"></i>
+                            <h5 class="font-bold text-purple-800 mb-2">知識 (Knowledge)</h5>
+                            <ul class="text-sm text-purple-700 list-disc list-inside text-left">
+                                <li>顯性知識</li>
+                                <li>隱性知識</li>
+                                <li>最佳實務</li>
+                                <li>經驗教訓</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h4>知識管理流程</h4>
+                    <div class="process-flow">
+                        <div class="process-step bg-blue-600">
+                            <i class="fas fa-search mb-2"></i>
+                            <div>知識盤點</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-green-600">
+                            <i class="fas fa-capture mb-2"></i>
+                            <div>知識擷取</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-yellow-600">
+                            <i class="fas fa-database mb-2"></i>
+                            <div>知識儲存</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-orange-600">
+                            <i class="fas fa-share-alt mb-2"></i>
+                            <div>知識分享</div>
+                        </div>
+                        <div class="process-arrow">→</div>
+                        <div class="process-step bg-purple-600">
+                            <i class="fas fa-lightbulb mb-2"></i>
+                            <div>知識創新</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-block">
+                    <h4>AI 在知識管理的應用</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-4 rounded-lg border border-blue-200">
+                            <h5 class="font-bold text-blue-800 mb-3">智能搜尋與推薦</h5>
+                            <ul class="text-sm text-blue-700 space-y-1">
+                                <li>• 語義搜尋理解</li>
+                                <li>• 相關文件推薦</li>
+                                <li>• 專家推薦系統</li>
+                                <li>• 個人化內容</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-100 p-4 rounded-lg border border-green-200">
+                            <h5 class="font-bold text-green-800 mb-3">自動分類與標籤</h5>
+                            <ul class="text-sm text-green-700 space-y-1">
+                                <li>• 文件自動分類</li>
+                                <li>• 關鍵字提取</li>
+                                <li>• 主題建模</li>
+                                <li>• 內容摘要</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-br from-yellow-50 to-amber-100 p-4 rounded-lg border border-yellow-200">
+                            <h5 class="font-bold text-yellow-800 mb-3">智能問答系統</h5>
+                            <ul class="text-sm text-yellow-700 space-y-1">
+                                <li>• 自然語言問答</li>
+                                <li>• 聊天機器人</li>
+                                <li>• 技術支援助手</li>
+                                <li>• 學習推薦</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-violet-100 p-4 rounded-lg border border-purple-200">
+                            <h5 class="font-bold text-purple-800 mb-3">預測與洞察</h5>
+                            <ul class="text-sm text-purple-700 space-y-1">
+                                <li>• 知識缺口分析</li>
+                                <li>• 使用趨勢預測</li>
+                                <li>• 專業技能地圖</li>
+                                <li>• 學習路徑建議</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Section -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">知識管理測驗</h3>
+                    <div id="quiz-km" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 知識管理的三要素中，「Technology」主要包含哪些內容？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-km" value="a"> A. 知識庫系統、搜尋引擎、協作平台</label>
+                                <label><input type="radio" name="q1-km" value="b"> B. 知識工作者、管理員、專家</label>
+                                <label><input type="radio" name="q1-km" value="c"> C. 顯性知識、隱性知識、最佳實務</label>
+                                <label><input type="radio" name="q1-km" value="d"> D. 盤點、擷取、儲存</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. AI在知識管理中的「語義搜尋理解」主要解決什麼問題？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-km" value="a"> A. 文件儲存空間不足</label>
+                                <label><input type="radio" name="q2-km" value="b"> B. 傳統關鍵字搜尋無法理解使用者真實意圖</label>
+                                <label><input type="radio" name="q2-km" value="c"> C. 文件分類過於複雜</label>
+                                <label><input type="radio" name="q2-km" value="d"> D. 使用者權限管理困難</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('km')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-km" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-indigo-700">AI 知識管理規劃</h3>
+                    <div class="ai-card bg-indigo-50 border-indigo-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="km-input" class="font-semibold text-gray-700">請描述您的知識管理需求：</label>
+                            <button onclick="loadExample('km-input')" class="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">載入範例</button>
+                        </div>
+                        <textarea id="km-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="4" placeholder="例如：公司有大量技術文件散布在不同部門，員工經常找不到需要的資訊，希望建立統一的知識管理系統..."></textarea>
+                        <button onclick="handleAI('km')" class="mt-4 px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700">
+                            ✨ 啟動 AI 知識管理
+                        </button>
+                        <div id="km-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section class="text-center mb-16">
+            <h2 class="section-title">課程總結</h2>
+            <div class="card max-w-4xl mx-auto">
+                <div class="mb-6">
+                    <i class="fas fa-graduation-cap text-6xl text-blue-600 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">技術報告撰寫的核心要素</h3>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-800 mb-2">流程標準化</h4>
+                        <p class="text-sm text-blue-700">掌握中英文報告結構，建立完整撰寫流程，確保文件品質與一致性</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 class="font-bold text-green-800 mb-2">邏輯思維</h4>
+                        <p class="text-sm text-green-700">運用因果分析、8D方法論，提升問題解決能力與論證說服力</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <h4 class="font-bold text-purple-800 mb-2">數據洞察</h4>
+                        <p class="text-sm text-purple-700">從數據到智慧的轉換，運用統計分析支撐技術決策</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-blue-100 to-purple-100 p-6 rounded-lg border border-blue-200 mb-6">
+                    <h4 class="text-xl font-bold text-gray-800 mb-3">與 AI 協作的未來</h4>
+                    <p class="text-gray-700 leading-relaxed">
+                        在 AI 時代，技術報告撰寫將更加智能化。掌握三大構面的基礎上，
+                        善用 AI 工具進行資料分析、文獻搜尋、內容生成與品質檢核，
+                        讓人機協作發揮最大效益，創造更高品質的技術文件。
+                    </p>
+                </div>
+
+                <div class="text-center">
+                    <p class="font-bold text-xl text-gray-800">
+                        技術報告不只是記錄，更是知識傳承與決策支援的重要工具
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white">
+        <p>&copy; 2025 技術報告撰寫技巧課程. All Rights Reserved.</p>
+        <p class="text-sm mt-2">Cliff Wang, Ph.D. | dr.cliffwang@a2psdm.com</p>
+    </footer>
+
+<script>
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini';
+    let userEndpointUrl = '';
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+            keyInput.value = '';
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- AI Interaction Logic ---
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+
+        if (provider === 'gemini') {
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+        } else if (provider === 'deepseek') {
+            apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: "你是一位專業的技術文件顧問，請使用繁體中文回答。" },
+                    { role: "user", content: prompt }
+                ]
+            };
+        } else if (provider === 'chatgpt') {
+            apiUrl = 'https://api.openai.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "You are a technical writing expert. Please respond in Traditional Chinese." },
+                    { role: "user", content: prompt }
+                ]
+            };
+        } else if (provider === 'copilot') {
+            apiUrl = endpoint;
+            headers['api-key'] = apiKey;
+            body = {
+                messages: [
+                    { role: "system", content: "You are a technical writing expert. Please respond in Traditional Chinese." },
+                    { role: "user", content: prompt }
+                ]
+            };
+        }
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API 請求失敗，狀態碼： ${response.status}. ${errorBody}`);
+            }
+
+            const result = await response.json();
+            
+            if (provider === 'gemini') {
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+            } else if (provider === 'deepseek' || provider === 'chatgpt' || provider === 'copilot') {
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return result.choices[0].message.content;
+                }
+            }
+            
+            console.error("Unexpected API response structure:", result);
+            if (result.error) return `發生錯誤：${result.error.message}`;
+            if (result.promptFeedback?.blockReason) return `您的請求被阻擋，原因：${result.promptFeedback.blockReason}.`;
+            return "抱歉，AI 回應的格式有誤，請稍後再試。";
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            return `無法連接至 AI 服務。請檢查您的網路連線或 API 金鑰是否正確。\n錯誤詳情: ${error.message}`;
+        }
+    }
+
+    async function handleAI(type) {
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        switch (type) {
+            case 'process':
+                prompt = `你是一位資深的技術文件專家，請根據以下使用者描述的技術報告主題，提供完整的報告結構規劃。請包含：
+1. 建議的報告標題與副標題
+2. 詳細的章節架構 (依照前置-正文-參考的標準結構)
+3. 每個章節的主要內容要點
+4. 預估的頁數與撰寫時程
+5. 需要準備的資料與圖表類型
+請以結構化、條列式的方式呈現。請用繁體中文回答。
+
+使用者主題：${userInput}`;
+                break;
+            case 'logic':
+                const selectedLogicMethod = document.querySelector('input[name="logic-method"]:checked').value;
+                if (selectedLogicMethod === 'causal') {
+                    prompt = `你是一位邏輯分析專家，請針對以下問題進行因果分析。使用「果因行動」架構：
+1. Effects (果)：明確定義問題的表徵與影響
+2. Causes (因)：運用演繹與歸納法找出可能原因
+3. Actions (行動)：提出具體的改善措施
+請以結構化、條列式的方式呈現分析結果。請用繁體中文回答。
+
+問題描述：${userInput}`;
+                } else if (selectedLogicMethod === 'whywhy') {
+                    prompt = `你是一位根本原因分析專家，請針對以下問題進行5 Whys分析。請連續問5個「為什麼」來深入挖掘根本原因，並在最後提出對應的改善建議。請以結構化的方式呈現分析過程。請用繁體中文回答。
+
+問題描述：${userInput}`;
+                } else if (selectedLogicMethod === 'fishbone') {
+                    prompt = `你是一位品質管理專家，請針對以下問題繪製魚骨圖分析。請從人員(Man)、機器(Machine)、材料(Material)、方法(Method)、環境(Environment)等構面分析可能原因。請以結構化、條列式的方式呈現分析結果。請用繁體中文回答。
+
+問題描述：${userInput}`;
+                } else if (selectedLogicMethod === 'isisnot') {
+                    prompt = `你是一位問題分析專家，請針對以下問題進行IS/IS NOT分析。請從What(什麼)、Where(哪裡)、When(何時)、Extent(程度)四個構面，比較「發生的情況(IS)」與「未發生的情況(IS NOT)」，找出關鍵差異點。請以表格形式呈現分析結果。請用繁體中文回答。
+
+問題描述：${userInput}`;
+                }
+                break;
+            case 'data':
+                const selectedDataMethod = document.querySelector('input[name="data-method"]:checked').value;
+                if (selectedDataMethod === 'descriptive') {
+                    prompt = `你是一位數據分析專家，請對以下數據進行描述性統計分析。請計算平均值、中位數、標準差、變異係數等基本統計量，並提供數據的分布特徵描述與初步洞察。請用繁體中文回答。
+
+數據或分析需求：${userInput}`;
+                } else if (selectedDataMethod === 'correlation') {
+                    prompt = `你是一位統計分析專家，請對以下數據進行相關分析。請分析變數間的相關性，計算相關係數，並解釋相關性的強度與方向。如有足夠數據，請進行簡單迴歸分析。請用繁體中文回答。
+
+數據或分析需求：${userInput}`;
+                } else if (selectedDataMethod === 'trend') {
+                    prompt = `你是一位趨勢分析專家，請對以下時間序列數據進行趨勢分析。請識別數據的趨勢、季節性、週期性等特徵，並提供未來趨勢的預測與建議。請用繁體中文回答。
+
+數據或分析需求：${userInput}`;
+                } else if (selectedDataMethod === 'spc') {
+                    prompt = `你是一位品質管制專家，請對以下數據進行統計過程控制(SPC)分析。請評估過程是否穩定，計算控制限，識別異常點，並提供過程改善建議。請用繁體中文回答。
+
+數據或分析需求：${userInput}`;
+                }
+                break;
+            case '8d':
+                prompt = `你是一位資深品質工程師，請根據以下問題描述，建立完整的8D報告。請依照8D的八個步驟進行分析：
+D1: 建立團隊 - 建議團隊成員組成
+D2: 描述問題 - 詳細問題定義
+D3: 臨時措施 - 緊急圍堵行動
+D4: 根本原因 - 原因分析與驗證
+D5: 選擇對策 - 永久對策選擇
+D6: 實施對策 - 實施計畫
+D7: 防止再發 - 系統性預防措施
+D8: 團隊肯定 - 成果確認與表揚
+請以報告格式呈現完整的8D分析。請用繁體中文回答。
+
+問題描述：${userInput}`;
+                break;
+            case 'pm':
+                prompt = `你是一位資深專案經理，請根據以下專案描述，提供完整的專案管理計畫書。請涵蓋：
+1. 專案範疇與目標
+2. WBS工作分解結構
+3. 時程規劃與里程碑
+4. 資源需求與成本估算
+5. 風險識別與管理
+6. 品質管制計畫
+7. 溝通管理計畫
+8. 利害關係人分析
+請以結構化的報告格式呈現。請用繁體中文回答。
+
+專案描述：${userInput}`;
+                break;
+            case 'km':
+                prompt = `你是一位知識管理顧問，請根據以下需求，提供完整的知識管理系統建置規劃。請包含：
+1. 現況分析與需求評估
+2. 知識盤點與分類架構
+3. 技術平台選擇與功能規劃
+4. 組織架構與角色定義
+5. 實施步驟與時程規劃
+6. AI技術應用建議
+7. 成效評估指標
+8. 風險管控措施
+請以詳細的規劃報告格式呈現。請用繁體中文回答。
+
+需求描述：${userInput}`;
+                break;
+        }
+        
+        const aiResponse = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+        outputElement.innerHTML = marked.parse(aiResponse);
+    }
+
+    // --- Load Example Logic ---
+    function loadExample(textareaId) {
+        const textarea = document.getElementById(textareaId);
+        const examples = {
+            'process-input': '我需要撰寫一份關於新材料耐溫性能測試的技術報告',
+            'logic-input': '產品在測試階段通過，但到客戶端卻出現20%的故障率',
+            'data-input': '我有30天的產品缺陷率數據：3.2%, 2.8%, 4.1%, 3.5%, 2.9%, 3.8%, 4.2%, 3.1%, 2.7%, 3.9%',
+            '8d-input': '客戶投訴上一批交付的零件有10%出現表面刮痕，影響產品外觀',
+            'pm-input': '導入新的ERP系統，預計6個月完成，涉及財務、人資、製造三個部門',
+            'km-input': '公司有大量技術文件散布在不同部門，員工經常找不到需要的資訊，希望建立統一的知識管理系統'
+        };
+        
+        if (textarea && examples[textareaId]) {
+            textarea.value = examples[textareaId];
+            textarea.focus();
+        }
+    }
+    
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-process': '技術報告的前置部分包含封面頁、摘要、目錄等，為讀者提供報告的基本資訊與導覽。',
+        'q2-process': 'Abstract是英文技術報告中的摘要部分，簡潔地概述整份報告的核心內容。',
+        'q1-logic': '在果因行動框架中，「因」的階段主要任務是進行根本原因分析，找出問題的真正原因。',
+        'q2-logic': '從多個具體案例中總結出一般性規律是歸納法的特徵，從特殊到一般的推理過程。',
+        'q1-data': 'Information相對於Data的主要特徵是已經過整理並具有意義，能為決策提供價值。',
+        'q2-data': '相關性分析和迴歸分析都是探討變數間關係的方法，屬於關聯(Correlation)分析。',
+        'q1-8d': 'D4階段的主要任務是確定與驗證真正的根本原因，這是8D流程中最關鍵的步驟。',
+        'q2-8d': 'D3臨時措施的主要目的是防止問題繼續擴散造成更大損失，是緊急應對措施。',
+        'q1-pm': '規劃階段的主要任務是詳細制定專案執行計畫，包括範疇、時程、成本、風險等各項規劃。',
+        'q2-pm': '品質管理主要確保專案產出符合需求與期望，維持產品或服務的品質標準。',
+        'q1-km': '知識管理三要素中的Technology包含知識庫系統、搜尋引擎、協作平台等技術工具。',
+        'q2-km': '語義搜尋理解主要解決傳統關鍵字搜尋無法理解使用者真實意圖的問題，提供更準確的搜尋結果。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+    // --- Chart Initialization ---
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('dataChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                datasets: [{
+                    label: '缺陷率 (%)',
+                    data: [3.2, 2.8, 4.1, 3.5, 2.9, 3.8, 4.2],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.1
+                }, {
+                    label: '目標值 (%)',
+                    data: [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0],
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'transparent',
+                    borderDash: [5, 5],
+                    tension: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '缺陷率 (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '時間'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '產品品質趨勢分析'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>

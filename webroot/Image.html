@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>影像辨識工具</title>
+
+  <!-- 載入 Tailwind CSS 實現現代化 UI 設計 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- 載入 Google Fonts 提供更佳的字體閱讀體驗 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* Michigan Blue & Maize Theme */
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background: #00274C;
+      /* Michigan Blue */
+      background-image: radial-gradient(at 0% 0%, #001a33 0, transparent 50%),
+        radial-gradient(at 50% 100%, #00274C 0, transparent 50%),
+        radial-gradient(at 100% 0%, #001a33 0, transparent 50%);
+      background-attachment: fixed;
+      background-size: cover;
+      color: #f8fafc;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Range Slider */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      cursor: pointer;
+      outline: none;
+      border-radius: 9999px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 18px;
+      width: 18px;
+      background-color: #FFCB05;
+      /* Michigan Maize */
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(255, 203, 5, 0.5);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+    }
+
+    .video-flash {
+      animation: flash 0.5s ease-out;
+    }
+
+    @keyframes flash {
+      0% {
+        box-shadow: 0 0 0 0px rgba(255, 203, 5, 0.7);
+      }
+
+      100% {
+        box-shadow: 0 0 0 20px rgba(255, 203, 5, 0);
+      }
+    }
+
+    /* Utilities */
+    .text-shadow {
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Mobile-First Tweaks */
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem;
+      }
+      header {
+        margin-bottom: 1.5rem;
+      }
+    }
+
+    /* Mini Cam Transition */
+    #mini-cam-container {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #mini-cam-container.hidden {
+      display: block; /* Override default hidden behavior for transition */
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-20px) scale(0.9);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen selection:bg-[#FFCB05] selection:text-[#00274C]">
+
+  <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+    <!-- 頁首標題 -->
+    <header class="mb-10 flex flex-col xl:flex-row justify-between items-center gap-6">
+
+      <!-- Left Side: Icon + Title Group -->
+      <div class="flex items-center gap-5 w-full md:w-auto">
+        <!-- Logo Icon -->
+        <div
+          class="shrink-0 w-16 h-16 rounded-2xl bg-[#FFCB05] text-[#00274C] flex items-center justify-center shadow-[0_0_20px_rgba(255,203,5,0.3)]">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-9 h-9">
+            <path d="M12 9a3.75 3.75 0 1 0 0 7.5A3.75 3.75 0 0 0 12 9Z" />
+            <path fill-rule="evenodd"
+              d="M9.344 3.071a49.52 49.52 0 0 1 5.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 0 1-3 3h-15a3 3 0 0 1-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 0 0 1.11-.71l.822-1.315a2.942 2.942 0 0 1 2.332-1.39ZM6.75 12.75a5.25 5.25 0 1 1 10.5 0 5.25 5.25 0 0 1-10.5 0Zm12-1.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"
+              clip-rule="evenodd" />
+          </svg>
+        </div>
+
+        <!-- Text Content -->
+        <div class="flex flex-col">
+          <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
+            影像辨識<span class="text-[#FFCB05] mx-1">與</span>模型訓練
+          </h1>
+          <p class="text-slate-400 font-medium text-sm md:text-base mt-1 tracking-wide">
+            啟動攝影機、蒐集樣本，即時訓練辨識模型
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Side: Profile Pill -->
+      <div
+        class="flex items-center gap-4 bg-white/10 border border-white/10 rounded-full p-2 pr-8 backdrop-blur-md shadow-lg transition-transform hover:scale-[1.02] w-full md:w-auto max-w-md">
+        <!-- Avatar -->
+        <div class="shrink-0 w-14 h-14 rounded-full bg-slate-200 overflow-hidden border-2 border-[#FFCB05]">
+          <img src="Cliff Baby Pic by GPT.jpg" alt="Cliff Wang" class="w-full h-full object-cover" onerror="this.src='https://api.dicebear.com/7.x/avataaars/svg?seed=Cliff'" />
+        </div>
+
+        <!-- Info -->
+        <div class="flex flex-col justify-center">
+          <div class="text-white font-bold text-lg leading-tight">Cliff Wang, Ph.D.</div>
+          <div class="text-slate-300 text-xs font-medium mb-0.5">王啟岳博士</div>
+          <a href="mailto:dr.cliffwang@a2psdm.com"
+            class="text-[#FFCB05] text-xs font-semibold hover:underline hover:text-[#ffe066] transition-colors">
+            dr.cliffwang@a2psdm.com
+          </a>
+        </div>
+      </div>
+
+    </header>
+
+    <!-- 主內容區塊 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- 左欄：攝影機畫面與操作面板 -->
+      <div class="flex flex-col gap-6">
+
+        <!-- 攝影機畫面 -->
+        <div id="video-wrap"
+          class="relative w-full aspect-video rounded-2xl bg-black/40 border border-white/10 shadow-2xl overflow-hidden flex items-center justify-center text-slate-500 group">
+          <!-- 注意：手機後鏡頭通常不需要水平翻轉 (scale-x-[-1])，這裡預設翻轉是為了自拍模式，程式中會動態調整 -->
+          <video id="webcam" autoplay playsinline muted
+            class="w-full h-full object-cover hidden transform scale-x-[-1]"></video>
+          <div id="placeholder" class="flex flex-col items-center gap-3 animate-pulse">
+            <div class="p-4 rounded-full bg-white/5 border border-white/10">
+              <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M15 10l4.55 3a1 1 0 011.45.9v6.2a1 1 0 01-1.45.9L15 14v-4zM3 6a2 2 0 00-2 2v8a2 2 0 002 2h10a2 2 0 002-2V8a2 2 0 00-2-2H3z">
+                </path>
+              </svg>
+            </div>
+            <span class="font-medium tracking-wide">等待啟動攝影機...</span>
+          </div>
+          <!-- Overlay UI -->
+          <div class="absolute top-4 right-4 px-2 py-1 rounded bg-black/60 text-xs font-mono text-white/80 hidden"
+            id="cam-status-badge">LIVE</div>
+        </div>
+
+        <!-- 步驟一：設定 -->
+        <div class="glass p-6 rounded-2xl">
+          <h2 class="text-lg font-bold text-white flex items-center gap-3 mb-4">
+            <span
+              class="bg-[#FFCB05] text-[#00274C] w-7 h-7 flex items-center justify-center rounded-lg text-sm font-bold shadow-lg shadow-[#FFCB05]/30">1</span>
+            設定與準備
+          </h2>
+          <div class="flex flex-col gap-3">
+            <div class="flex gap-3">
+              <button id="btnStart"
+                class="flex-1 bg-[#FFCB05] text-[#00274C] font-bold py-2.5 px-4 rounded-xl shadow-lg shadow-[#FFCB05]/20 hover:bg-[#ffe066] hover:shadow-[#FFCB05]/40 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] transition-all active:scale-95">🎥
+                啟動</button>
+              <button id="btnStop"
+                class="flex-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold py-2.5 px-4 rounded-xl hover:bg-rose-500/30 focus:outline-none focus:ring-2 focus:ring-rose-500/50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>⏹️ 停止</button>
+            </div>
+            
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                <select id="selCam"
+                    class="w-full appearance-none bg-[#00274C]/50 text-slate-200 border border-white/10 rounded-xl py-2.5 px-4 pr-8 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] focus:border-[#FFCB05] transition-colors cursor-pointer text-sm">
+                    <option value="">偵測中...</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+                </div>
+                <!-- 切換鏡頭按鈕 -->
+                <button id="btnSwitchCam" title="切換前後鏡頭"
+                class="bg-slate-700/50 text-white border border-white/10 px-4 rounded-xl hover:bg-slate-600 transition-all active:scale-90">
+                🔄
+                </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步驟二：樣本 -->
+        <div class="glass p-6 rounded-2xl">
+          <h2 class="text-lg font-bold text-white flex items-center gap-3 mb-4">
+            <span
+              class="bg-[#FFCB05] text-[#00274C] w-7 h-7 flex items-center justify-center rounded-lg text-sm font-bold shadow-lg shadow-[#FFCB05]/30">2</span>
+            樣本蒐集
+          </h2>
+          <div class="flex gap-3 mb-4">
+            <input id="inpLabel" type="text" placeholder="輸入類別名稱 (如: Good, Bad)"
+              class="flex-grow bg-[#00274C]/50 border border-white/10 text-white rounded-xl py-2.5 px-4 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] focus:border-[#FFCB05] placeholder-slate-500 transition-all">
+            <button id="btnAddClass"
+              class="bg-[#FFCB05] text-[#00274C] font-bold py-2.5 px-5 rounded-xl shadow-lg shadow-[#FFCB05]/20 hover:bg-[#ffe066] hover:shadow-[#FFCB05]/40 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] transition-all active:scale-95 whitespace-nowrap">➕
+              新增</button>
+          </div>
+
+          <div id="classList" class="flex flex-col gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+            <!-- Class Items will be injected here -->
+            <div class="text-center py-8 text-slate-500 border-2 border-dashed border-white/5 rounded-xl">
+              尚未新增任何類別
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-white/10 flex flex-wrap gap-3">
+            <input type="file" id="imgInput" accept="image/*" multiple class="hidden" />
+            <button id="btnAddFromImg"
+              class="flex-1 text-sm bg-[#00274C]/50 text-[#FFCB05] border border-[#FFCB05]/30 font-semibold py-2 px-4 rounded-lg hover:bg-[#FFCB05]/20 focus:outline-none focus:ring-2 focus:ring-[#FFCB05]/50 transition-colors">🖼️
+              上傳圖片</button>
+            <button id="btnClearData"
+              class="flex-1 text-sm bg-[#00274C]/50 text-rose-300 border border-rose-500/30 font-semibold py-2 px-4 rounded-lg hover:bg-rose-500/20 focus:outline-none focus:ring-2 focus:ring-rose-500/50 transition-colors">🗑️
+              清空</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 右欄：結果與進階工具 -->
+      <div class="flex flex-col gap-6">
+
+        <!-- 即時辨識結果 -->
+        <div class="glass p-6 rounded-2xl lg:aspect-video flex flex-col">
+          <h2 class="text-lg font-bold text-white mb-4 shrink-0">即時辨識結果</h2>
+          <div class="flex-1 flex flex-col min-h-0 gap-4">
+            <div id="bigResult"
+              class="p-6 rounded-xl bg-slate-800/80 border border-white/10 text-white transition-all duration-300 flex flex-col items-center justify-center min-h-[120px] shrink-0">
+              <span id="bigResultLabel"
+                class="text-4xl font-black tracking-wider mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">—</span>
+              <span id="bigResultConf" class="text-xl font-medium text-slate-400">—</span>
+            </div>
+            <div id="predictions" class="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar">
+              <!-- Prediction Bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 步驟三：訓練 -->
+        <div class="glass p-6 rounded-2xl">
+          <h2 class="text-lg font-bold text-white flex items-center gap-3 mb-4">
+            <span
+              class="bg-[#FFCB05] text-[#00274C] w-7 h-7 flex items-center justify-center rounded-lg text-sm font-bold shadow-lg shadow-[#FFCB05]/30">3</span>
+            訓練與辨識
+          </h2>
+          <div class="flex flex-col gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button id="btnTrain"
+                class="bg-gradient-to-br from-[#FFCB05] to-[#E6B700] text-[#00274C] font-bold py-3 px-4 rounded-xl shadow-lg shadow-[#FFCB05]/20 hover:shadow-[#FFCB05]/40 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-[#FFCB05] disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed transition-all">
+                🧠 訓練模型
+              </button>
+              <button id="btnPredict"
+                class="bg-gradient-to-br from-white to-slate-200 text-[#00274C] font-bold py-3 px-4 rounded-xl shadow-lg shadow-white/20 hover:shadow-white/40 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed transition-all">
+                🔍 開始辨識
+              </button>
+              <button id="btnStopPredict"
+                class="bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                ⏸️ 停止
+              </button>
+            </div>
+
+            <div class="bg-black/20 rounded-xl p-4 border border-white/5">
+              <div class="flex justify-between items-center mb-2">
+                <label for="th" class="font-medium text-slate-300 text-sm">置信門檻 (Confidence Threshold)</label>
+                <span id="thVal" class="font-bold text-[#FFCB05] text-sm">70%</span>
+              </div>
+              <input id="th" type="range" min="50" max="95" value="70" class="w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- 進階工具 -->
+        <div class="glass rounded-2xl overflow-hidden">
+          <details class="p-6 group" open>
+            <summary class="text-lg font-bold text-white cursor-pointer list-none flex items-center justify-between">
+              <span>進階工具與狀態</span>
+              <svg class="w-5 h-5 text-slate-400 transition-transform transform group-open:rotate-180" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </summary>
+
+            <!-- 狀態與資訊 -->
+            <div class="mt-4 border-t border-white/10 pt-4">
+              <h3 class="font-semibold text-slate-300 mb-3">系統狀態</h3>
+              <!-- 狀態顯示區域改進 -->
+              <div id="status"
+                class="p-4 rounded-2xl font-medium bg-white/5 border border-white/10 text-slate-300 transition-all mb-4 flex items-center gap-3">
+                <span class="text-xl">👋</span>
+                <span>歡迎使用！請從步驟 1 開始。</span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                <div class="bg-[#00274C]/50 border border-white/5 p-3 rounded-xl">
+                  <div class="text-2xl font-bold text-[#FFCB05]" id="samples">0</div>
+                  <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mt-1">樣本總數</div>
+                </div>
+                <div class="bg-slate-800/50 border border-white/5 p-3 rounded-xl">
+                  <div class="text-2xl font-bold text-emerald-400" id="fps">0</div>
+                  <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mt-1">FPS</div>
+                </div>
+                <div class="bg-slate-800/50 border border-white/5 p-3 rounded-xl">
+                  <div class="text-2xl font-bold text-amber-400" id="infer">—</div>
+                  <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mt-1">推論 (ms)</div>
+                </div>
+                <div class="bg-[#00274C]/50 border border-white/5 p-3 rounded-xl">
+                  <div class="text-2xl font-bold text-sky-400" id="classCount">0</div>
+                  <div class="text-xs font-medium text-slate-500 uppercase tracking-wider mt-1">類別數</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 資料與模型 -->
+            <div class="mt-4 border-t border-white/10 pt-4">
+              <h3 class="font-semibold text-slate-300">資料與模型</h3>
+              <p class="text-sm text-slate-400 mb-4">管理您的訓練資料集。</p>
+              <div class="flex gap-3">
+                <input type="file" id="fileLoad" class="hidden" accept=".json">
+                <button id="btnSave"
+                  class="flex-1 text-[#FFCB05] bg-[#FFCB05]/10 border border-[#FFCB05]/20 font-semibold py-2.5 px-4 rounded-xl hover:bg-[#FFCB05]/20 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] transition-colors">
+                  💾 下載資料集
+                </button>
+                <button id="btnLoad"
+                  class="flex-1 text-[#FFCB05] bg-[#FFCB05]/10 border border-[#FFCB05]/20 font-semibold py-2.5 px-4 rounded-xl hover:bg-[#FFCB05]/20 focus:outline-none focus:ring-2 focus:ring-[#FFCB05] transition-colors">
+                  📂 載入資料集
+                </button>
+              </div>
+            </div>
+
+            <!-- 相機權限診斷 -->
+            <div class="mt-4 border-t border-white/10 pt-4">
+              <h3 class="font-semibold text-slate-300">相機權限診斷</h3>
+              <div class="mt-3">
+                <button id="btnPreflight"
+                  class="text-sm text-slate-300 font-semibold bg-slate-700/50 py-2 px-4 rounded-lg hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 transition-colors">🩺
+                  執行健檢</button>
+              </div>
+              <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                <span class="bg-slate-800/50 p-2 rounded-md text-slate-400">安全上下文: <strong id="pSecure"
+                    class="text-indigo-400">—</strong></span>
+                <span class="bg-slate-800/50 p-2 rounded-md text-slate-400">媒體API: <strong id="pMedia"
+                    class="text-indigo-400">—</strong></span>
+                <span class="bg-slate-800/50 p-2 rounded-md text-slate-400">相機權限: <strong id="pPerm"
+                    class="text-indigo-400">—</strong></span>
+                <span class="bg-slate-800/50 p-2 rounded-md text-slate-400">可用裝置: <strong id="pDevs"
+                    class="text-indigo-400">—</strong></span>
+              </div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Floating Camera (Hidden by default, shows on scroll) -->
+  <div id="mini-cam-container" class="hidden fixed top-4 right-4 w-40 sm:w-48 aspect-video bg-black rounded-xl border-2 border-[#FFCB05] shadow-2xl z-50 overflow-hidden ring-4 ring-black/20">
+    <video id="mini-video" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
+    <div class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/60 text-[10px] font-mono text-white/90">LIVE</div>
+  </div>
+
+  <!-- 載入 TensorFlow.js 核心函式庫與預訓練模型 -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier@1.2.2"></script>
+
+  <script>
+    // --- 全域變數與 DOM 元素快取 ---
+    const els = {
+      video: document.getElementById('webcam'),
+      videoWrap: document.getElementById('video-wrap'),
+      placeholder: document.getElementById('placeholder'),
+      btnStart: document.getElementById('btnStart'),
+      btnStop: document.getElementById('btnStop'),
+      selCam: document.getElementById('selCam'),
+      btnSwitchCam: document.getElementById('btnSwitchCam'),
+      inpLabel: document.getElementById('inpLabel'),
+      btnAddClass: document.getElementById('btnAddClass'),
+      btnClearData: document.getElementById('btnClearData'),
+      classList: document.getElementById('classList'),
+      btnTrain: document.getElementById('btnTrain'),
+      btnPredict: document.getElementById('btnPredict'),
+      btnStopPredict: document.getElementById('btnStopPredict'),
+      predictions: document.getElementById('predictions'),
+      bigResult: document.getElementById('bigResult'),
+      bigResultLabel: document.getElementById('bigResultLabel'),
+      bigResultConf: document.getElementById('bigResultConf'),
+      status: document.getElementById('status'),
+      fps: document.getElementById('fps'),
+      infer: document.getElementById('infer'),
+      samples: document.getElementById('samples'),
+      classCount: document.getElementById('classCount'),
+      btnSave: document.getElementById('btnSave'),
+      btnLoad: document.getElementById('btnLoad'),
+      fileLoad: document.getElementById('fileLoad'),
+      th: document.getElementById('th'),
+      thVal: document.getElementById('thVal'),
+      btnPreflight: document.getElementById('btnPreflight'),
+      pSecure: document.getElementById('pSecure'),
+      pMedia: document.getElementById('pMedia'),
+      pPerm: document.getElementById('pPerm'),
+      pDevs: document.getElementById('pDevs'),
+      imgInput: document.getElementById('imgInput'),
+      btnAddFromImg: document.getElementById('btnAddFromImg'),
+      camStatusBadge: document.getElementById('cam-status-badge'),
+      // New Elements for Sticky Video
+      miniCamContainer: document.getElementById('mini-cam-container'),
+      miniVideo: document.getElementById('mini-video'),
+    };
+
+    // --- 核心物件與狀態管理 ---
+    let net;
+    let classifier;
+    let stream;
+    let predictLoop;
+    let lastPredTime = 0;
+
+    const state = {
+      classes: [],
+      counts: {},
+      collecting: null,
+      activeCamId: null,      // 特定選擇的 Device ID
+      facingMode: 'user',   // 預設前鏡頭 ('user' 或 'environment')
+      threshold: 0.7,
+      isPredicting: false,
+      currentAddIndex: null,
+    };
+
+    const PREDICTION_COLORS = ['bg-[#FFCB05]', 'bg-emerald-500', 'bg-rose-500', 'bg-sky-500', 'bg-violet-500', 'bg-orange-500', 'bg-lime-500'];
+    const PREDICTION_THROTTLE_MS = 100;
+
+    // --- 核心功能函式 ---
+
+    async function init() {
+      classifier = knnClassifier.create();
+      // 嘗試列出裝置，但這在 iOS Safari 未授權前可能只會回傳空標籤或不完整列表
+      if (navigator.mediaDevices?.enumerateDevices) {
+        await listCams(false);
+      }
+      if (location.protocol === 'file:') {
+        setStatus('您正透過 file:// 開啟頁面，瀏覽器可能會封鎖相機權限。', 'warn');
+      }
+      initStickyVideo();
+    }
+
+    // 初始化懸浮視窗邏輯
+    function initStickyVideo() {
+      if (!window.IntersectionObserver) return;
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          // 如果主畫面不在視窗內 (isIntersecting = false) 且相機已啟動
+          if (!entry.isIntersecting && stream && !els.video.classList.contains('hidden')) {
+            els.miniCamContainer.classList.remove('hidden');
+            // 確保 miniVideo 也有畫面
+            if (els.miniVideo.srcObject !== els.video.srcObject) {
+               els.miniVideo.srcObject = els.video.srcObject;
+            }
+          } else {
+            els.miniCamContainer.classList.add('hidden');
+          }
+        });
+      }, { threshold: 0.1 }); // 當主畫面剩下不到 10% 可見時觸發
+
+      observer.observe(els.videoWrap);
+    }
+
+    // 列出攝影機：updateSelect 用於是否要強制更新選單 (避免使用者選擇一半被重置)
+    async function listCams(updateSelect = true) {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        
+        if (updateSelect) {
+            els.selCam.innerHTML = '';
+            if (videoDevices.length === 0) {
+            els.selCam.innerHTML = '<option value="">找不到攝影機</option>';
+            } else {
+            // 添加 "自動/預設" 選項
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = "";
+            defaultOpt.text = "自動 / 依切換按鈕";
+            els.selCam.appendChild(defaultOpt);
+
+            videoDevices.forEach((d, i) => {
+                const option = document.createElement('option');
+                option.value = d.deviceId;
+                // iOS 常常回傳空 label，若為空給一個預設名稱
+                option.text = d.label || `攝影機 ${i + 1} (${d.deviceId.slice(0, 5)}...)`;
+                els.selCam.appendChild(option);
+            });
+            
+            // 如果當前有指定 ID，嘗試選中它
+            if (state.activeCamId) {
+                els.selCam.value = state.activeCamId;
+            }
+            }
+        }
+        
+        if (els.pDevs) els.pDevs.textContent = String(videoDevices.length);
+      } catch (err) {
+        console.error("無法列出攝影機:", err);
+      }
+    }
+
+    async function openCam() {
+      try {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+
+        setStatus('正在啟動攝影機...', 'info');
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('BrowserAPIUnavailable');
+        }
+
+        // 建構約束條件
+        let constraints = {
+          audio: false,
+          video: {
+            // 放寬限制，避免某些舊手機因為解析度不符而報錯
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+
+        // 優先順序：
+        // 1. 如果使用者在下拉選單明確選了某個 Device ID -> 用 deviceId
+        // 2. 否則 -> 用 facingMode (切換按鈕控制)
+        if (state.activeCamId) {
+             constraints.video.deviceId = { exact: state.activeCamId };
+        } else {
+             constraints.video.facingMode = state.facingMode;
+        }
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+          console.warn('指定條件失敗，嘗試使用寬鬆條件重試...', err);
+          // 降級重試：拿掉特定 ID，只嘗試 facingMode
+          if (state.activeCamId) {
+              delete constraints.video.deviceId;
+              constraints.video.facingMode = state.facingMode;
+              stream = await navigator.mediaDevices.getUserMedia(constraints);
+          } else {
+              // 再失敗，連 facingMode 都拿掉，只求有畫面
+              delete constraints.video.facingMode;
+              stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          }
+        }
+
+        els.video.srcObject = stream;
+        els.miniVideo.srcObject = stream; // 同步設定 Mini Cam
+        
+        // 鏡像處理：如果是前鏡頭 ('user')，通常需要水平翻轉；後鏡頭則不需要
+        // 透過 CSS class 控制
+        const track = stream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        // 如果實際拿到的 facingMode 是 environment，或者我們主動要求 environment，就取消鏡像
+        const isBack = settings.facingMode === 'environment' || state.facingMode === 'environment';
+        
+        if (isBack) {
+            els.video.classList.remove('scale-x-[-1]'); // 後鏡頭：正常顯示
+            els.miniVideo.classList.remove('scale-x-[-1]');
+        } else {
+            els.video.classList.add('scale-x-[-1]');    // 前鏡頭：鏡像顯示 (如同照鏡子)
+            els.miniVideo.classList.add('scale-x-[-1]');
+        }
+
+        await els.video.play();
+        // try to play mini video as well (though typically works auto)
+        els.miniVideo.play().catch(e => console.log('Mini video play auto-handled or pending'));
+
+        // 關鍵修正：成功取得串流後，"再次" 列出攝影機
+        // 這是解決 iOS 第一次開啟只顯示一個鏡頭的關鍵
+        await listCams(true); 
+
+        els.video.classList.remove('hidden');
+        els.placeholder.classList.add('hidden');
+        els.camStatusBadge.classList.remove('hidden');
+        updateUIOnCamState(true);
+
+        setStatus('攝影機已啟動，正在載入 AI 模型...', 'info');
+
+        if (!net) {
+          net = await mobilenet.load({ version: 2, alpha: 1.0 });
+        }
+
+        setStatus('模型載入完成！您可以開始蒐集樣本。', 'ok');
+
+      } catch (e) {
+        console.error(e);
+        let errorMsg = '無法開啟攝影機。';
+        if (e.name === 'NotAllowedError' || e.name === 'SecurityError') {
+          errorMsg = '權限被拒絕。請重新整理網頁並允許相機權限。';
+        } else if (e.name === 'NotFoundError') {
+          errorMsg = '找不到指定的攝影機裝置。';
+        } else {
+          errorMsg = `相機錯誤: ${e.name}`;
+        }
+        setStatus(errorMsg, 'bad');
+        updateUIOnCamState(false);
+      }
+    }
+
+    function stopCam() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      if (state.isPredicting) {
+        stopPredict();
+      }
+      els.video.srcObject = null;
+      els.miniVideo.srcObject = null;
+      els.video.classList.add('hidden');
+      els.miniCamContainer.classList.add('hidden'); // Force hide mini cam
+      els.placeholder.classList.remove('hidden');
+      els.camStatusBadge.classList.add('hidden');
+      updateUIOnCamState(false);
+      setStatus('攝影機已停止。', 'info');
+    }
+
+    function switchCamera() {
+        // 切換模式
+        state.facingMode = (state.facingMode === 'user') ? 'environment' : 'user';
+        
+        // 清除特定的 ID 選擇，改用模式優先
+        state.activeCamId = null;
+        els.selCam.value = ""; 
+        
+        // 如果相機正在運作，重新啟動以應用變更
+        if (stream) {
+            openCam();
+        }
+        
+        setStatus(`切換至${state.facingMode === 'user' ? '前' : '後'}鏡頭模式...`, 'info');
+    }
+
+    function addClass(name) {
+      name = name.trim();
+      if (!name || state.classes.includes(name)) {
+        setStatus(state.classes.includes(name) ? '類別名稱已存在！' : '類別名稱不可為空！', 'warn');
+        return;
+      }
+      state.classes.push(name);
+      state.counts[name] = 0;
+      renderClassList();
+      updateTrainButtonState();
+      setStatus(`已新增類別：「${name}」`, 'ok');
+    }
+
+    async function addExample(index, imgElement) {
+      if (!net || !classifier) return;
+      const className = state.classes[index];
+      if (!className) return;
+
+      tf.tidy(() => {
+        const source = imgElement || els.video;
+        // 如果是影片元素且不可見 (未啟動)，不進行處理
+        if (source === els.video && els.video.classList.contains('hidden')) return;
+        
+        const img = tf.browser.fromPixels(source);
+        const activation = net.infer(img, 'conv_preds');
+        classifier.addExample(activation, className);
+      });
+
+      state.counts[className]++;
+      
+      // 優化：使用 updateClassItem 替代 renderClassList，避免按鈕重繪導致長按中斷
+      updateClassItem(index);
+      updateTrainButtonState();
+
+      // UI Flash Effect
+      els.videoWrap.classList.add('video-flash');
+      els.miniCamContainer.classList.add('video-flash'); // Flash mini cam too
+      setTimeout(() => {
+          els.videoWrap.classList.remove('video-flash');
+          els.miniCamContainer.classList.remove('video-flash');
+      }, 500);
+    }
+
+    function prepareForPrediction() {
+      const classesWithSamples = Object.values(state.counts).filter(count => count > 0).length;
+      if (classesWithSamples >= 2) {
+        setStatus('模型已準備就緒，可以開始辨識了。', 'ok');
+        els.btnPredict.disabled = false;
+      } else {
+        setStatus('請至少為「兩個不同」的類別蒐集樣本。', 'warn');
+        els.btnPredict.disabled = true;
+      }
+    }
+
+    function startPredict() {
+      if (!classifier || state.classes.length < 1 || state.isPredicting) return;
+      state.isPredicting = true;
+      updateUIPredictState(true);
+      lastPredTime = 0;
+      predictLoop = requestAnimationFrame(loop);
+    }
+
+    function stopPredict() {
+      state.isPredicting = false;
+      cancelAnimationFrame(predictLoop);
+      updateUIPredictState(false);
+    }
+
+    function loop(time) {
+      if (!state.isPredicting) return;
+      predictLoop = requestAnimationFrame(loop);
+      const elapsed = time - lastPredTime;
+      if (elapsed > PREDICTION_THROTTLE_MS) {
+        lastPredTime = time;
+        const fps = 1000 / elapsed;
+        els.fps.textContent = fps.toFixed(0);
+        state.collecting = null;
+        predictOnce();
+      }
+    }
+
+    async function predictOnce(imgElement) {
+      if (!net) return;
+      const t0 = performance.now();
+      const k = Math.min(3, state.classes.length);
+      if (k === 0) return;
+
+      const source = imgElement || els.video;
+      // Safety check
+      if (source === els.video && (!stream || els.video.classList.contains('hidden'))) return;
+
+      try {
+        const result = await tf.tidy(() => {
+            const img = tf.browser.fromPixels(source);
+            const activation = net.infer(img, 'conv_preds');
+            return classifier.predictClass(activation, k);
+        });
+        els.infer.textContent = (performance.now() - t0).toFixed(1);
+        renderPredictions(result);
+      } catch (err) {
+        console.error("Prediction error:", err);
+      }
+    }
+
+    // --- UI 更新與渲染函式 ---
+
+    function updateUIOnCamState(isCamOn) {
+      els.btnStart.disabled = isCamOn;
+      els.btnStop.disabled = !isCamOn;
+      els.btnAddClass.disabled = !isCamOn;
+      els.btnClearData.disabled = !isCamOn;
+      els.btnAddFromImg.disabled = !isCamOn;
+    }
+
+    function updateUIPredictState(isPredicting) {
+      els.btnPredict.disabled = isPredicting;
+      els.btnStopPredict.disabled = !isPredicting;
+      els.btnTrain.disabled = isPredicting;
+    }
+
+    function updateTrainButtonState() {
+      const total = totalSamples();
+      const classCount = Object.values(state.counts).filter(c => c > 0).length;
+      els.btnTrain.disabled = !(total > 0 && classCount >= 2);
+    }
+
+    function renderClassList() {
+      els.classList.innerHTML = '';
+      state.classes.forEach((name, index) => {
+        const count = state.counts[name] || 0;
+        const item = document.createElement('div');
+        item.className = `bg-white/5 border border-white/10 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all hover:bg-white/10 ${state.currentAddIndex === index ? 'ring-2 ring-[#FFCB05] bg-[#FFCB05]/10' : ''}`;
+
+        item.innerHTML = `
+          <div class="flex-grow font-bold text-slate-200 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full ${state.counts[name] > 0 ? 'bg-[#FFCB05]' : 'bg-slate-500'}"></span>
+            ${name}
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="count-badge font-mono font-semibold text-xs bg-black/30 text-slate-300 py-1 px-2 rounded-lg">${count} 樣本</span>
+            
+            <!-- 合併後的大按鈕 -->
+            <button data-act="hold" data-i="${index}" class="select-none touch-none text-sm bg-[#FFCB05] text-[#00274C] font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-[#FFCB05]/20 hover:bg-[#ffe066] hover:shadow-[#FFCB05]/40 active:scale-95 transition-all flex items-center gap-2">
+               <span>📷</span>
+               <span>蒐集</span>
+            </button>
+            
+            <button data-act="setcur" data-i="${index}" class="w-8 h-8 flex items-center justify-center text-xs bg-slate-700 text-slate-300 font-semibold rounded-lg hover:bg-slate-600 transition-colors" title="設為上傳目標">📌</button>
+            <button data-act="del" data-i="${index}" class="w-8 h-8 flex items-center justify-center text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold rounded-lg hover:bg-rose-500/30 transition-colors">✕</button>
+          </div>
+        `;
+        els.classList.appendChild(item);
+      });
+      els.samples.textContent = totalSamples();
+      els.classCount.textContent = state.classes.length;
+    }
+    
+    // 新增：只更新單一類別的顯示，避免重繪整個列表導致長按中斷
+    function updateClassItem(index) {
+        const row = els.classList.children[index];
+        if (!row) return renderClassList(); // 如果找不到對應的 DOM，則回退到完整重繪
+        
+        const className = state.classes[index];
+        const count = state.counts[className];
+        
+        // 只更新計數 Badge
+        const badge = row.querySelector('.count-badge');
+        if (badge) badge.textContent = `${count} 樣本`;
+        
+        // 更新全域計數
+        els.samples.textContent = totalSamples();
+        els.classCount.textContent = state.classes.length;
+    }
+
+    function renderPredictions(result) {
+      if (!result) return;
+      const topLabel = result.label;
+      const topConfidence = result.confidences[topLabel] || 0;
+      const isConfident = topConfidence >= state.threshold;
+
+      let bgColor = 'bg-slate-800/80 border-slate-700'; 
+      let statusType = 'info';
+      let statusMsg = `辨識結果: ${topLabel}`;
+      let labelColor = 'text-white';
+
+      if (topLabel) {
+        if (isConfident) {
+          statusType = 'ok';
+          if (topLabel.toLowerCase().includes('good') || topLabel.toLowerCase().includes('ok')) {
+            bgColor = 'bg-emerald-900/80 border-emerald-500/50 shadow-[0_0_30px_rgba(16,185,129,0.3)]';
+            labelColor = 'text-emerald-400';
+          } else if (topLabel.toLowerCase().includes('bad') || topLabel.toLowerCase().includes('ng')) {
+            bgColor = 'bg-rose-900/80 border-rose-500/50 shadow-[0_0_30px_rgba(244,63,94,0.3)]';
+            labelColor = 'text-rose-400';
+          } else {
+            bgColor = 'bg-[#00274C]/90 border-[#FFCB05]/50 shadow-[0_0_30px_rgba(255,203,5,0.3)]';
+            labelColor = 'text-[#FFCB05]';
+          }
+        } else {
+          statusType = 'warn';
+          bgColor = 'bg-amber-900/80 border-amber-500/50';
+          labelColor = 'text-amber-400';
+          statusMsg = `信心不足: ${topLabel}`;
+        }
+      }
+
+      els.bigResult.className = `p-6 rounded-xl border backdrop-blur-md transition-all duration-300 flex flex-col items-center justify-center min-h-[120px] ${bgColor}`;
+      els.bigResultLabel.className = `text-4xl font-black tracking-wider mb-2 ${labelColor}`;
+      els.bigResultLabel.textContent = topLabel || '—';
+      els.bigResultConf.textContent = topLabel ? `${(topConfidence * 100).toFixed(1)}%` : '—';
+
+      els.predictions.innerHTML = '';
+
+      // 改進：遍歷所有已知的類別，而不是只遍歷 result.confidences (因為 KNN 預設只回傳前 K 個)
+      // 這樣可以確保所有類別都會顯示在長條圖上，即使信心度為 0
+      const allClassConfidences = state.classes.map(className => {
+          return [className, result.confidences[className] || 0];
+      });
+
+      // 排序
+      const sortedClasses = allClassConfidences.sort(([, a], [, b]) => b - a);
+
+      sortedClasses.forEach(([label, confidence]) => {
+        const percentage = (confidence * 100).toFixed(1);
+        const classIndex = state.classes.indexOf(label);
+        const colorClass = PREDICTION_COLORS[classIndex % PREDICTION_COLORS.length];
+
+        const item = document.createElement('div');
+        item.className = 'flex items-center gap-3';
+        item.innerHTML = `
+                <div class="w-24 font-medium text-slate-300 truncate text-sm">${label}</div>
+                <div class="flex-grow bg-slate-700/50 rounded-full h-2">
+                    <div class="${colorClass} h-2 rounded-full shadow-[0_0_10px_currentColor] transition-all duration-300" style="width: ${percentage}%"></div>
+                </div>
+                <div class="w-12 text-right font-mono font-bold text-slate-200 text-sm">${percentage}%</div>
+            `;
+        els.predictions.appendChild(item);
+      });
+    }
+
+    function setStatus(msg, type) {
+      const icons = {
+        ok: '✅',
+        warn: '⚠️',
+        bad: '❌',
+        info: 'ℹ️',
+      };
+      const icon = icons[type] || '👋';
+      
+      els.status.innerHTML = `<span class="shrink-0 text-xl">${icon}</span><span>${msg}</span>`;
+      
+      const typeClasses = {
+        ok: 'bg-emerald-500/10 text-emerald-200 border-emerald-500/20',
+        warn: 'bg-amber-500/10 text-amber-200 border-amber-500/20',
+        bad: 'bg-rose-500/10 text-rose-200 border-rose-500/20',
+        info: 'bg-[#FFCB05]/10 text-[#FFCB05] border-[#FFCB05]/20',
+      };
+      
+      const defaultClass = 'bg-white/5 text-slate-300 border-white/10';
+      
+      els.status.className = `p-4 rounded-2xl font-medium border transition-all flex items-center gap-3 shadow-inner ${typeClasses[type] || defaultClass}`;
+    }
+
+    // --- 事件處理常式 ---
+
+    function handleClassListClick(e) {
+      const button = e.target.closest('button[data-act]');
+      if (!button) return;
+
+      const action = button.dataset.act;
+      const index = +button.dataset.i;
+
+      switch (action) {
+        // 'one' case removed
+        case 'setcur':
+          state.currentAddIndex = state.currentAddIndex === index ? null : index;
+          renderClassList();
+          break;
+        case 'del':
+          if (confirm(`確定要刪除類別「${state.classes[index]}」嗎？`)) {
+            const className = state.classes[index];
+            const classifierDataset = classifier.getClassifierDataset();
+            if (classifierDataset && classifierDataset[className]) {
+              classifier.clearClass(className);
+            }
+            state.classes.splice(index, 1);
+            delete state.counts[className];
+            renderClassList();
+            updateTrainButtonState();
+          }
+          break;
+      }
+    }
+
+    function handlePointerDown(e) {
+      const button = e.target.closest('button[data-act="hold"]');
+      if (!button) return;
+      e.preventDefault(); // 防止文字選取與右鍵選單
+      const index = +button.dataset.i;
+
+      // 1. 立即執行一次 (處理單次點擊)
+      addExample(index);
+
+      // 2. 設定連拍迴圈 (處理長按)
+      const loop = () => {
+        if (!state.collecting) return; // 如果被 pointerup 清除了，就停止
+        addExample(index);
+        state.collecting = setTimeout(loop, 100); // 連拍速度: 100ms
+      };
+
+      // 3. 延遲啟動連拍 (避免一般點擊誤觸連拍)
+      state.collecting = setTimeout(loop, 600); // 長按 600ms 後開始連拍
+    }
+
+    function handlePointerUp() {
+      if (state.collecting) {
+        clearTimeout(state.collecting);
+        state.collecting = null;
+      }
+    }
+
+    // --- 輔助與工具函式 ---
+    function totalSamples() { return Object.values(state.counts).reduce((a, b) => a + b, 0); }
+    function isSecureContext() { return window.isSecureContext; }
+
+    function download(filename, text) {
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(text));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+    function saveDataset() {
+      if (totalSamples() === 0) {
+        setStatus('沒有樣本可以儲存。', 'warn');
+        return;
+      }
+      const dataset = classifier.getClassifierDataset();
+      const serializableDataset = {};
+      Object.keys(dataset).forEach(key => {
+        const data = dataset[key].dataSync();
+        serializableDataset[key] = { data: Array.from(data), shape: dataset[key].shape };
+      });
+      const output = {
+        meta: { classes: state.classes, counts: state.counts, created: new Date().toISOString() },
+        data: serializableDataset
+      };
+      download(`tm-dataset-${new Date().getTime()}.json`, JSON.stringify(output));
+    }
+
+    async function loadDataset(file) {
+      try {
+        const text = await file.text();
+        const obj = JSON.parse(text);
+
+        if (!obj.meta || !obj.data) throw new Error('檔案格式不符。');
+
+        classifier.clearAllClasses();
+
+        const dataset = {};
+        Object.keys(obj.data).forEach(key => {
+          const d = obj.data[key];
+          dataset[key] = tf.tensor(d.data, d.shape, 'float32');
+        });
+
+        classifier.setClassifierDataset(dataset);
+        state.classes = obj.meta.classes || [];
+        state.counts = obj.meta.counts || {};
+
+        renderClassList();
+        updateTrainButtonState();
+        prepareForPrediction();
+        setStatus('資料集載入成功。', 'ok');
+      } catch (e) {
+        setStatus('載入失敗: ' + e.message, 'bad');
+      }
+    }
+
+    async function handleImageUpload(e) {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      if (state.classes.length === 0) {
+        setStatus('請先建立至少一個類別，才能新增圖片樣本。', 'warn');
+        e.target.value = '';
+        return;
+      }
+
+      const targetIndex = state.currentAddIndex ?? (state.classes.length - 1);
+      const targetClassName = state.classes[targetIndex];
+
+      if (!net) {
+        setStatus('正在載入模型...', 'info');
+        net = await mobilenet.load({ version: 2, alpha: 1.0 });
+      }
+
+      setStatus(`正在為「${targetClassName}」處理上傳的圖片...`, 'info');
+
+      for (const file of files) {
+        const img = await fileToImage(file);
+        await addExample(targetIndex, img);
+      }
+
+      setStatus(`已成功為「${targetClassName}」新增 ${files.length} 張圖片樣本。`, 'ok');
+      e.target.value = '';
+    }
+
+    function fileToImage(file) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    async function preflightCheck() {
+      els.pSecure.textContent = isSecureContext() ? '是' : '否';
+      els.pMedia.textContent = navigator.mediaDevices ? '可用' : '不可用';
+      try {
+        const perm = await navigator.permissions.query({ name: 'camera' });
+        els.pPerm.textContent = perm.state;
+      } catch {
+        els.pPerm.textContent = '未知';
+      }
+      await listCams(true);
+    }
+
+    // --- 事件監聽器綁定 ---
+    els.btnStart.addEventListener('click', openCam);
+    els.btnStop.addEventListener('click', stopCam);
+    
+    els.selCam.addEventListener('change', (e) => {
+      state.activeCamId = e.target.value;
+      if (stream) openCam();
+    });
+    
+    els.btnSwitchCam.addEventListener('click', switchCamera);
+
+    els.btnAddClass.addEventListener('click', () => {
+      addClass(els.inpLabel.value);
+      els.inpLabel.value = '';
+    });
+    els.inpLabel.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        addClass(els.inpLabel.value);
+        els.inpLabel.value = '';
+      }
+    });
+
+    els.classList.addEventListener('click', handleClassListClick);
+    els.classList.addEventListener('pointerdown', handlePointerDown);
+    document.body.addEventListener('pointerup', handlePointerUp);
+    document.body.addEventListener('pointerleave', handlePointerUp);
+
+    els.btnClearData.addEventListener('click', () => {
+      if (confirm('確定要清空所有類別與樣本嗎？')) {
+        classifier.clearAllClasses();
+        state.classes = [];
+        state.counts = {};
+        renderClassList();
+        updateTrainButtonState();
+        els.btnPredict.disabled = true;
+        setStatus('所有資料已清空。', 'ok');
+      }
+    });
+
+    els.btnTrain.addEventListener('click', prepareForPrediction);
+    els.btnPredict.addEventListener('click', startPredict);
+    els.btnStopPredict.addEventListener('click', stopPredict);
+
+    els.th.addEventListener('input', (e) => {
+      state.threshold = e.target.value / 100;
+      els.thVal.textContent = `${e.target.value}%`;
+    });
+
+    els.btnSave.addEventListener('click', saveDataset);
+    els.btnLoad.addEventListener('click', () => els.fileLoad.click());
+    els.fileLoad.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) loadDataset(file);
+    });
+
+    els.btnAddFromImg.addEventListener('click', () => {
+      els.imgInput.click();
+    });
+    els.imgInput.addEventListener('change', handleImageUpload);
+
+    els.btnPreflight.addEventListener('click', preflightCheck);
+
+    // --- 應用程式啟動 ---
+    document.addEventListener('DOMContentLoaded', init);
+
+  </script>
+</body>
+
+</html>

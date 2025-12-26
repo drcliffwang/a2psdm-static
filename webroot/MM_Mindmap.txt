@@ -1,0 +1,73 @@
+- 3T‐原料庫存／物料管理優化 + AI 應用
+  - 初衷與願景
+    - 達成「零斷料、零呆滯、零浪費」三零目標
+    - 用 3T (TPS, TPM, TQM) 驅動庫存週轉 >10 次／年
+    - 打造數據驅動的智能供應鏈文化
+  - 當前痛點
+    - 缺料停線、急單插單導致加班費增高
+    - 庫存結構失衡：C 級料占資金 40%、呆滯率 8%
+    - 盤點差異 >1%、批號追溯不完整
+    - 系統分散：手動 Excel + ERP 欠缺 APS、WMS
+  - 目標 KPI
+    - 週轉天數 (DOH) ↓ 20%
+    - 呆滯庫存金額 ↓ 50%
+    - Forecast Accuracy (MAPE) < 10%
+  - 藍圖 (3T × AI)
+    - 庫存策略 & 3T 思維
+      - TPS：看板、JIT、Heijunka
+      - TPM：4M1E 異常點檢、OEE 指標、5 Why
+      - TQM：PDCA、QC 七手法、層別管理
+    - 統計基礎 & 需求預測
+      - 描述統計：平均數、偏度、變異係數
+      - 誤差指標：MAE、RMSE、MAPE
+      - 預測模型：
+        - 基礎：SMA、SES、DES、Holt‑Winters
+        - 間歇：Croston、TSB、Syntetos–Boylan
+        - 新品：Bass Diffusion、Machine‑Learning (XGB, LSTM)
+    - 庫存決策 & 系統整合
+      - ROP/SS/EOQ、雙箱法、定期 vs. 定量
+      - ABC‑XYZ、VED、HML、FSN 多元交叉
+      - 系統應用：
+        - MRP→ERP→APS→MES→WMS→SCM
+        - RFID / IIoT 感測 + Edge AI 盤點
+        - Digital Twin + What‑if Simulation
+    - 8D 專案實戰 & 成果匯報
+      - D1‑D8 全流程，DMAIC 對照
+      - OKR / KPI 訂定、Dashboards
+  - AI & 數據賦能
+    - 預測
+      - Prophet、Auto‑ARIMA、LightGBM
+    - 最佳化
+      - Reinforcement Learning 補貨策略
+      - 多目標 成本 × 服務水準
+    - 視覺化 & RAG
+      - LLM + LangChain 查詢 SOP
+      - Digital Worker Chatbot for WH Ops
+  - 庫存管制工具箱
+    - 雙箱法 (Two‑Bin)​：補貨點試算表
+    - Kanban Board：看板數量計算
+    - Safety Stock Z‑Table (service level)
+    - EOQ‑Sensitivity Tornado Chart
+    - Monte Carlo 模擬：需求+供應 Lead Time 波動
+  - 分類與策略矩陣
+    - ABC：A20/B30/C50
+    - XYZ：X(穩定) Y(季節) Z(間歇)
+    - 交叉：AX 重點保障、CZ 動態策略
+    - 生命週期：Launch–Growth–Mature–Decline
+  - 成功案例 & 參考基準
+    - Bosch：Kanban＋RFID 週轉 ↑35%
+    - Siemens EWA：Digital Twin 模擬倉位減 25%
+    - Toyota Boshoku：TPS + IoT OEE ↑10%
+  - 行動計畫 (People‑Process‑Technology)
+    - 短期 (0‑3 月)：盤點呆滯、設定 ABC‑XYZ、Quick‑Win Kanban
+    - 中期 (3‑12 月)：APS 導入、AI 預測 PoC、8D 改善專案
+    - 長期 (>1 年)：數位孿生、全鏈 AI 最佳化、ESG & Scope 3
+  - 風險與因應
+    - 權責不清 → RACI + SOP 制度化
+    - Data silo → Data Lake + ETL
+    - 供應商延遲 → VMI / Consignment + 智能合約
+    - 系統落地困難 → Change Management + 能力培訓
+  - 持續改善機制
+    - Gemba Walk & Layered Audit
+    - 週例 PDCA Review + KPI Dashboard
+    - OKR 對齊公司策略：財務、流程、學習成長面

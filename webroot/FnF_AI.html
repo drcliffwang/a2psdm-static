@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI非財會背景主管財務報表閱讀與分析運用 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .ai-output th { background-color: #f3f4f6; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                AI 財報分析與運用 (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#core" class="text-gray-600 hover:text-blue-500 nav-link">核心</a>
+                <a href="#concepts" class="text-gray-600 hover:text-blue-500 nav-link">觀念</a>
+                <a href="#pillars" class="text-gray-600 hover:text-blue-500 nav-link">主軸</a>
+                <a href="#statements" class="text-gray-600 hover:text-blue-500 nav-link">報表</a>
+                <a href="#disciplines" class="text-gray-600 hover:text-blue-500 nav-link">修練</a>
+                <a href="#ai_toolbox" class="text-gray-600 hover:text-blue-500 nav-link">AI工具箱</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-500 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">AI非財會背景主管財務報表閱讀與分析運用</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">一門為您打造的財報分析實戰課程，輕鬆駕馭數字語言，驅動精準決策</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="https://github.com/drcliffwang/course-material/raw/main/AI%20Finance%20for%20Non-Financial%20Managers.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                     <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Course Structure Overview -->
+        <section class="mb-24">
+            <h2 class="section-title">課程架構: From 1 to AI</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-blue-600">一核心</h3>
+                    <p class="text-3xl mb-2">當責</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-green-600">二觀念</h3>
+                    <p class="text-3xl mb-2">存量 & 流量</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-purple-600">三主軸</h3>
+                    <p class="text-3xl mb-2">投資/營運/籌資</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-yellow-600">四報表</h3>
+                    <p class="text-3xl mb-2">B/S, I/S, C/F, Equity</p>
+                </div>
+                 <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-red-600">五修練</h3>
+                    <p class="text-3xl mb-2">MIT Sloan Model</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1. Core Section -->
+        <section id="core" class="mb-24">
+            <h2 class="section-title">一個核心: Accountability (當責)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <h3 class="card-title">為成果負責，而不僅是完成任務</h3>
+                </div>
+                
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>財務報表不僅僅是會計部門的責任，更是每一位主管的成績單。Accountability (當責) 強調的是一種主動承擔、為最終經營成果負全責的心態。如同聖經中「按才幹受銀喻」的故事，領五千兩的僕人，不僅僅是「保管」了錢，而是主動拿去做買賣，「另外賺了五千」。這就是當責精神：不僅要對投入的資源負責，更要對產出的價值負責。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4>主管的財務當責</h4>
+                    <ul>
+                        <li><b>看懂數字：</b>理解財務報表是共通的商業語言，能從數字中讀懂營運的健康狀況。</li>
+                        <li><b>扛起指標：</b>部門の績效，如成本控制、費用效率、營收貢獻，最終都會反映在損益表上。主管必須為自己部門相關的財務指標負責。</li>
+                        <li><b>驅動改善：</b>發現毛利率下滑、費用超支等問題時，能主動分析原因，並採取行動改善，為提升公司的整體獲利做出貢獻。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for Core -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">核心觀念測驗</h3>
+                    <div id="quiz-core" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 根據「按才幹受銀喻」的故事，「當責 (Accountability)」的核心精神最接近下列何者？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-core" value="a"> A. 忠實地保管好被託付的資源。</label>
+                                <label><input type="radio" name="q1-core" value="b"> B. 害怕風險，將資源藏在地裡最安全。</label>
+                                <label><input type="radio" name="q1-core" value="c"> C. 主動運用資源去創造額外的價值與成果。</label>
+                                <label><input type="radio" name="q1-core" value="d"> D. 將資源交給專業人士處理，自己不需過問。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('core')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-core" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for Core -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">當責情境實戰演練</h3>
+                    <div class="ai-card">
+                        <label for="core-input" class="block mb-2 font-semibold text-gray-700">請描述一個您在工作中遇到的跨部門難題：</label>
+                        <textarea id="core-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="例如：行銷部門抱怨研發的新產品不符合市場需求，而研發部門覺得行銷部門沒有能力賣高階產品..."></textarea>
+                        <div class="flex justify-end w-full mt-2">
+                            <button onclick="loadExample('core')" class="px-3 py-1 bg-gray-200 text-gray-600 text-sm font-semibold rounded hover:bg-gray-300 transition-colors">
+                                載入範例
+                            </button>
+                        </div>
+                        <button onclick="handleAI('core')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 顧問分析
+                        </button>
+                        <div id="core-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Concepts Section -->
+        <section id="concepts" class="mb-24">
+            <h2 class="section-title">二個觀念: 存量(Stock)與流量(Flow)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43zM12.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43z" /></svg>
+                    <h3 class="card-title">看懂財報的兩種視角</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>財務報表就像一個水庫。我們需要兩種數據來理解水庫的狀況：</p>
+                    <ul>
+                        <li><b>存量 (Stock):</b> 衡量「特定時間點」の狀態，就像水庫在某月某日的水位有多高。它用來呈現「事實」。<b>資產負債表 (B/S)</b> 就是典型的存量報表。</li>
+                        <li><b>流量 (Flow):</b> 衡量「一段時間內」の變化，就像這個月流入和流出水庫的水量各有多少。它用來解釋「變化」。<b>損益表 (I/S)</b> 和 <b>現金流量表 (C/F)</b> 就是流量報表。</li>
+                    </ul>
+                </div>
+                <div class="content-block">
+                    <h4>衍生的關鍵會計原則</h4>
+                    <ul>
+                        <li><b>應計基礎 (Accrual Basis):</b> 收入和費用的認列，是根據「交易發生」的時間點，而不是「現金收付」的時間點。例如，貨物一出貨就應認列收入，即使客戶還沒付款。這是為了即時反映經營活動的流量。</li>
+                        <li><b>配合原則 (Matching Principle):</b> 為了產生某筆收入(果)，所有相關的成本與費用(因)必須在同一個會計期間內被認列。例如，賣出產品的收入，必須與製造該產品的成本在同一張損益表上出現，才能正確計算利潤。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for Concepts -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">觀念測驗</h3>
+                    <div id="quiz-concepts" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 公司的「資產負債表」主要是在表達什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-concepts" value="a"> A. 公司在一年內的總收入與總支出 (流量)</label>
+                                <label><input type="radio" name="q1-concepts" value="b"> B. 公司在特定時間點擁有的資產與負債狀況 (存量)</label>
+                                <label><input type="radio" name="q1-concepts" value="c"> C. 公司付了多少現金股利給股東 (流量)</label>
+                                <label><input type="radio" name="q1-concepts" value="d"> D. 公司未來一年的營運預算 (預測)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                             <p>2. 某公司在3月15日收到客戶預付的10萬元訂金，商品預計在4月20日才會送達。根據「應計基礎」，公司應該在哪個時間點認列這筆收入？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-concepts" value="a"> A. 3月14日接到電話訂單時</label>
+                                <label><input type="radio" name="q2-concepts" value="b"> B. 3月15日收到訂金時</label>
+                                <label><input type="radio" name="q2-concepts" value="c"> C. 4月20日商品送達，完成服務時</label>
+                                <label><input type="radio" name="q2-concepts" value="d"> D. 4月22日郵寄發票時</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('concepts')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-concepts" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Pillars Section -->
+        <section id="pillars" class="mb-24">
+            <h2 class="section-title">三個主軸: 企業活動的分類</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                     <svg class="icon text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                    <h3 class="card-title">營運、投資、籌資</h3>
+                </div>
+                 <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>一家公司的所有活動，最終都可以歸納為三個主要活動，這也是現金流量表的核心架構。如同漢高祖劉邦得天下的「漢初三傑」，各司其職：</p>
+                    <ul>
+                        <li><b>y. 營運活動 (Operating Activities):</b> 企業最核心的本業活動，與生產、銷售、提供服務直接相關。如同「戰必勝、攻必取」的<b>韓信</b>，負責為公司賺取主要利潤。例如：產品銷售、支付員工薪資、支付供應商貨款。</li>
+                        <li><b>x. 投資活動 (Investing Activities):</b> 購置或處分長期資產的活動，目的是為了未來的發展。如同「運籌帷幄、決勝千里」的<b>張良</b>，負責策略佈局。例如：購買廠房設備、併購其他公司、出售土地。</li>
+                        <li><b>z. 籌資活動 (Financing Activities):</b> 向股東或債權人取得資金或償還資金的活動。如同「鎮國家、撫百姓、給饋餉」の<b>蕭何</b>，負責後勤與資金調度。例如：向銀行貸款、發行股票、支付現金股利。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for Pillars -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">主軸測驗</h3>
+                    <div id="quiz-pillars" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 公司花錢「購買新的生產設備」，這在現金流量表中應歸類於哪一種活動？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-pillars" value="a"> A. 營運活動</label>
+                                <label><input type="radio" name="q1-pillars" value="b"> B. 投資活動</label>
+                                <label><input type="radio" name="q1-pillars" value="c"> C. 籌資活動</label>
+                                <label><input type="radio" name="q1-pillars" value="d"> D. 日常費用</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                             <p>2. 公司向股東「支付現金股利」，這在現金流量表中應歸類於哪一種活動？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-pillars" value="a"> A. 營運活動</label>
+                                <label><input type="radio" name="q2-pillars" value="b"> B. 投資活動</label>
+                                <label><input type="radio" name="q2-pillars" value="c"> C. 籌資活動</label>
+                                <label><input type="radio" name="q2-pillars" value="d"> D. 營業費用</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('pillars')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-pillars" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for Pillars -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">活動分類實戰演練</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <label for="pillars-input" class="block mb-2 font-semibold text-gray-700">請輸入一項公司活動，讓 AI 幫您判斷分類：</label>
+                        <textarea id="pillars-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：我們公司最近償還了一筆為期五年的銀行貸款..."></textarea>
+                        <div class="flex justify-end w-full mt-2">
+                            <button onclick="loadExample('pillars')" class="px-3 py-1 bg-gray-200 text-gray-600 text-sm font-semibold rounded hover:bg-gray-300 transition-colors">
+                                載入範例
+                            </button>
+                        </div>
+                        <button onclick="handleAI('pillars')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 分類
+                        </button>
+                        <div id="pillars-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Statements Section -->
+        <section id="statements" class="mb-24">
+            <h2 class="section-title">四張報表: 企業的儀表板</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" /></svg>
+                    <h3 class="card-title">B/S, I/S, C/F, 股東權益變動表</h3>
+                </div>
+                <div class="content-block">
+                    <h4>四張報表的關聯</h4>
+                    <p>這四張報表彼此緊密關聯，共同描繪出企業營運的全貌：</p>
+                    <ul>
+                        <li><b>損益表 (Income Statement, I/S):</b> 衡量「一段時間」的經營績效，看公司是賺錢還是虧錢。它的最終結果「稅後淨利 (Net Income)」，是現金流量表和股東權益變動表的起點。</li>
+                        <li><b>資產負債表 (Balance Sheet, B/S):</b> 呈現「特定時間點」的財務狀況，告訴我們公司擁有多少資產、欠了多少債、股東出了多少錢。其基本公式為：<b>資產 (Assets) = 負債 (Liabilities) + 股東權益 (Equity)</b>。</li>
+                        <li><b>現金流量表 (Cash Flow Statement, C/F):</b> 追蹤「一段時間」內現金的流入與流出，並分為營運、投資、籌資三大活動。它解釋了資產負債表上「現金」科目的變動原因。</li>
+                        <li><b>股東權益變動表 (Statement of Changes in Equity):</b> 說明「一段時間」內股東權益變動的原因，例如來自損益表的淨利、或發放現金股利給股東。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for Statements -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">報表測驗</h3>
+                    <div id="quiz-statements" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 損益表(I/S)的「稅後淨利(Net Income)」，會直接影響到哪兩張報表？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-statements" value="a"> A. 現金流量表 與 股東權益變動表</label>
+                                <label><input type="radio" name="q1-statements" value="b"> B. 只有資產負債表</label>
+                                <label><input type="radio" name="q1-statements" value="c"> C. 只有現金流量表</label>
+                                <label><input type="radio" name="q1-statements" value="d"> D. 不會影響其他報表</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 資產負債表中的會計恆等式是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-statements" value="a"> A. 資產 = 負債 - 股東權益</label>
+                                <label><input type="radio" name="q2-statements" value="b"> B. 收入 - 費用 = 淨利</label>
+                                <label><input type="radio" name="q2-statements" value="c"> C. 存量 = 流量</label>
+                                <label><input type="radio" name="q2-statements" value="d"> D. 資產 = 負債 + 股東權益</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('statements')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-statements" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Disciplines Section -->
+        <section id="disciplines" class="mb-24">
+            <h2 class="section-title">五項修練: MIT Sloan 領導力模型</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a15.045 15.045 0 01-7.5 0C4.508 19.64 2.25 15.223 2.25 10.5 2.25 5.806 6.31 2 11.25 2s9 3.806 9 8.5c0 4.723-2.258 9.14-6.75 9.811z" /></svg>
+                    <h3 class="card-title">從數字到決策的修練之路</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>看懂財報只是第一步，真正的價值在於運用這些資訊做出更好的決策。MIT Sloan 商學院提出的五項領導力修練，完美詮釋了這個過程：</p>
+                    <ul>
+                        <li><b>Visioning (洞悉未來):</b> 財報數字不只是歷史，更要從中看出趨勢，預見未來。例如，從持續下滑的毛利率，洞見到產品競爭力衰退的危機。</li>
+                        <li><b>Analyzing (分析現況):</b> 對現況進行深入的、基於數據的分析。例如，利用杜邦分析拆解 ROE，找出是獲利能力、資產效率還是財務槓桿出了問題。</li>
+                        <li><b>Relating (關聯因果):</b> 將分析結果與實際的營運活動連結起來，找出根本原因。例如，發現資產週轉率下降，關聯到庫存天數過長的問題。</li>
+                        <li><b>Inventing (打破陳規):</b> 基於洞見與分析，提出創新的解決方案。例如，改變產品組合，主打高毛利產品，或導入精實會計 (Lean Accounting) 降低成本。</li>
+                        <li><b>Enabling (風險創新):</b> 賦能團隊，將創新的想法付諸實行，並管理好伴隨的風險。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Toolbox Section -->
+        <section id="ai_toolbox" class="mb-24">
+            <h2 class="section-title">AI 助理工具箱</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 00-.12-1.03l-2.268-9.64a3.375 3.375 0 00-3.285-2.65H7.875a3.375 3.375 0 00-3.285 2.65l-2.268 9.64a4.5 4.5 0 00-.12 1.03v.228m19.5 0a3 3 0 01-3 3H5.25a3 3 0 01-3-3m19.5 0a3 3 0 00-3-3H5.25a3 3 0 00-3 3m16.5 0h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" /></svg>
+                    <h3 class="card-title">運用 AI 進行財務分析與決策</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>將財務理論與 AI 工具結合，快速評估企業表現、投資效益與市場競爭格局。這個工具箱提供多種模型，幫助您將複雜的財務數據轉化為清晰的商業洞見。</p>
+                    <ul>
+                        <li><b>杜邦分析 (DuPont Analysis):</b> 系統性地拆解股東權益報酬率(ROE)，深入了解企業獲利的核心驅動因素。</li>
+                        <li><b>損益兩平點 (BEP):</b> 快速計算不賺不賠的營運點，評估定價與銷量策略。</li>
+                        <li><b>投資回收期 (Payback Period):</b> 評估投資案的現金回收速度與風險。</li>
+                        <li><b>財報分析觀摩:</b> 觀摩專業的視覺化財報分析報告，學習如何呈現與解讀數據。</li>
+                    </ul>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-teal-700">AI 分析模型實戰</h3>
+                    <div class="ai-card bg-teal-50 border-teal-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析模型：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="dupont" checked> 杜邦分析 (DuPont)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="bep"> 損益兩平點 (BEP) 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="payback"> 簡易投資回收期分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="competitor"> AI 輔助財報競爭分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="apple"> AI 輔助財報解讀</label>
+                            </div>
+                        </div>
+                        <label id="ai_toolbox-label" for="ai_toolbox-input" class="block mb-2 font-semibold text-gray-700">請在此輸入您的分析數據：</label>
+                        <div id="ai-toolbox-input-wrapper" class="w-full">
+                            <textarea id="ai_toolbox-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500" rows="6" placeholder=""></textarea>
+                        </div>
+                        <div class="flex justify-end w-full mt-2">
+                            <button onclick="loadExample('ai_toolbox')" class="px-3 py-1 bg-gray-200 text-gray-600 text-sm font-semibold rounded hover:bg-gray-300 transition-colors">
+                                載入範例
+                            </button>
+                        </div>
+                        <button id="ai_toolbox-button" onclick="handleAI('ai_toolbox')" class="mt-4 px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 財務分析
+                        </button>
+                        <div id="ai_toolbox-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論與討論</h2>
+            <div class="card max-w-4xl mx-auto">
+                <div class="mb-6">
+                    <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/mermaid-diagram-FnF.png" target="_blank" title="點擊放大">
+                        <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/mermaid-diagram-FnF.png" alt="課程總結心智圖" class="w-full rounded-lg shadow-lg cursor-pointer">
+                    </a>
+                    <p class="text-center text-sm text-gray-500 mt-2">課程總結心智圖 (點擊放大)</p>
+                </div>
+                <ul class="list-none space-y-3 text-left text-lg">
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>一個核心:</b> 當責(Accountability)是所有分析與行動的基礎。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>二個觀念:</b> 理解存量(B/S)與流量(I/S, C/F)的區別，是看懂財報的關鍵。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>三個主軸:</b> 將企業活動拆解為營運、投資、籌資，系統性地分析現金流向。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>四張報表:</b> 綜合運用四張報表，才能窺見企業營運的全貌。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>五項修練:</b> 透過五項修練，將財報分析轉化為驅動企業成長的具體行動。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>六個千萬:</b> 千萬要快樂、千萬要健康、千萬要感恩、千萬要知足、千萬要惜福、千萬要有夢。</li>
+                </ul>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800">最終目標：以人腦的智慧與判斷力為主導，駕馭 AI 的強大分析能力，將財務數字轉化為企業的競爭優勢。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 Finance for Non-Financial Managers + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- Global Variables & API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    const placeholders = {
+        dupont: "杜邦分析範例：\n公司A\n銷貨收入: 1000\n稅後淨利: 80\n總資產: 2000\n總股東權益: 1200",
+        bep: "BEP範例：\n總固定成本: 350\n總變動成本: 550\n總收入: 1000\n單位售價: 10",
+        payback: "Payback範例：\n初始投資: 1000000\n每年銷售收入: 3000000\n毛利率: 30%\n營業費用率: 6%",
+        competitor: "此模式將直接開啟一個已完成的分析報告範例，無需輸入。",
+        apple: "此模式將直接開啟一個已完成的分析報告範例，無需輸入。"
+    };
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+            // Do not clear the key for user convenience during a single session.
+            // keyInput.value = '';
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+    
+    function loadExample(type) {
+        const inputElement = document.getElementById(`${type}-input`);
+        if (!inputElement) return;
+
+        let exampleText = '';
+        if (type === 'ai_toolbox') {
+            const selectedValue = document.querySelector('input[name="analysis-type"]:checked').value;
+            if (selectedValue === 'competitor' || selectedValue === 'apple') {
+                return;
+            }
+            exampleText = placeholders[selectedValue] || '';
+        } else {
+            exampleText = inputElement.placeholder;
+        }
+
+        if (exampleText) {
+            inputElement.value = exampleText.replace(/例如：/, '').trim();
+            inputElement.focus();
+        }
+    }
+
+    // --- AI Interaction Logic (REVISED & ROBUST) ---
+
+    /**
+     * A robust function to call the selected AI API with better error handling.
+     * @returns {Promise<{success: boolean, text?: string, error?: string}>}
+     */
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+        const system_prompt = "你是一位專業的財務顧問，請使用繁體中文回答。";
+
+        try {
+            switch (provider) {
+                case 'gemini':
+                    // **修正點: 移除 systemInstruction 欄位，將系統提示合併到使用者提示中**
+                    apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                    
+                    // 將系統指令和使用者提示合併為一個 contents 元素
+                    const geminiPrompt = `${system_prompt}\n\n[使用者請求]\n${prompt}`;
+                    
+                    body = {
+                        contents: [{ role: "user", parts: [{ text: geminiPrompt }] }],
+                        // systemInstruction: { parts: [{ text: system_prompt }] }, // 移除此行，因為它導致 400 錯誤
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                        ]
+                    };
+                    break;
+                case 'deepseek':
+                    apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = { model: "deepseek-chat", messages: [{ role: "system", content: system_prompt }, { role: "user", content: prompt }] };
+                    break;
+                case 'chatgpt':
+                    apiUrl = 'https://api.openai.com/v1/chat/completions';
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                    body = { model: "gpt-4o-mini", messages: [{ role: "system", content: system_prompt }, { role: "user", content: prompt }] };
+                    break;
+                case 'copilot':
+                    apiUrl = endpoint;
+                    headers['api-key'] = apiKey;
+                    body = { messages: [{ role: "system", content: system_prompt }, { role: "user", content: prompt }] };
+                    break;
+                default:
+                    return { success: false, error: '未知的 AI 服務提供商。' };
+            }
+
+            const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = result?.error?.message || JSON.stringify(result);
+                throw new Error(`API 請求失敗 (狀態碼 ${response.status}): ${errorMsg}`);
+            }
+
+            if (provider === 'gemini') {
+                if (result.promptFeedback?.blockReason) {
+                    return { success: false, error: `請求因安全因素被阻擋：${result.promptFeedback.blockReason}` };
+                }
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return { success: true, text: result.candidates[0].content.parts[0].text };
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空 (Gemini)。' };
+            } else {
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return { success: true, text: result.choices[0].message.content };
+                }
+                return { success: false, error: 'AI 回應格式有誤或為空。' };
+            }
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            let friendlyError = `無法連接至 AI 服務。請檢查您的網路連線、API 金鑰及 Endpoint (如適用) 是否正確。`;
+            if (error.message.includes("API 請求失敗")) {
+                friendlyError = error.message; 
+            }
+            return { success: false, error: friendlyError };
+        }
+    }
+
+    async function handleAI(type) {
+        if (type === 'ai_toolbox') {
+            const selectedAnalysis = document.querySelector('input[name="analysis-type"]:checked').value;
+            if (selectedAnalysis === 'competitor') {
+                window.open('Competitor.html', '_blank');
+                return; 
+            }
+            if (selectedAnalysis === 'apple') {
+                window.open('Apple.html', '_blank');
+                return;
+            }
+        }
+
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        switch (type) {
+            case 'core':
+                prompt = `你是一位資深的管理顧問，請針對以下使用者描述的跨部門難題，從「當責 (Accountability)」的角度，分析各部門應該承擔的責任，並提出一個能讓各方共同為「最終成果」負責的行動建議。請用繁體中文回答。\n\n使用者情境：${userInput}`;
+                break;
+            case 'pillars':
+                prompt = `你是一位專業的會計師，請判斷以下使用者描述的企業活動，應該歸類於現金流量表中的「營運活動」、「投資活動」還是「籌資活動」，並解釋其原因，以及它對公司現金流是「流入」還是「流出」。請用繁體中文回答。\n\n企業活動：${userInput}`;
+                break;
+            case 'ai_toolbox':
+                const selectedAnalysisModel = document.querySelector('input[name="analysis-type"]:checked').value;
+                if (selectedAnalysisModel === 'dupont') {
+                    prompt = `你是一位頂尖的財務分析師，請使用杜邦分析 (DuPont Analysis) 的框架，解析以下使用者提供的財務數據。請計算出：\n1. 淨利率 (Net Profit Margin)\n2. 總資產週轉率 (Total Asset Turnover)\n3. 權益乘數 (Equity Multiplier)\n4. 股東權益報酬率 (ROE)\n\n最後，請以 Markdown 表格呈現分析結果，並根據數據給出提升 ROE 的初步策略建議。請用繁體中文回答。\n\n使用者數據：\n${userInput}`;
+                } else if (selectedAnalysisModel === 'bep') {
+                    prompt = `你是一位精通成本會計的分析師，請使用損益兩平點 (Break-Even Point) 分析法，解析以下使用者提供的數據。
+使用者可能提供「總固定成本」、「單位售價」、「單位變動成本」和「預期銷售量」。
+或者，他們可能提供「總固定成本」、「總變動成本」、「總收入」和「單位售價」。
+如果提供了總數(總變動成本, 總收入)，請先計算出「單位變動成本」和「銷售量」。(計算公式： 銷售量 = 總收入 / 單位售價; 單位變動成本 = 總變動成本 / 銷售量)。
+
+請根據提供的數據，計算出：
+1. 損益兩平點 (以銷售額表示)
+2. 損益兩平點 (以單位數量表示)
+3. 安全邊際 (Margin of Safety)
+
+請以 Markdown 表格呈現分析結果，並提供簡潔的管理洞見。請用繁體中文回答。
+
+使用者數據：
+${userInput}`;
+                } else if (selectedAnalysisModel === 'payback') {
+                    prompt = `你是一位財務分析專家，請使用簡易投資回收期 (Payback Period) 分析法，評估以下投資案。請嚴格依照以下步驟計算：\n1.  根據「每年銷售收入」和「毛利率」計算出「毛利」。\n2.  根據「每年銷售收入」和「營業費用率」計算出「營業費用」。\n3.  計算「營業利益」(毛利 - 營業費用)。在簡易分析中，我們將其視為「每年的淨現金流入」。\n4.  計算「投資回收期」(初始投資 / 每年的淨現金流入)，結果請計算到小數點後兩位。\n5.  將回收期換算成年和月。\n\n請以 Markdown 表格呈現計算過程與結果，並提供簡潔的投資建議。請用繁體中文回答。\n\n使用者數據：\n${userInput}`;
+                }
+                break;
+        }
+        
+        const result = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+        
+        if (result.success) {
+            outputElement.innerHTML = marked.parse(result.text);
+        } else {
+            outputElement.innerHTML = `<div class="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg"><p class="font-bold">發生錯誤</p><p class="mt-2 text-sm">${result.error}</p></div>`;
+        }
+    }
+
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-core': '當責(Accountability)不僅是把被交付的事情做好(Responsibility)，而是要主動思考如何運用被交付的資源，去創造更大的價值與成果，並為最終結果負責。',
+        'q1-concepts': '資產負債表是一張「特定時間點」的財務快照，呈現該時間點公司擁有多少資源(資產)，以及這些資源的來源(來自負債或股東權益)，屬於「存量」的概念。',
+        'q2-concepts': '應計基礎的核心精神是，交易應在「權利義務發生」時認列。在此案例中，公司在4月20日送達商品後，才算履行了提供服務的義務，因此應在此時認列收入。',
+        'q1-pillars': '購買生產設備是為了提升未來的生產能力，屬於長期資產的購置，因此是「投資活動」。這筆支出會造成現金流出。',
+        'q2-pillars': '支付現金股利是將公司的獲利返還給資金的提供者(股東)，屬於與股東之間的資金往來，因此是「籌資活動」。這筆支出會造成現金流出。',
+        'q1-statements': '損益表的稅後淨利，一部分會以「保留盈餘」的形式進入股東權益變動表，另一部分則是計算「來自營運活動的現金流量」的起點。',
+        'q2-statements': '這是會計學最基本的恆等式，代表一家公司所有的資產，其資金來源必定是向外借貸(負債)或是由股東出資(股東權益)。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+    // --- UI Update Logic for AI Toolbox Section ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const analysisRadios = document.querySelectorAll('input[name="analysis-type"]');
+        const analysisInputLabel = document.getElementById('ai_toolbox-label');
+        const analysisInput = document.getElementById('ai_toolbox-input');
+        const analysisButton = document.getElementById('ai_toolbox-button');
+        const analysisOutput = document.getElementById('ai_toolbox-output');
+        const toolboxInputWrapper = document.getElementById('ai-toolbox-input-wrapper');
+        const loadExampleButtonWrapper = toolboxInputWrapper.nextElementSibling; 
+
+        function updateAnalysisUI() {
+            const selectedValue = document.querySelector('input[name="analysis-type"]:checked').value;
+            
+            analysisInput.placeholder = placeholders[selectedValue];
+            analysisInput.value = '';
+            analysisOutput.classList.add('hidden');
+
+            if (selectedValue === 'competitor' || selectedValue === 'apple') {
+                analysisInputLabel.style.display = 'none';
+                toolboxInputWrapper.style.display = 'none';
+                loadExampleButtonWrapper.style.display = 'none';
+                
+                if (selectedValue === 'competitor') {
+                    analysisButton.textContent = '開啟競爭者分析觀摩 (新視窗)';
+                } else {
+                    analysisButton.textContent = '開啟Apple財報解讀 (新視窗)';
+                }
+            } else {
+                analysisInputLabel.style.display = 'block';
+                toolboxInputWrapper.style.display = 'block';
+                loadExampleButtonWrapper.style.display = 'flex'; 
+                analysisButton.textContent = '✨ 啟動 AI 財務分析';
+            }
+        }
+
+        analysisRadios.forEach(radio => {
+            radio.addEventListener('change', updateAnalysisUI);
+        });
+
+        updateAnalysisUI();
+    });
+
+</script>
+
+</body>
+</html>

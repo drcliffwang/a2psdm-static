@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 輔助數據驅動決策 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .ai-output th { background-color: #f3f4f6; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                AI 輔助數據驅動決策 (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#framework" class="text-gray-600 hover:text-blue-500 nav-link">決策框架</a>
+                <a href="#logic" class="text-gray-600 hover:text-blue-500 nav-link">決策邏輯</a>
+                <a href="#scenarios" class="text-gray-600 hover:text-blue-500 nav-link">應用場景</a>
+                <a href="#ai_dddm" class="text-gray-600 hover:text-blue-500 nav-link">AI與決策</a>
+                <a href="#ai_toolbox" class="text-gray-600 hover:text-blue-500 nav-link">AI工具箱</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-500 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">以數據驅動決策 + AI</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Data-Driven Decision Making (DDDM): 駕馭數據與 AI，做出更精準、更有效益的商業決策。</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="https://github.com/drcliffwang/course-material/raw/main/Data%20Driven%20AI.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="kimi"> Kimi</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                     <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, <a href="https://platform.moonshot.cn/console/api-keys" target="_blank" class="underline hover:text-yellow-800">Kimi (Moonshot)</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1. Framework Section -->
+        <section id="framework" class="mb-24">
+            <h2 class="section-title">數據驅動決策框架 (PDCA)</h2>
+            <div class="card">
+                <div class="flex items-center justify-center mb-8">
+                    <!-- Image removed as requested -->
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                    <div class="p-4 bg-blue-100 rounded-lg shadow">
+                        <h3 class="font-bold text-xl mb-2 text-blue-700">P: 定義問題 (Plan)</h3>
+                        <p>清晰地定義問題、目標與衡量指標，是所有決策的起點。</p>
+                    </div>
+                    <div class="p-4 bg-green-100 rounded-lg shadow">
+                        <h3 class="font-bold text-xl mb-2 text-green-700">D: 提出模型與假設 (Do)</h3>
+                        <p>建立分析模型，提出關於因果關係的初步假設。</p>
+                    </div>
+                    <div class="p-4 bg-yellow-100 rounded-lg shadow">
+                        <h3 class="font-bold text-xl mb-2 text-yellow-700">C: 分析核對數據 (Check)</h3>
+                        <p>收集並分析數據，驗證或修正提出的假設。</p>
+                    </div>
+                    <div class="p-4 bg-red-100 rounded-lg shadow">
+                        <h3 class="font-bold text-xl mb-2 text-red-700">A: 執行決策 (Act)</h3>
+                        <p>基於數據分析的洞見，採取行動並持續優化。</p>
+                    </div>
+                </div>
+
+                <div class="content-block mt-8">
+                    <h4>培訓目的</h4>
+                    <ul>
+                        <li><b>收集數據並關注數據品質：</b>垃圾進，垃圾出。高品質的決策源於高品質的數據。</li>
+                        <li><b>解讀數據，開放探討數據意義：</b>數據本身不會說話，需要透過分析與討論，賦予其商業意義。</li>
+                        <li><b>制定決策準則，展現行動力：</b>將數據洞見轉化為具體的決策標準與行動方案。</li>
+                        <li><b>反覆驗證優化：</b>決策是一個持續循環的過程，需要不斷透過新的數據來驗證與優化。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Logic Section -->
+        <section id="logic" class="mb-24">
+            <h2 class="section-title">決策的邏輯</h2>
+            <div class="card">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- YXA -->
+                    <div class="content-block">
+                        <h3 class="card-subtitle text-gray-800">決策邏輯三要素: Y, X, A</h3>
+                        <!-- Image removed as requested -->
+                        <ul>
+                            <li><b>果 (Y):</b> 我們期望達成的結果或觀察到的現象。例如：比基尼銷量提升。</li>
+                            <li><b>因 (X):</b> 可能導致結果發生的原因或相關因素。例如：天氣炎熱、靠近海灘。</li>
+                            <li><b>決策主張 (A):</b> 基於對因果關係的理解，所採取的行動。例如：在沿海省份的夏天，針對年輕女性客群，增加比基尼的廣告投放。</li>
+                        </ul>
+                    </div>
+                    <!-- 歸納演繹 -->
+                    <div class="content-block">
+                        <h3 class="card-subtitle text-gray-800">兩種決策邏輯: 歸納與演繹</h3>
+                        <!-- Image removed as requested -->
+                        <ul>
+                            <li><b>歸納 (Inductive):</b> 從觀察到的結果(Y)反推可能的原因(X)。從特殊到一般，常用於探索與假設生成, 大部分的大數據分析均是歸納分析, 例如廻歸分析 Regression。<b>(由果推因)</b></li>
+                            <li><b>演繹 (Deductive):</b> 從已知的原因(X)或普遍法則，推導出特定的結果(Y)。常用於驗證與預測, 例如實驗計畫 DOE。<b>(由因推果)</b></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Quiz Section for Logic -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">邏輯思考測驗</h3>
+                    <div id="quiz-logic" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 前提：(1) 所有成功的企業家都非常勤奮。(2) 王先生非常勤奮。根據以上兩個前提，我們可以*邏輯上確定*下列哪個敘述為真？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-logic" value="a"> A. 王先生是一位成功的企業家。</label>
+                                <label><input type="radio" name="q1-logic" value="b"> B. 如果一個人不勤奮，那他一定不是成功的企業家。</label>
+                                <label><input type="radio" name="q1-logic" value="c"> C. 所有勤奮的人都是成功的企業家。</label>
+                                <label><input type="radio" name="q1-logic" value="d"> D. 有些成功的企業家不勤奮。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 觀察到『我看到的第一隻天鵝是白的』、『我看到的第二隻天鵝是白的』...直到『我看到的第一千隻天鵝都是白的』，因此我得出結論：『所有天鵝都是白色的』。這個推理過程屬於下列何者？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-logic" value="a"> A. 演繹推理 (Deductive Reasoning)</label>
+                                <label><input type="radio" name="q2-logic" value="b"> B. 歸納推理 (Inductive Reasoning)</label>
+                                <label><input type="radio" name="q2-logic" value="c"> C. 溯因推理 (Abductive Reasoning)</label>
+                                <label><input type="radio" name="q2-logic" value="d"> D. 類比推理 (Analogical Reasoning)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('logic')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-logic" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for Logic -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">邏輯謬誤分析演練</h3>
+                    <div class="ai-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="logic-input" class="block font-semibold text-gray-700">請輸入一段您聽過或看過的論述：</label>
+                            <button id="logic-example-button" class="text-sm text-blue-600 hover:underline focus:outline-none">載入範例</button>
+                        </div>
+                        <textarea id="logic-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="統計數據顯示，冰淇淋銷量越高的月份，溺水死亡人數也越多。因此，吃冰淇淋會導致溺水。"></textarea>
+                        <button onclick="handleAI('logic')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 邏輯分析
+                        </button>
+                        <div id="logic-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Scenarios Section -->
+        <section id="scenarios" class="mb-24">
+            <h2 class="section-title">數據思維的應用場景</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 作選擇 -->
+                <div class="card text-center">
+                    <!-- Image removed as requested -->
+                    <h3 class="card-title">場景一: 作選擇</h3>
+                    <p class="text-gray-600">當面臨多個選項時，如何利用數據化的評分標準，做出最優決策。例如：選擇供應商、評估專案、挑選人才。</p>
+                </div>
+                <!-- 防風險 -->
+                <div class="card text-center">
+                    <!-- Image removed as requested -->
+                    <h3 class="card-title">場景二: 防風險</h3>
+                    <p class="text-gray-600">如何系統性地識別潛在風險，評估其嚴重性與發生機率，並制定預防與應變計畫。例如：FMEA、NUDD 分析。</p>
+                </div>
+                <!-- 解問題 -->
+                <div class="card text-center">
+                    <!-- Image removed as requested -->
+                    <h3 class="card-title">場景三: 解問題 (DMAIC)</h3>
+                    <p class="text-gray-600">當問題發生時，如何透過結構化的方法 (如 8D、DMAIC)，從數據中找到根本原因，並制定有效的解決方案。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. AI & DDDM Section -->
+        <section id="ai_dddm" class="mb-24">
+            <h2 class="section-title">AI 與數據驅動決策</h2>
+            <div class="card">
+                <div class="content-block">
+                    <h4>描述統計</h4>
+                    <p>描述統計是數據分析的基礎，幫助我們理解數據的集中趨勢與離散程度 (包含計量型與計數型數據)。</p>
+                    <ul>
+                        <li><b>平均數、中位數：</b>衡量資料的中心點。</li>
+                        <li><b>標準差、四分位距：</b>衡量資料的分散程度。</li>
+                        <li><b>分布概況：</b>了解資料是否符合常態(計量型), 布阿松(計數型)等特定模式。</li>
+                    </ul>
+                </div>
+                 <div class="content-block">
+                    <h4>推論統計</h4>
+                    <p>推論統計讓我們能從樣本數據推斷母體的特徵，是科學決策的關鍵。</p>
+                    <ul>
+                        <li><b>假設檢定與 p-value：</b>判斷觀察到的差異是真實效果還是隨機偶然。</li>
+                        <li><b>信賴區間：</b>估計母體參數可能所在的範圍, 例如 95% (對應 p-value 5%)。</li>
+                    </ul>
+                </div>
+                 <div class="content-block">
+                    <h4>資料視覺化圖表</h4>
+                    <p>將複雜數據轉化為直觀圖形，是快速發現趨勢與洞見的利器。例如：</p>
+                    <ul>
+                        <li><b>箱型圖：</b>快速比較多組數據的分布、中位數與離群值。</li>
+                        <li><b>熱圖：</b>以顏色深淺呈現變數間的關聯性強度。</li>
+                        <li><b>折線圖：</b>清晰呈現數據隨時間變化的趨勢與週期。</li>
+                        <li><b>多維度視覺圖：</b>在單一圖表中呈現多個變數，探索複雜關係。</li>
+                    </ul>
+                    <div class="mt-4 space-x-2">
+                        <a href="SEBS OAR.html" target="_blank" class="inline-block px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600">
+                            開啟「吸油率優化」觀摩範例 (新視窗)
+                        </a>
+                    </div>
+                </div>
+                <div class="content-block">
+                    <h4>機器學習基礎模型</h4>
+                    <p>利用演算法讓電腦從數據中學習，進行預測與分類。</p>
+                    <ul>
+                        <li><b>線性迴歸：</b>建立變數間的線性關係，進行數值預測。</li>
+                        <li><b>決策樹：</b>透過樹狀結構進行分層決策，模型解釋性強。</li>
+                        <li><b>分群分析：</b>在沒有標籤的數據中，自動找出相似的群體 ，是非監督式學習。</li>
+                    </ul>
+                </div>
+                <div class="content-block">
+                    <h4>AI 如何賦能決策流程</h4>
+                    <p>人工智慧，特別是機器學習與生成式 AI，正在徹底改變數據驅動決策的模式。AI 不僅能處理龐大且複雜的數據，更能從中自動學習、識別模式、生成洞見，甚至提出建議方案。</p>
+                </div>
+                <div class="content-block mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
+                    <h4 class="text-red-700">AI 的挑戰與陷阱 (Pitfall)</h4>
+                    <p class="text-red-800">微軟與卡內基美隆大學的研究指出，過度依賴生成式 AI 可能會帶來一些負面影響：</p>
+                    <ul>
+                        <li class="text-red-800"><b>問題解決能力下降：</b>使用者可能傾向於直接驗證 AI 的結果，而非從頭開始分析問題。</li>
+                        <li class="text-red-800"><b>批判性思考減少：</b>對 AI 產出越信任，就越可能直接接受答案，而忽略了批判性檢視。</li>
+                        <li class="text-red-800"><b>思考模式轉變：</b>思考重心可能從「分析與創造」轉向「資訊驗證與整合」。</li>
+                    </ul>
+                    <p class="mt-4 font-semibold text-red-900">結論：我們應將 AI 視為強大的「輔助」工具，而非取代人類思考的「決策者」。決策的核心仍應是人類的智慧、經驗與批判性思維。</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- AI Toolbox Section -->
+        <section id="ai_toolbox" class="mb-24">
+            <h2 class="section-title">AI 決策助理工具箱</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 00-.12-1.03l-2.268-9.64a3.375 3.375 0 00-3.285-2.65H7.875a3.375 3.375 0 00-3.285 2.65l-2.268 9.64a4.5 4.5 0 00-.12 1.03v.228m19.5 0a3 3 0 01-3 3H5.25a3 3 0 01-3-3m19.5 0a3 3 0 00-3-3H5.25a3 3 0 00-3 3m16.5 0h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" /></svg>
+                    <h3 class="card-title">運用 AI 實踐數據驅動決策</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>將數據驅動決策的理論框架與 AI 工具結合，快速解決真實世界的商業問題。這個工具箱提供多種決策模型，幫助您將複雜的情境轉化為清晰的行動方案。</p>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-teal-700">AI 分析模型實戰</h3>
+                    <div class="ai-card bg-teal-50 border-teal-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析模型：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="summarize" checked> 數據整理</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="comparison"> 數據比較</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="correlation"> 數據關聯</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="control"> 數據控制 (DOE)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="forecasting"> 數據預測</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="segmentation"> 客戶分群 (RFM)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="simulation"> 策略模擬 (What-if)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="choice"> 場景一: 作選擇</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="risk"> 場景二: 防風險</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="problem"> 場景三: 解問題 (DMAIC)</label>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                             <label id="ai_toolbox-label" for="ai_toolbox-input" class="block font-semibold text-gray-700">請在此輸入您的數據或決策情境：</label>
+                             <button id="example-button" class="text-sm text-blue-600 hover:underline focus:outline-none">載入範例</button>
+                        </div>
+                        <textarea id="ai_toolbox-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500" rows="6" placeholder=""></textarea>
+                        <button id="ai_toolbox-button" onclick="handleAI('ai_toolbox')" class="mt-4 px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 決策分析
+                        </button>
+                        <div id="ai_toolbox-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論與討論</h2>
+            <div class="card max-w-4xl mx-auto">
+                <div class="mb-6">
+                    <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/DDDM%20Mindmap.png" id="mindmap-link" target="_blank" title="點擊放大">
+                        <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/DDDM%20Mindmap.png" alt="課程總結心智圖" id="mindmap-image" class="w-full rounded-lg shadow-lg cursor-pointer">
+                    </a>
+                    <p class="text-center text-sm text-gray-500 mt-2">課程總結心智圖 (點擊放大)</p>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800 mb-6">最終目標：以人腦的智慧與批判性思維為主導，駕馭 AI 的強大分析能力，將數據轉化為驅動企業成長的競爭優勢。</p>
+                    <a href="Example.xlsx" target="_blank" class="inline-block px-4 py-2 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600">
+                        下載 Excel 練習檔 (Example.xlsx)
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 Data-Driven Decision Making + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- Statistical Calculation Functions ---
+    const stats = {
+        mean: arr => arr.reduce((a, b) => a + b, 0) / arr.length,
+        variance: (arr, isSample = false) => {
+            const mean = stats.mean(arr);
+            const sumSqDiff = arr.reduce((acc, val) => acc + (val - mean) ** 2, 0);
+            return sumSqDiff / (isSample ? arr.length - 1 : arr.length);
+        },
+        std: (arr, isSample = false) => Math.sqrt(stats.variance(arr, isSample)),
+        median: arr => {
+            const mid = Math.floor(arr.length / 2),
+                nums = [...arr].sort((a, b) => a - b);
+            return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
+        },
+        quantile: (arr, q) => {
+            const sorted = arr.sort((a, b) => a - b);
+            const pos = (sorted.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            if (sorted[base + 1] !== undefined) {
+                return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+            } else {
+                return sorted[base];
+            }
+        },
+        iqr: arr => stats.quantile(arr, 0.75) - stats.quantile(arr, 0.25),
+        max: arr => Math.max(...arr),
+        min: arr => Math.min(...arr),
+        cv: arr => (stats.std(arr, false) / stats.mean(arr)) * 100,
+        ci95: arr => {
+            const mean = stats.mean(arr);
+            const std = stats.std(arr, true); // Use sample standard deviation for CI
+            const n = arr.length;
+            const error = 1.96 * (std / Math.sqrt(n)); // Using z-score 1.96 for 95% CI
+            return [mean - error, mean + error];
+        },
+        t_test: (sample1, sample2) => {
+            const n1 = sample1.length;
+            const n2 = sample2.length;
+            if (n1 < 2 || n2 < 2) return { t_stat: NaN, df: NaN };
+
+            const mean1 = stats.mean(sample1);
+            const mean2 = stats.mean(sample2);
+            const var1 = stats.variance(sample1, true); // Sample variance
+            const var2 = stats.variance(sample2, true); // Sample variance
+
+            const pooled_var = ((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2);
+            const t_stat = (mean1 - mean2) / Math.sqrt(pooled_var * (1 / n1 + 1 / n2));
+            const df = n1 + n2 - 2;
+
+            return { t_stat: t_stat, df: df, mean1: mean1, mean2: mean2 };
+        },
+        correlation: (arrX, arrY) => {
+            if (arrX.length !== arrY.length || arrX.length === 0) return NaN;
+            const n = arrX.length;
+            const meanX = stats.mean(arrX);
+            const meanY = stats.mean(arrY);
+            
+            let sumXY = 0;
+            let sumX2 = 0;
+            let sumY2 = 0;
+
+            for(let i=0; i<n; i++){
+                sumXY += (arrX[i] - meanX) * (arrY[i] - meanY);
+                sumX2 += (arrX[i] - meanX) ** 2;
+                sumY2 += (arrY[i] - meanY) ** 2;
+            }
+            
+            return sumXY / Math.sqrt(sumX2 * sumY2);
+        },
+        linearRegression: (arrX, arrY) => {
+            if (arrX.length !== arrY.length) return { a: NaN, b: NaN };
+            const n = arrX.length;
+            const meanX = stats.mean(arrX);
+            const meanY = stats.mean(arrY);
+            let s_xy = 0;
+            let s_xx = 0;
+            for (let i = 0; i < n; i++) {
+                s_xy += (arrX[i] - meanX) * (arrY[i] - meanY);
+                s_xx += (arrX[i] - meanX) ** 2;
+            }
+            const a = s_xy / s_xx;
+            const b = meanY - a * meanX;
+            return { a: a, b: b }; // y = ax + b
+        }
+    };
+
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`API 金鑰與 Endpoint 已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+                    return;
+                }
+            } else {
+                 alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            }
+            keyInput.value = ''; // Clear for security
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- AI Interaction Logic ---
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+
+        if (provider === 'gemini') {
+            // --- FIX #1: Changed model name to a more stable version 'gemini-1.5-flash'. ---
+            apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+        } else if (provider === 'deepseek') {
+            apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = { model: "deepseek-chat", messages: [{ role: "system", content: "你是一位專業的數據分析與決策顧問，請使用繁體中文回答。" }, { role: "user", content: prompt }] };
+        } else if (provider === 'kimi') {
+            apiUrl = 'https://api.moonshot.cn/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = { model: "moonshot-v1-8k", messages: [{ role: "system", content: "你是一位專業的數據分析與決策顧問，請使用繁體中文回答。" }, { role: "user", content: prompt }] };
+        } else if (provider === 'chatgpt') {
+            apiUrl = 'https://api.openai.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = { model: "gpt-3.5-turbo", messages: [{ role: "system", content: "You are a professional data analysis and decision-making consultant. Please respond in Traditional Chinese." }, { role: "user", content: prompt }] };
+        } else if (provider === 'copilot') {
+            // --- FIX #2: Correctly construct the Azure endpoint URL with path and api-version. ---
+            const cleanEndpoint = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+            apiUrl = `${cleanEndpoint}/chat/completions?api-version=2024-02-15-preview`;
+            headers['api-key'] = apiKey;
+            body = { messages: [{ role: "system", content: "You are a professional data analysis and decision-making consultant. Please respond in Traditional Chinese." }, { role: "user", content: prompt }] };
+        }
+
+        try {
+            const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API 請求失敗，狀態碼： ${response.status}. ${errorBody}`);
+            }
+            const result = await response.json();
+            
+            if (provider === 'gemini') {
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) return result.candidates[0].content.parts[0].text;
+            } else if (['deepseek', 'chatgpt', 'copilot', 'kimi'].includes(provider)) {
+                if (result.choices && result.choices[0]?.message?.content) return result.choices[0].message.content;
+            }
+            
+            console.error("Unexpected API response structure:", result);
+            if (result.error) return `發生錯誤：${result.error.message}`;
+            if (result.promptFeedback?.blockReason) return `您的請求被阻擋，原因：${result.promptFeedback.blockReason}.`;
+            return "抱歉，AI 回應的格式有誤，請稍後再試。";
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            return `無法連接至 AI 服務。請檢查您的網路連線或 API 金鑰是否正確。\n錯誤詳情: ${error.message}`;
+        }
+    }
+
+    async function handleAI(type) {
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        const selectedAnalysisModel = document.querySelector('input[name="analysis-type"]:checked').value;
+
+        switch (type) {
+            case 'logic':
+                prompt = `你是一位邏輯學家，請分析以下使用者提供的論述，並指出其中可能存在的邏輯謬誤（例如：滑坡謬誤、稻草人謬誤、錯誤歸因等），並解釋原因。請用繁體中文以 Markdown 格式回答。\n\n使用者論述：${userInput}`;
+                break;
+            case 'ai_toolbox':
+                if (selectedAnalysisModel === 'summarize') {
+                    const numbers = userInput.split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+                    if (numbers.length < 2) {
+                        outputElement.innerHTML = "進行「數據整理」時，請至少輸入兩個有效的數字。";
+                        return;
+                    }
+                    const results = {
+                        mean: stats.mean(numbers).toFixed(2),
+                        median: stats.median(numbers).toFixed(2),
+                        std: stats.std(numbers, false).toFixed(2),
+                        iqr: stats.iqr(numbers).toFixed(2),
+                        max: stats.max(numbers),
+                        min: stats.min(numbers),
+                        cv: stats.cv(numbers).toFixed(2),
+                        ci95: stats.ci95(numbers).map(v => v.toFixed(2))
+                    };
+                    prompt = `你是一位專業的數據分析師。這裡有一組數據的基本統計分析結果。請用繁體中文，以 Markdown 表格呈現這些統計數據，並根據這些數據提供簡潔的商業洞見，分析這組數據的集中趨勢、離散程度、數據分佈與潛在意義。\n\n原始數據: ${userInput}\n\n統計結果:\n- 平均值: ${results.mean}\n- 中位數: ${results.median}\n- 標準差: ${results.std}\n- 四分位距 (IQR): ${results.iqr}\n- 最大值: ${results.max}\n- 最小值: ${results.min}\n- 變異係數 (CV): ${results.cv}%\n- 95% 信賴區間: [${results.ci95[0]}, ${results.ci95[1]}]`;
+                } else if (selectedAnalysisModel === 'comparison') {
+                    const samples = userInput.split(';');
+                    if (samples.length !== 2) {
+                        outputElement.innerHTML = "進行「數據比較」時，請用分號 (;) 隔開兩組數據。";
+                        return;
+                    }
+                    const sample1 = samples[0].trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+                    const sample2 = samples[1].trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+
+                    if (sample1.length < 2 || sample2.length < 2) {
+                        outputElement.innerHTML = "兩組數據都必須至少包含兩個有效的數字。";
+                        return;
+                    }
+
+                    const results = stats.t_test(sample1, sample2);
+                    prompt = `你是一位專業的數據分析師。請使用「兩樣本t檢定」(Two-Sample t-test) 來分析以下兩組數據的平均值是否存在顯著差異。\n\n以下是預先計算好的統計結果：\n- 組A 平均值: ${results.mean1.toFixed(2)}\n- 組B 平均值: ${results.mean2.toFixed(2)}\n- t-統計量: ${results.t_stat.toFixed(3)}\n- 自由度 (df): ${results.df}\n\n請完成以下任務：\n1. 以 Markdown 表格清晰呈現兩組的平均值與 t-檢定結果。\n2. 解釋 t-統計量的意義。根據這個 t-值和自由度，判斷兩組數據的平均值是否有統計上的顯著差異 (通常以 p-value < 0.05 為標準，你可以根據 t-值的大小做出專業推斷)。\n3. 根據分析結果，提供一個簡潔的商業或管理結論。\n\n請用繁體中文回答。`;
+                } else if (selectedAnalysisModel === 'correlation') {
+                    const parts = userInput.split(';');
+                    if (parts.length !== 2) {
+                        outputElement.innerHTML = "進行「數據關聯」分析時，請用分號 (;) 隔開 X 和 Y 兩組數據。";
+                        return;
+                    }
+                    const arrX = parts[0].replace(/x:/i, '').trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+                    const arrY = parts[1].replace(/y:/i, '').trim().split(/[\s,]+/).map(Number).filter(n => !isNaN(n));
+
+                    if (arrX.length !== arrY.length || arrX.length < 2) {
+                        outputElement.innerHTML = "X 和 Y 兩組數據必須包含相同數量且至少兩個有效的數字。";
+                        return;
+                    }
+                    
+                    const corr = stats.correlation(arrX, arrY);
+                    const reg = stats.linearRegression(arrX, arrY);
+
+                    prompt = `你是一位專業的數據科學家。請分析以下兩組數據 (X 和 Y) 的關聯性。\n\n以下是預先計算好的統計結果：\n- **相關係數 (Correlation Coefficient):** ${corr.toFixed(4)}\n- **線性迴歸公式:** Y = ${reg.a.toFixed(4)}X + ${reg.b.toFixed(4)}\n\n請完成以下任務：\n1. 以 Markdown 表格清晰呈現相關係數與線性迴歸公式。\n2. **解讀相關係數:** 說明這個數值代表的關聯強度 (例如: 高度正相關、弱負相關、無相關) 與方向。\n3. **解讀線性公式:** 解釋這個公式的商業意涵，也就是 X 每變動一個單位，Y 大約會如何變動。\n4. **提供洞見與預測:** 基於此關聯性，提出一個簡潔的商業洞見或預測。例如，如果 X 是廣告花費，Y 是銷售額，可以預測投入更多廣告費用可能帶來的效果。\n\n請用繁體中文回答。`;
+                } else if (selectedAnalysisModel === 'control') {
+                    prompt = `你是一位專業的品質工程師與數據科學家，精通實驗設計 (DOE)。請分析以下使用者提供的簡易實驗設計數據。\n\n使用者數據與情境:\n${userInput}\n\n請完成以下任務:\n1. **識別因子與水準:** 從使用者描述中，識別出實驗的因子 (Factors)、每個因子的水準 (Levels)，以及反應變數 (Response)。\n2. **分析主要效應:** 計算每個因子對反應變數的「主效應」(Main Effect)，判斷哪個因子的影響最顯著。\n3. **分析交互效應:** 如果是多因子實驗，請計算因子之間的「交互效應」(Interaction Effect)，判斷因子組合是否存在加乘或抵銷效果。\n4. **呈現結果:** 以 Markdown 表格清晰呈現主效應與交互效應的分析結果。\n5. **提供結論與建議:** 根據分析結果，提供明確的結論。為了使反應變數達到最佳化（例如最大化良率或最小化成本），每個因子應該設定在哪個水準？總結出最佳的參數組合建議。\n\n請用繁體中文回答。`;
+                } else if (selectedAnalysisModel === 'forecasting') {
+                    const forecastingMethods = `
+- **移動平均法 (Moving Average):** 最簡單的方法，適用於需求相對穩定的數據。
+- **單指數平滑法 (Single Exponential Smoothing):** 移動平均的升級版，給予越近的數據越高的權重，適用於沒有趨勢和季節性的水平數據。
+- **雙指數平滑法 (Holt's):** 加入了「趨勢」因子，能更好地預測持續上升或下降的需求。
+- **三指數平滑法 (Holt-Winters):** 在趨勢基礎上再加入「季節性」因子，是處理具備明顯週期性需求的強大工具。
+- **克羅斯頓法 (Croston's Method):** 專為「間歇性需求」（大量零值）設計。
+- **巴斯擴散模型 (Bass Model):** 專用於「新產品」上市預測，模擬創新者與模仿者行為。
+- **AI 預測模型 (ARIMA, Prophet):** 自動分析時間序列數據中的趨勢、季節性與殘差，建立更複雜精準的模型。
+                    `;
+                    prompt = `你是一位頂尖的數據科學家與需求預測專家。請分析以下使用者提供的時間序列數據。\n\n**使用者數據:**\n${userInput}\n\n**請完成以下任務:**\n1.  **數據特性分析:** 首先，簡要分析這組數據的特性。它看起來是穩定的、有明顯的上升/下降趨勢、還是有季節性的週期？或者它是間歇性的（有很多0）？\n2.  **預測模型推薦:** 根據你的分析，從下列模型清單中，推薦最適合的一個或多個預測模型。\n    **模型清單:**\n    ${forecastingMethods}\n3.  **說明推薦理由:** 詳細解釋你為什麼推薦這些模型。例如：「因為數據呈現明顯的上升趨勢和年度週期性，我推薦使用三指數平滑法...」。\n4.  **提供預測結果:** 使用你推薦的最主要模型，預測接下來 3 期的數值。\n\n請用繁體中文，以清晰的 Markdown 格式回答。`;
+                } else if (selectedAnalysisModel === 'segmentation') {
+                     prompt = `你是一位專業的行銷數據科學家，精通顧客關係管理。請使用 RFM 模型 (Recency, Frequency, Monetary) 與 K-Means 分群的概念，分析以下使用者描述的客戶行為。\n\n**使用者客戶描述:**\n${userInput}\n\n**請完成以下任務:**\n1.  **客戶 RFM 評分:** 根據每一位客戶的行為（最近來過、購買頻率、消費金額），給予 R、F、M 三個維度的定性評分（例如：高、中、低）。\n2.  **客戶分群:** 基於 RFM 評分，將客戶分到最適合的群體中。常見的群體包括：\n    * **高價值客戶 (Champions):** R、F、M 皆高。\n    * **潛力客戶 (Potential Loyalists):** 最近有消費，頻次中上，金額不一定高。\n    * **新客戶 (New Customers):** 最近有消費，但頻次和金額都低。\n    * **沉睡客戶 (At Risk / Hibernating):** 很久沒來，但過去消費頻次或金額很高。\n    * **流失客戶 (Lost):** R、F、M 皆低。\n3.  **呈現結果:** 以 Markdown 表格清晰呈現每位客戶的 RFM 評分與最終所屬的客戶群體。\n4.  **提出策略建議:** 針對其中 1-2 個最重要的客戶群體（例如「高價值客戶」和「沉睡客戶」），提出具體、可行的精準行銷策略建議。\n\n請用繁體中文回答。`;
+                } else if (selectedAnalysisModel === 'simulation') {
+                    prompt = `你是一位頂尖的商業策略顧問，精通 PESTEL、決策矩陣、Ansoff 矩陣及財務敏感度分析。請分析以下使用者提出的商業決策情境，自動選擇最適合的策略框架來回答。\n\n**使用者決策情境:**\n${userInput}\n\n**你的任務:**\n1.  **框架選擇:** 首先，判斷哪個策略框架最適合分析此情境：\n    * **PESTEL 分析:** 當情境涉及評估市場的宏觀環境趨勢 (政治, 經濟, 社會, 科技, 環境, 法律)。\n    * **決策矩陣:** 當情境涉及在多個具體方案中，根據帶有權重的多個標準進行選擇。\n    * **Ansoff 矩陣:** 當情境涉及公司的產品與市場增長策略 (市場滲透, 產品開發, 市場開發, 多角化)。\n    * **財務敏感度分析:** 當情境的核心是評估關鍵財務變數（如銷量、價格、成本）的變化對利潤或回報的影響。\n    * 若以上皆不完全適用，則使用通用的 **優劣勢風險 (Pros/Cons/Risks)** 分析。\n2.  **應用框架:** 根據你選擇的框架，進行深入分析。請以結構化、條列式的方式呈現分析結果（例如，畫出 Ansoff 矩陣的四個象限並放入對應策略）。\n3.  **提出結論:** 最後，基於你的分析，給出一個清晰、可執行的策略建議。\n\n請用繁體中文回答。`;
+                } else if (selectedAnalysisModel === 'choice') {
+                    prompt = `你是一位決策分析專家。請使用「數據驅動決策」的「作選擇」框架，分析以下使用者情境。步驟如下：\n1. 根據使用者描述，識別出明確的「決策目標」。\n2. 列出所有「選項」。\n3. 提煉出關鍵的「評估標準」(Musts/Wants)，並建議權重 (1-10分)。\n4. 建立一個評分表 (Markdown格式)，對每個選項按照標準進行評分 (1-10分)。\n5. 計算加權總分，並給出最終的決策建議與理由。\n\n請用繁體中文回答。\n\n使用者情境：\n${userInput}`;
+                } else if (selectedAnalysisModel === 'risk') {
+                    prompt = `你是一位風險管理顧問。請使用「數據驅動決策」的「防風險」框架 (類似FMEA)，分析以下使用者情境。步驟如下：\n1. 識別出使用者擔心的主要「潛在風險」。\n2. 對每個風險，分析可能的「失效原因」(Cause)。\n3. 評估每個風險的「嚴重性 (S)」、「發生率 (O)」和「難檢測性 (D)」(均為1-10分)，並計算風險優先數 (RPN = S*O*D)。\n4. 建立一個風險分析表 (Markdown格式)。\n5. 針對 RPN 最高的風險，提出具體的「預防措施 (Prevention)」和「應變計畫 (Mitigation)」。\n\n請用繁體中文回答。\n\n使用者情境：\n${userInput}`;
+                } else if (selectedAnalysisModel === 'problem') {
+                    prompt = `你是一位資深的問題解決專家。請使用「數據驅動決策」的「解問題 (DMAIC)」框架，為使用者分析以下問題。步驟如下：\n1. **定義問題 (Define):** 根據使用者描述，用一句話清晰地定義核心問題。\n2. **分析現況 (Measure/Analyze):** 指出為了分析此問題，需要收集哪些關鍵數據(X's and Y's)。\n3. **提出假設 (Analyze):** 提出幾個關於問題根本原因(Root Cause)的可能假設。\n4. **制定對策 (Improve):** 針對最可能的根本原因，提出具體、可行的解決方案。\n5. **效果確認與標準化 (Control):** 說明如何衡量對策是否有效，以及如何將其標準化以防止問題再發。\n\n請用繁體中文以 Markdown 格式回答。\n\n使用者問題描述：\n${userInput}`;
+                }
+                break;
+        }
+        
+        const aiResponse = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+        outputElement.innerHTML = marked.parse(aiResponse);
+    }
+
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-logic': '這個問題在於檢驗「若P則Q」的邏輯。前提「所有成功的企業家(P)都非常勤奮(Q)」可以寫成「若P則Q」。選項(b)「若不勤奮(非Q)則非成功企業家(非P)」是其「逆否命題」，在邏輯上是等價且必然為真的。選項(a)和(c)則是常見的邏輯謬誤，我們無法從「王先生很勤奮」就推斷出他是成功的企業家。',
+        'q2-logic': '歸納推理是從一系列具體的、個別的觀察中，總結出一個普遍性的規律或結論。從「觀察到的一千隻天鵝都是白的」這個具體事實，推導出「所有天鵝都是白的」這個一般性結論，是典型的歸納法。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+    // --- UI Update Logic for AI Toolbox Section ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const analysisRadios = document.querySelectorAll('input[name="analysis-type"]');
+        const analysisInput = document.getElementById('ai_toolbox-input');
+        const exampleButton = document.getElementById('example-button');
+        const logicExampleButton = document.getElementById('logic-example-button');
+        const logicInput = document.getElementById('logic-input');
+
+        const placeholders = {
+            summarize: "請輸入一系列數字，以空格或逗號分隔。\n例如：25, 30, 32, 28, 40, 55, 29, 31, 38, 42",
+            comparison: "請輸入兩組數字，並用分號 (;) 隔開。\n例如：組A: 25, 30, 32, 28 ; 組B: 40, 55, 29, 31, 38, 42",
+            correlation: "請輸入 X 和 Y 兩組數據，並用分號 (;) 隔開。\n例如：X: 1, 2, 3, 4, 5 ; Y: 6, 7, 8, 9, 11",
+            control: "請描述您的實驗因子、水準與結果。\n例如：因子A: 溫度 (100度, 150度); 因子B: 壓力 (50, 100); 反應變數: 良率; 數據: 100度,50,85; 150度,50,92; 100度,100,88; 150度,100,95",
+            forecasting: "請輸入您的時間序列數據，以逗號或空格分隔。\n例如：210, 250, 230, 280, 310, 290, 340, 360, 350, 400, 420, 410",
+            segmentation: "請描述不同客戶的行為特徵，以分號分隔。\n例如：客戶A: 最近來過, 很常買, 金額高; 客戶B: 很久沒來, 以前很常買, 金額高; 客戶C: 最近剛來, 第一次買, 金額低",
+            simulation: "請描述您的決策目標與不同方案，AI會自動選用最適合的策略模型分析。\n例如：目標: 公司未來成長。方案A: 將現有產品賣給更多海外客戶。方案B: 開發新一代產品給現有客戶。方案C: 降價15%搶佔市佔率。請用Ansoff矩陣與敏感度分析幫我評估。",
+            choice: "作選擇範例：\n我正在考慮聘請一位新的專案經理，目前有三位候選人 A, B, C。我的評估標準最重要的是「專業技能」，其次是「溝通能力」，最後是「成本效益」。請幫我分析該如何選擇。",
+            risk: "防風險範例：\n我們公司下個月要舉辦一場大型戶外產品發表會。我很擔心活動當天會下大雨，影響活動進行。另外也怕來賓太多，導致交通混亂。請幫我做個風險分析。",
+            problem: "解問題(DMAIC)範例：\n我們網站最近三個月的用戶流失率上升了20%。我們發現很多用戶在註冊頁面就放棄了。不知道是頁面設計太複雜，還是載入速度太慢造成的。請幫我分析這個問題。"
+        };
+
+        function updateAnalysisUI() {
+            const selectedValue = document.querySelector('input[name="analysis-type"]:checked').value;
+            analysisInput.placeholder = placeholders[selectedValue];
+        }
+
+        analysisRadios.forEach(radio => {
+            radio.addEventListener('change', updateAnalysisUI);
+        });
+        
+        exampleButton.addEventListener('click', () => {
+            const selectedValue = document.querySelector('input[name="analysis-type"]:checked').value;
+            analysisInput.value = placeholders[selectedValue].split('\n').slice(1).join('\n').replace(/例如：|範例：/g, '');
+            analysisInput.focus();
+        });
+
+        logicExampleButton.addEventListener('click', () => {
+            logicInput.value = logicInput.placeholder;
+            logicInput.focus();
+        });
+
+        // Initial call to set the UI correctly on page load
+        updateAnalysisUI();
+    });
+
+</script>
+
+</body>
+</html>

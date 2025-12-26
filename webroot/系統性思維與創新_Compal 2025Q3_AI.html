@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統性思維與創新 + AI 課程 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc; /* A lighter gray background */
+        }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            font-size: 0.875rem; /* Small tabs for better fit */
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+        .tab-button:not(.active):hover {
+            background-color: #eef2ff;
+            color: #3b82f6;
+        }
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .content-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
+            padding: 2rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', 'Noto Sans SC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.75rem; text-align: left; }
+        .ai-output th { background-color: #f9fafb; font-weight: 600; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 700; margin-top: 1.25rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .ai-output h4 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .section-title-card {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: #3b82f6;
+        }
+        .card-header .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-right: 0.5rem;
+        }
+        .lang-btn {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+            background-color: white;
+            color: #4b5563;
+        }
+        #lang-tw {
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+            border-right: none;
+        }
+        #lang-cn {
+            border-top-right-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            border-left: none;
+        }
+        .lang-btn.active {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-blue-600 mb-2" data-lang-key="hero_title">系統性思維與創新 + AI</h1>
+            <p class="text-md md:text-lg text-gray-600" data-lang-key="hero_subtitle">一門為您打造的系統性思維與 AI 協作實戰課程</p>
+            <div class="mt-4 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/6f8e0dad1a7128a900c460b570e7588b7b33fc5b/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-16 h-16 object-cover shadow-md">
+                <div>
+                    <p class="text-md font-semibold text-gray-700 text-left">Cliff Wang, Ph.D. 王啟岳博士</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+            
+            <!-- Language Switcher -->
+            <div class="mt-6 flex justify-center items-center space-x-0 rounded-lg border border-gray-300 overflow-hidden">
+                <button id="lang-tw" class="lang-btn">繁體中文</button>
+                <button id="lang-cn" class="lang-btn">简体中文</button>
+            </div>
+
+            <!-- Podcast FMEA Style -->
+            <div class="mt-4 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2" data-lang-key="podcast_title">課程 Podcast</h4>
+                <audio controls controlslist="nodownload" src="https://github.com/drcliffwang/course-material/raw/main/Systemic%20Thinking%2C%20Innovation%2C%20and%20AI%20Collaboration.mp3" type="audio/mpeg">
+                    <span data-lang-key="audio_fallback">您的瀏覽器不支援聲音播放功能。</span>
+                </audio>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8" id="tab-nav">
+            <button class="tab-button active" onclick="showSection('intro')" data-lang-key="nav_intro">課程概覽</button>
+            <button class="tab-button" onclick="showSection('ai-setup')" data-lang-key="nav_ai_setup">AI 設定</button>
+            <button class="tab-button" onclick="showSection('foundation')" data-lang-key="nav_foundation">思維基石</button>
+            <button class="tab-button" onclick="showSection('idea-id')" data-lang-key="nav_idea_id">ID:洞見與場景</button>
+            <button class="tab-button" onclick="showSection('idea-e')" data-lang-key="nav_idea_e">E:演化</button>
+            <button class="tab-button" onclick="showSection('idea-a')" data-lang-key="nav_idea_a">A:行動</button>
+            <button class="tab-button" onclick="showSection('toolbox')" data-lang-key="nav_toolbox">AI思維工具箱</button>
+            <button class="tab-button" onclick="showSection('conclusion')" data-lang-key="nav_conclusion">結論</button>
+        </nav>
+
+        <main>
+            <!-- Intro Section (Now "課程概覽") -->
+            <section id="intro" class="content-section card active">
+                 <h2 class="section-title-card" data-lang-key="hero_title">系統性思維與創新 + AI</h2>
+                 <p class="text-md md:text-lg text-gray-600 mb-8 text-center" data-lang-key="hero_subtitle">一門為您打造的系統性思維與 AI 協作實戰課程</p>
+                 <div class="mb-6">
+                    <div class="content-block">
+                        <h4 class="text-xl font-bold mb-4">大綱</h4>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>系統思維與運用場景</li>
+                            <li>公司運用AI場景</li>
+                            <li>人腦思維: 演繹與歸納</li>
+                            <li>人腦與AI: 議題層/邏輯層/行動層; 審問/慎思/明辨/篤行</li>
+                            <li>AI強化思考</li>
+                            <li>左腦與右腦並重</li>
+                            <li>數位化轉型</li>
+                            <li>IDEA思維模型: 3層次與4步驟</li>
+                            <li>常用創新手法 Scamper手法/TRIZ方法/六頂思考帽</li>
+                            <li>設計思維 Design Thinking with AI</li>
+                            <li>由創意到創新 with AI</li>
+                            <li>結論與討論</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- AI Setup Section -->
+            <section id="ai-setup" class="content-section card">
+                <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                    <h3 class="text-xl font-bold text-yellow-800 text-center mb-4" data-lang-key="apikey_title">啟動 AI 互動功能</h3>
+                    <p class="text-center text-yellow-700 mb-4" data-lang-key="apikey_desc">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                    
+                    <div class="mb-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="apikey_provider_label">1. 選擇 AI 服務提供商:</span>
+                        <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                            <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="apikey_key_label">2. 輸入您的 API 金鑰:</span>
+                        <div class="flex items-center">
+                            <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" data-lang-key="apikey_placeholder" placeholder="在此貼上您選擇的服務金鑰...">
+                            <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600" data-lang-key="apikey_save_btn">儲存</button>
+                        </div>
+                    </div>
+                    
+                    <div id="copilot-endpoint-container" class="hidden mt-4">
+                        <span class="block mb-2 font-semibold text-gray-700 text-center" data-lang-key="apikey_endpoint_label">3. 輸入您的 Azure Endpoint:</span>
+                        <div class="flex items-center">
+                            <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/openai/deployments/your-deployment-name">
+                        </div>
+                         <p class="text-xs text-center text-yellow-600 mt-1" data-lang-key="apikey_endpoint_desc">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                    </div>
+
+                    <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                        <p data-lang-key="apikey_note1">您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                        <p class="font-bold" data-lang-key="apikey_note2">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 1: Foundations of Systemic Thinking -->
+            <section id="foundation" class="content-section card">
+                <div class="card-header">
+                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a15.045 15.045 0 01-7.5 0C4.508 19.64 2.25 15.223 2.25 10.5 2.25 5.806 6.31 2 11.25 2s9 3.806 9 8.5c0 4.723-2.258 9.14-6.75 9.811z" /></svg>
+                    <h2 class="text-2xl font-bold" data-lang-key="foundation_title">系統思維的基石</h2>
+                </div>
+                
+                <div class="content-block">
+                    <h4 data-lang-key="foundation_h4_1">一個核心理念</h4>
+                    <p data-lang-key="foundation_p_1">系統性思維是看見整體與部分關聯的能力，它要求我們同時運用左右腦。<b>左腦</b>進行收斂、邏輯性的思考，確保嚴謹；<b>右腦</b>進行發散、創造性的思考，尋找可能。這一切的基礎，來自於掌握兩種核心邏輯與一個清晰的思考層次。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4 data-lang-key="foundation_h4_2">兩種核心邏輯：左右腦的交互運作</h4>
+                    <ul>
+                        <li data-lang-key="foundation_li_1"><b>演繹法 (Deductive Logic) - 左腦的收斂思維 (PDCA):</b> 從一般原則推導至特定結論（Top-down）。它確保計畫的嚴謹與行動的可行性，如同 PDCA (Plan-Do-Check-Act) 循環，一步步驗證與修正。這是「把事做對」的邏輯。</li>
+                        <li data-lang-key="foundation_li_2"><b>歸納法 (Inductive Logic) - 右腦的發散思維 (IDEA):</b> 從特定觀察中總結出一般規律（Bottom-up）。它鼓勵我們從現象中發掘洞見、尋找新的可能性，如同 IDEA (Insight-Domain-Evolution-Action) 框架，是「做對的事」的創新起點。</li>
+                    </ul>
+                    <p class="mt-2 font-semibold" data-lang-key="foundation_p_2">真正的創新，始於右腦的發散歸納，終於左腦的收斂演繹，兩者缺一不可。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4 data-lang-key="foundation_h4_3">三個思考層次</h4>
+                    <p data-lang-key="foundation_p_3">任何一個論述，都可以拆解成三個層次來檢視其有效性：</p>
+                     <ul>
+                        <li data-lang-key="foundation_li_3"><b>議題層 (Issues Layer):</b> 我們到底在討論什麼？核心議題是否清晰、精準且有討論的必要性？</li>
+                        <li data-lang-key="foundation_li_4"><b>論證邏輯層 (Logic Arguments Layer):</b> 支持結論的理由是什麼？論點與數據是否真實、可靠，且能有效串連議題與結論？</li>
+                        <li data-lang-key="foundation_li_5"><b>結論行動層 (Conclusions & Actions Layer):</b> 所以我們該怎麼辦？結論是否回應了議題，行動方案是否具體可行？</li>
+                    </ul>
+                </div>
+
+                <div class="content-block">
+                    <h4 data-lang-key="foundation_h4_4">四個步驟: PDCA & IDEA</h4>
+                    <p data-lang-key="foundation_p_4">系統性思維的實踐，可以透過兩種循環流程來體現：左腦的 PDCA 用於邏輯問題的處理與持續改善；右腦的 IDEA 框架則用於創意的激發與創新機會的探索。兩者交互運用，形成完整的思考閉環。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4 data-lang-key="foundation_h4_5">五個運用應用場景</h4>
+                    <p data-lang-key="foundation_p_5">在實務中，我們可以將系統思維應用於五大場景，並與 AI 協作以強化分析能力：</p>
+                    <ul>
+                        <li data-lang-key="foundation_li_6"><b>資源合理安排:</b> 面對複雜狀況，理清頭緒、分配資源 (對應 SA: 狀況評估)。</li>
+                        <li data-lang-key="foundation_li_7"><b>問題有效解決:</b> 追根究柢，找到問題真因 (對應 PA: 問題分析)。</li>
+                        <li data-lang-key="foundation_li_8"><b>風險超前管理:</b> 預見未來風險，防範未然 (對應 PPA: 潛在問題分析)。</li>
+                        <li data-lang-key="foundation_li_9"><b>決策精準分析:</b> 權衡利弊，做出最佳選擇 (對應 DA: 決策分析)。</li>
+                        <li data-lang-key="foundation_li_10"><b>創意系統開創:</b> 突破框架，尋找創新機會 (對應 CA: 創意分析)。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for Foundation -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quiz_foundation_title">思維基石學習成效測驗</h3>
+                    <div id="quiz-foundation" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="b">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_foundation_q1">1. 「因為離婚率很高，而且房價越來越貴，所以年輕人害怕成家。」這個論述主要是在三個思考層次中的哪一個？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-foundation" value="a" class="mr-2"> <span data-lang-key="quiz_foundation_q1_a">A. 議題層</span></label>
+                                <label class="block"><input type="radio" name="q1-foundation" value="b" class="mr-2"> <span data-lang-key="quiz_foundation_q1_b">B. 論證邏輯層</span></label>
+                                <label class="block"><input type="radio" name="q1-foundation" value="c" class="mr-2"> <span data-lang-key="quiz_foundation_q1_c">C. 結論行動層</span></label>
+                                <label class="block"><input type="radio" name="q1-foundation" value="d" class="mr-2"> <span data-lang-key="quiz_foundation_q1_d">D. 以上皆是</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="a">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_foundation_q2">2. 觀察到公司最近三個成功的專案，都是由跨部門團隊執行的，因此提出「未來所有重要專案都應該採用跨部門合作模式」。這主要運用了哪一種思維邏輯？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-foundation" value="a" class="mr-2"> <span data-lang-key="quiz_foundation_q2_a">A. 歸納法 (Inductive)</span></label>
+                                <label class="block"><input type="radio" name="q2-foundation" value="b" class="mr-2"> <span data-lang-key="quiz_foundation_q2_b">B. 演繹法 (Deductive)</span></label>
+                                <label class="block"><input type="radio" name="q2-foundation" value="c" class="mr-2"> <span data-lang-key="quiz_foundation_q2_c">C. 橫向思考 (Lateral)</span></label>
+                                <label class="block"><input type="radio" name="q2-foundation" value="d" class="mr-2"> <span data-lang-key="quiz_foundation_q2_d">D. 批判性思考 (Critical)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('foundation')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="quiz_submit_btn">提交答案</button>
+                        <div id="score-foundation" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: IDEA - Insight & Domain Application -->
+            <section id="idea-id" class="content-section card">
+                <div class="card-header text-green-600">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                    <h2 class="text-2xl font-bold" data-lang-key="idea_id_title">ID:洞見與場景</h2>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_id_h4_1">核心理念</h4>
+                    <p data-lang-key="idea_id_p_1">創新的起點不是憑空想像，而是來自於對「人」的深刻理解與對「環境」的敏銳觀察。IDEA 框架的前兩步，正是要我們從混亂的現象中提煉出真正的「洞見」，並為這個洞見找到可以發揮的「應用場景」。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_id_h4_2">I - Imagination / Input / Insight (想像/輸入/洞見)</h4>
+                    <p data-lang-key="idea_id_p_2">此階段的核心是「同理心(Empathy)」。我們必須走進使用者的世界，去觀察、去傾聽、去感受他們的生活。目標是找出：</p>
+                    <ul>
+                        <li data-lang-key="idea_id_li_1"><b>顧客任務 (Customer Jobs):</b> 他們想完成什麼事？</li>
+                        <li data-lang-key="idea_id_li_2"><b>痛點 (Pains):</b> 在過程中，有什麼阻礙、風險或負面情緒？</li>
+                        <li data-lang-key="idea_id_li_3"><b>爽點 (Gains):</b> 他們期望獲得什麼好處、驚喜或渴望？</li>
+                    </ul>
+                    <p class="mt-2" data-lang-key="idea_id_p_3">真正的洞見，往往藏在那些使用者自己都沒說出口，但我們卻觀察到的未滿足需求之中。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_id_h4_3">D - Domain Application (運用場景)</h4>
+                    <p data-lang-key="idea_id_p_4">有了洞見之後，下一步是尋找創新的「空隙」。思考將一個既有的概念、技術或產品，應用到一個全新的場景中，往往能創造出巨大的價值。我們可以從三個維度來思考：</p>
+                     <ul>
+                        <li data-lang-key="idea_id_li_4"><b>空間 (Where):</b> 能不能用在別的地方？（如：工業用材料 -> 個人衛生用品）</li>
+                        <li data-lang-key="idea_id_li_5"><b>時間 (When):</b> 能不能用在別的時間點？（如：晚餐外送 -> 早餐/下午茶外送）</li>
+                        <li data-lang-key="idea_id_li_6"><b>物件 (What):</b> 能不能用在別的對象上？（如：給人聽的音樂 -> 給寵物聽的音樂）</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for IDEA-ID -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quiz_ideaid_title">洞見與場景學習成效測驗</h3>
+                    <div id="quiz-idea-id" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="a">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideaid_q1">1. 價值主張圖(VPC)中的「顧客輪廓(Customer Profile)」主要對應 IDEA 框架的哪個階段？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-idea-id" value="a" class="mr-2"> A. I (Insight)</label>
+                                <label class="block"><input type="radio" name="q1-idea-id" value="b" class="mr-2"> B. D (Domain Application)</label>
+                                <label class="block"><input type="radio" name="q1-idea-id" value="c" class="mr-2"> C. E (Evolution)</label>
+                                <label class="block"><input type="radio" name="q1-idea-id" value="d" class="mr-2"> D. A (Action)</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="c">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideaid_q2">2. 將原本用於工業吸塵的「旋風分離技術」應用到家用吸塵器上，這屬於 Domain Application 中的哪一種轉移？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-idea-id" value="a" class="mr-2"> <span data-lang-key="quiz_ideaid_q2_a">A. 時間 (When)</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-id" value="b" class="mr-2"> <span data-lang-key="quiz_ideaid_q2_b">B. 物件 (What)</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-id" value="c" class="mr-2"> <span data-lang-key="quiz_ideaid_q2_c">C. 空間 (Where)</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-id" value="d" class="mr-2"> <span data-lang-key="quiz_ideaid_q2_d">D. 以上皆非</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('idea-id')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="quiz_submit_btn">提交答案</button>
+                        <div id="score-idea-id" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: IDEA - Evolution & Innovation -->
+            <section id="idea-e" class="content-section card">
+                <div class="card-header text-purple-600">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" /></svg>
+                    <h2 class="text-2xl font-bold" data-lang-key="idea_e_title">E: 演化</h2>
+                </div>
+                 <div class="content-block">
+                    <h4 data-lang-key="idea_e_h4_1">核心理念</h4>
+                    <p data-lang-key="idea_e_p_1">好的點子很少一次到位，它們需要被連接、被重組、被演化。此階段的目標，就是運用系統性的創新工具，對現有的方案或點子進行「破壞式重組」，強迫我們跳出思維定勢，從而產生新的、更優的解決方案。</p>
+                </div>
+                 <div class="content-block">
+                    <h4 data-lang-key="idea_e_h4_2">SCAMPER - 創意的檢查表</h4>
+                    <p data-lang-key="idea_e_p_2">SCAMPER 是一套引導腦力激盪的動詞清單，幫助我們從七個不同角度去「折磨」一個點子：</p>
+                    <ul>
+                        <li data-lang-key="idea_e_li_1"><b>S (Substitute - 替代):</b> 能用什麼來取代？</li>
+                        <li data-lang-key="idea_e_li_2"><b>C (Combine - 結合):</b> 能跟什麼結合在一起？</li>
+                        <li data-lang-key="idea_e_li_3"><b>A (Adapt - 調整):</b> 能否借用別處的點子？</li>
+                        <li data-lang-key="idea_e_li_4"><b>M (Modify - 修改):</b> 能不能放大、縮小或改變型態？</li>
+                        <li data-lang-key="idea_e_li_5"><b>P (Put to another use - 他用):</b> 能不能用在別的用途？</li>
+                        <li data-lang-key="idea_e_li_6"><b>E (Eliminate - 消除):</b> 能不能拿掉某個部分？</li>
+                        <li data-lang-key="idea_e_li_7"><b>R (Reverse - 反轉):</b> 能不能把順序或結構反過來？</li>
+                    </ul>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_e_h4_3">TRIZ - 解決矛盾的發明理論</h4>
+                    <p data-lang-key="idea_e_p_3">TRIZ (發明性問題解決理論) 是一套更為工程導向的創新方法。它的核心思想是，許多技術問題的本質都是「矛盾」（例如：想要產品更堅固，但重量卻會增加）。TRIZ 整理了40條「發明原則」，可以針對特定的矛盾，提供經過驗證的解決方向。例如，面對「堅固 vs. 輕量」的矛盾，TRIZ 可能會提示我們使用「複合材料」（原則40）或「多孔材料」（原則31）。</p>
+                </div>
+                <div class="content-block">
+                    <h4>六頂思考帽 (Six Thinking Hats)</h4>
+                    <p>六頂思考帽是一種平行思維工具，鼓勵我們從六個不同的視角來全面審視一個問題或創意，避免陷入單一視角或情緒化決策：</p>
+                    <ul>
+                        <li><b>白帽 (White Hat):</b> 關注事實、數據與資訊。</li>
+                        <li><b>紅帽 (Red Hat):</b> 關注情緒、感覺與直覺。</li>
+                        <li><b>黑帽 (Black Hat):</b> 關注風險、困難與負面因素。</li>
+                        <li><b>黃帽 (Yellow Hat):</b> 關注優點、好處與正面價值。</li>
+                        <li><b>綠帽 (Green Hat):</b> 關注創意、可能性與新的想法。</li>
+                        <li><b>藍帽 (Blue Hat):</b> 關注流程、控制與決策。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for IDEA-E -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quiz_ideae_title">演化與創新學習成效測驗</h3>
+                    <div id="quiz-idea-e" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="d">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideae_q1">1. 將手機和相機結合，變成照相手機。這最符合 SCAMPER 中的哪個字母所代表的意義？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-idea-e" value="a" class="mr-2"> A. S (替代)</label>
+                                <label class="block"><input type="radio" name="q1-idea-e" value="b" class="mr-2"> B. A (調整)</label>
+                                <label class="block"><input type="radio" name="q1-idea-e" value="c" class="mr-2"> C. M (修改)</label>
+                                <label class="block"><input type="radio" name="q1-idea-e" value="d" class="mr-2"> D. C (結合)</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="b">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideae_q2">2. TRIZ 理論的核心精神是什麼？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-idea-e" value="a" class="mr-2"> <span data-lang-key="quiz_ideae_q2_a">A. 隨機進行腦力激盪</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-e" value="b" class="mr-2"> <span data-lang-key="quiz_ideae_q2_b">B. 識別並解決系統中的「矛盾」</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-e" value="c" class="mr-2"> <span data-lang-key="quiz_ideae_q2_c">C. 專注於降低產品成本</span></label>
+                                <label class="block"><input type="radio" name="q2-idea-e" value="d" class="mr-2"> <span data-lang-key="quiz_ideae_q2_d">D. 複製市場上最成功的產品</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('idea-e')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="quiz_submit_btn">提交答案</button>
+                        <div id="score-idea-e" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: IDEA - Action & Value -->
+            <section id="idea-a" class="content-section card">
+                <div class="card-header text-yellow-500">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M21.75 12h-2.25m-1.666 5.834L16.5 16.5M4.5 12H2.25m1.666-5.834L5.5 7.5M12 21.75V19.5" /></svg>
+                    <h2 class="text-2xl font-bold" data-lang-key="idea_a_title">A: 行動</h2>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_a_h4_1">核心理念</h4>
+                    <p data-lang-key="idea_a_p_1">只有點子，不是創新；能被執行並創造價值的，才是創新。此階段的目標是將前面發想、演化過的成熟創意，透過結構化的方法落地，確保它不僅可行，更能與市場需求契合，並建立可持續發展的商業模式。</p>
+                </div>
+                <div class="content-block">
+                    <h4 data-lang-key="idea_a_h4_2">關鍵行動工具</h4>
+                    <ul>
+                        <li data-lang-key="idea_a_li_1"><b>設計思維 (Design Thinking):</b> 這是一套以「人」為中心的迭代流程（同理->定義->發想->原型->測試）。它強調快速做出最小可行性產品(MVP)，並透過真實用戶的回饋來不斷修正，降低開發風險，確保最終產品是市場所需的。</li>
+                        <li data-lang-key="idea_a_li_2"><b>價值主張圖 (Value Proposition Canvas, VPC):</b> 這是確保「產品」與「市場」適配(Fit)的利器。它將「顧客輪廓」(Jobs, Pains, Gains)與「價值地圖」(Products, Pain Relievers, Gain Creators)並列檢視，確保我們提供的方案，能真正解決顧客的痛點、創造顧客的爽點。</li>
+                        <li data-lang-key="idea_a_li_3"><b>商業模式圖 (Business Model Canvas, BMC):</b> 這是將創新轉化為商業的全盤計畫。它用九個格子（目標客層、價值主張、通路、顧客關係、收益流、關鍵活動、關鍵資源、關鍵夥伴、成本結構），讓我們系統性地思考如何創造、傳遞並獲取價值。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for IDEA-A -->
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" data-lang-key="quiz_ideaa_title">行動與價值學習成效測驗</h3>
+                    <div id="quiz-idea-a" class="bg-gray-50 rounded-lg p-4">
+                        <div class="mb-4" data-correct="c">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideaa_q1">1. 「快速做出一個功能最簡化的產品版本，給一小群使用者測試以收集回饋」，這個行為最符合設計思維中的哪個階段？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q1-idea-a" value="a" class="mr-2"> <span data-lang-key="quiz_ideaa_q1_a">A. 同理 (Empathize)</span></label>
+                                <label class="block"><input type="radio" name="q1-idea-a" value="b" class="mr-2"> <span data-lang-key="quiz_ideaa_q1_b">B. 發想 (Ideate)</span></label>
+                                <label class="block"><input type="radio" name="q1-idea-a" value="c" class="mr-2"> <span data-lang-key="quiz_ideaa_q1_c">C. 原型 (Prototype) & 測試 (Test)</span></label>
+                                <label class="block"><input type="radio" name="q1-idea-a" value="d" class="mr-2"> <span data-lang-key="quiz_ideaa_q1_d">D. 定義 (Define)</span></label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <div data-correct="d">
+                            <p class="font-semibold mb-2" data-lang-key="quiz_ideaa_q2">2. 在商業模式圖(BMC)中，「我們如何賺錢？」這個問題主要對應的是哪個構成要素？</p>
+                            <div class="space-y-2">
+                                <label class="block"><input type="radio" name="q2-idea-a" value="a" class="mr-2"> A. Value Propositions</label>
+                                <label class="block"><input type="radio" name="q2-idea-a" value="b" class="mr-2"> B. Customer Segments</label>
+                                <label class="block"><input type="radio" name="q2-idea-a" value="c" class="mr-2"> C. Cost Structure</label>
+                                <label class="block"><input type="radio" name="q2-idea-a" value="d" class="mr-2"> D. Revenue Streams</label>
+                            </div>
+                            <div class="quiz-feedback hidden mt-2"></div>
+                        </div>
+                        <button onclick="submitQuiz('idea-a')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700" data-lang-key="quiz_submit_btn">提交答案</button>
+                        <div id="score-idea-a" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 5: AI Toolbox -->
+            <section id="toolbox" class="content-section card">
+                <div class="card-header text-indigo-600">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h12A2.25 2.25 0 0 0 20.25 14.25V3m-16.5 0h16.5m-16.5 0H3.75m16.5 0h.375m-17.25 0h.375m16.5 0h.375M3.75 3h16.5v11.25c0 .621-.504 1.125-1.125 1.125H6a1.125 1.125 0 0 1-1.125-1.125V3Zm14.25-1.5L13.5 3M3.75 1.5L6 3m0 0V1.5m12 1.5V1.5" />
+                    </svg>
+                    <h2 class="text-2xl font-bold" data-lang-key="toolbox_title">AI 思維工具箱</h2>
+                </div>
+                <div class="content-block">
+                    <p data-lang-key="toolbox_p_1">在這裡，您可以選擇各種經典的系統思維與創新工具，讓 AI 成為您的專屬顧問，協助您分析問題、評估風險、發想創意，並規劃行動方案。</p>
+                </div>
+                <div class="ai-interactive-section">
+                    <div class="ai-card bg-indigo-50 border-indigo-200 p-4 rounded-lg">
+                        <div class="mb-4">
+                            <label for="ai-tool-select" class="block mb-2 font-semibold text-gray-700" data-lang-key="toolbox_select_label">1. 請選擇您想使用的分析工具：</label>
+                            <select id="ai-tool-select" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <optgroup data-lang-key="toolbox_optgroup_1" label="系統性問題解決">
+                                    <option value="sa">SA (狀況評估)</option>
+                                    <option value="pa_isisnot">PA: IS/IS NOT 分析</option>
+                                    <option value="pa_whywhy">PA: Why-Why 分析</option>
+                                    <option value="pa_8d">PA: 8D 報告</option>
+                                    <option value="pa_5c">PA: 5C 報告</option>
+                                    <option value="pa_dmaic">PA: DMAIC (六標準差)</option>
+                                    <option value="ppa">PPA (潛在問題分析)</option>
+                                    <option value="da">DA (決策分析)</option>
+                                </optgroup>
+                                <optgroup data-lang-key="toolbox_optgroup_2" label="創新與策略規劃">
+                                    <option value="ca_pyramid">金字塔原理 (邏輯溝通)</option>
+                                    <option value="ca_scamper">SCAMPER (創意發想)</option>
+                                    <option value="ca_triz">TRIZ (矛盾解決)</option>
+                                    <option value="ca_sixhats">六頂思考帽 (多角思考)</option>
+                                    <option value="ca_designthinking">設計思維 (使用者中心)</option>
+                                    <option value="ca_vpc">價值主張圖 (VPC)</option>
+                                    <option value="ca_bmc">商業模式圖 (BMC)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="toolbox-input" class="font-semibold text-gray-700" data-lang-key="toolbox_input_label">2. 請在此輸入您的情境、問題或主題：</label>
+                                <button onclick="loadExample()" class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded hover:bg-gray-300 transition-colors" data-lang-key="toolbox_load_example_btn">載入範例</button>
+                            </div>
+                            <textarea id="toolbox-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" rows="5"></textarea>
+                        </div>
+                        <button onclick="handleAIToolbox()" class="mt-2 px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75" data-lang-key="toolbox_submit_btn">
+                            ✨ 啟動 AI 分析
+                        </button>
+                        <div id="toolbox-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Conclusion Section -->
+            <section id="conclusion" class="content-section card">
+                 <h2 class="section-title-card" data-lang-key="conclusion_title">結論與討論</h2>
+                 <div class="max-w-4xl mx-auto">
+                    <div class="mb-6 p-2 border rounded-lg bg-gray-100">
+                        <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/Mermaid%20Chart%20System%20Thinking%20&%20Innovation.png" target="_blank" data-lang-key-title="conclusion_map_zoom" title="點擊放大圖片">
+                            <img src="https://raw.githubusercontent.com/drcliffwang/course-material/main/Mermaid%20Chart%20System%20Thinking%20&%20Innovation.png" alt="系統性思維與創新課程心智圖" class="w-full h-auto rounded-md shadow-md">
+                        </a>
+                        <p class="text-center text-sm text-gray-500 mt-2" data-lang-key="conclusion_map_caption">點擊圖片可在新分頁中放大檢視，方便您複習課程全貌。</p>
+                    </div>
+                    <ul class="list-none space-y-3 text-left text-lg">
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <span data-lang-key="conclusion_li_1">一個系統思維整合: 邏輯思維 (左腦) 與創意思維 (右腦)</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <span data-lang-key="conclusion_li_2">二個邏輯必須兼具: 演譯(左腦)與歸納(右腦)</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <span data-lang-key="conclusion_li_3">三個層次: 議題層, 邏輯層, 與結論層</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <span data-lang-key="conclusion_li_4">四個步驟分成 PDCA 與 IDEA 之交互並用與 AI 協作</span></li>
+                        <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <span data-lang-key="conclusion_li_5">五個AI強化運用應用場景: 資源/問題/風險/決策/創意</span></li>
+                    </ul>
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <p class="text-lg text-gray-700" data-lang-key="conclusion_p_1">AI 輔助系統思維, 會由議題層直接跳至結論層, 人能力下降, 所以要以人腦智慧為主, 人工智能AI 為輔。</p>
+                    </div>
+                 </div>
+
+                <!-- File Download Section -->
+                <div class="mt-12">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4" data-lang-key="download_section_title">課程資源下載</h3>
+                    <div class="flex justify-center">
+                        <a href="https://raw.githubusercontent.com/drcliffwang/course-material/main/PSDM%20Excel%20Template.xlsx" 
+                           class="inline-flex items-center px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-lg shadow-lg hover:bg-green-700 transition-transform transform hover:scale-105"
+                           download>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span data-lang-key="download_button_text">下載 PSDM Excel 範本</span>
+                        </a>
+                    </div>
+                </div>
+                
+            </section>
+        </main>
+    </div>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p data-lang-key="footer_text">&copy; 2025 Systemic Thinking & Innovation + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- Translations Object ---
+    const translations = {
+        'zh-TW': {
+            'page_title': '系統性思維與創新 + AI 課程 (互動版)',
+            'header_title': '系統性思維與創新 + AI (互動版)',
+            'nav_intro': '課程概覽',
+            'nav_ai_setup': 'AI 設定',
+            'nav_foundation': '思維基石',
+            'nav_idea_id': 'ID:洞見與場景',
+            'nav_idea_e': 'E:演化',
+            'nav_idea_a': 'A:行動',
+            'nav_toolbox': 'AI思維工具箱',
+            'nav_conclusion': '結論',
+            'hero_title': '系統性思維與創新 + AI',
+            'hero_subtitle': '一門為您打造的系統性思維與 AI 協作實戰課程',
+            'podcast_title': '課程 Podcast',
+            'audio_fallback': '您的瀏覽器不支援聲音播放功能。',
+            'apikey_title': '啟動 AI 互動功能',
+            'apikey_desc': '為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。',
+            'apikey_provider_label': '1. 選擇 AI 服務提供商:',
+            'apikey_key_label': '2. 輸入您的 API 金鑰:',
+            'apikey_placeholder': '在此貼上您選擇的服務金鑰...',
+            'apikey_save_btn': '儲存',
+            'apikey_endpoint_label': '3. 輸入您的 Azure Endpoint:',
+            'apikey_endpoint_desc': '請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`',
+            'apikey_note1': '您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。',
+            'apikey_note2': '請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。',
+            'foundation_title': '系統思維的基石',
+            'foundation_card_title': '建立清晰的思考結構',
+            'foundation_h4_1': '一個核心理念',
+            'foundation_p_1': '系統性思維是看見整體與部分關聯的能力，它要求我們同時運用左右腦。<b>左腦</b>進行收斂、邏輯性的思考，確保嚴謹；<b>右腦</b>進行發散、創造性的思考，尋找可能。這一切的基礎，來自於掌握兩種核心邏輯與一個清晰的思考層次。',
+            'foundation_h4_2': '兩種核心邏輯：左右腦的交互運作',
+            'foundation_li_1': '<b>演繹法 (Deductive Logic) - 左腦的收斂思維 (PDCA):</b> 從一般原則推導至特定結論（Top-down）。它確保計畫的嚴謹與行動的可行性，如同 PDCA (Plan-Do-Check-Act) 循環，一步步驗證與修正。這是「把事做對」的邏輯。',
+            'foundation_li_2': '<b>歸納法 (Inductive Logic) - 右腦的發散思維 (IDEA):</b> 從特定觀察中總結出一般規律（Bottom-up）。它鼓勵我們從現象中發掘洞見、尋找新的可能性，如同 IDEA (Insight-Domain-Evolution-Action) 框架，是「做對的事」的創新起點。',
+            'foundation_p_2': '真正的創新，始於右腦的發散歸納，終於左腦的收斂演繹，兩者缺一不可。',
+            'foundation_h4_3': '三個思考層次',
+            'foundation_p_3': '任何一個論述，都可以拆解成三個層次來檢視其有效性：',
+            'foundation_li_3': '<b>議題層 (Issues Layer):</b> 我們到底在討論什麼？核心議題是否清晰、精準且有討論的必要性？',
+            'foundation_li_4': '<b>論證邏輯層 (Logic Arguments Layer):</b> 支持結論的理由是什麼？論點與數據是否真實、可靠，且能有效串連議題與結論？',
+            'foundation_li_5': '<b>結論行動層 (Conclusions & Actions Layer):</b> 所以我們該怎麼辦？結論是否回應了議題，行動方案是否具體可行？',
+            'foundation_h4_4': '四個步驟: PDCA & IDEA',
+            'foundation_p_4': '系統性思維的實踐，可以透過兩種循環流程來體現：左腦的 PDCA 用於邏輯問題的處理與持續改善；右腦的 IDEA 框架則用於創意的激發與創新機會的探索。兩者交互運用，形成完整的思考閉環。',
+            'foundation_h4_5': '五個運用應用場景',
+            'foundation_p_5': '在實務中，我們可以將系統思維應用於五大場景，並與 AI 協作以強化分析能力：',
+            'foundation_li_6': '<b>資源合理安排:</b> 面對複雜狀況，理清頭緒、分配資源 (對應 SA: 狀況評估)。',
+            'foundation_li_7': '<b>問題有效解決:</b> 追根究柢，找到問題真因 (對應 PA: 問題分析)。',
+            'foundation_li_8': '<b>風險超前管理:</b> 預見未來風險，防範未然 (對應 PPA: 潛在問題分析)。',
+            'foundation_li_9': '<b>決策精準分析:</b> 權衡利弊，做出最佳選擇 (對應 DA: 決策分析)。',
+            'foundation_li_10': '<b>創意系統開創:</b> 突破框架，尋找創新機會 (對應 CA: 創意分析)。',
+            'quiz_foundation_title': '思維基石學習成效測驗',
+            'quiz_foundation_q1': '1. 「因為離婚率很高，而且房價越來越貴，所以年輕人害怕成家。」這個論述主要是在三個思考層次中的哪一個？',
+            'quiz_foundation_q1_a': 'A. 議題層',
+            'quiz_foundation_q1_b': 'B. 論證邏輯層',
+            'quiz_foundation_q1_c': 'C. 結論行動層',
+            'quiz_foundation_q1_d': 'D. 以上皆是',
+            'quiz_foundation_q2': '2. 觀察到公司最近三個成功的專案，都是由跨部門團隊執行的，因此提出「未來所有重要專案都應該採用跨部門合作模式」。這主要運用了哪一種思維邏輯？',
+            'quiz_foundation_q2_a': 'A. 歸納法 (Inductive)',
+            'quiz_foundation_q2_b': 'B. 演繹法 (Deductive)',
+            'quiz_foundation_q2_c': 'C. 橫向思考 (Lateral)',
+            'quiz_foundation_q2_d': 'D. 批判性思考 (Critical)',
+            'quiz_submit_btn': '提交答案',
+            'idea_id_title': 'ID:洞見與場景',
+            'idea_id_card_title': '發掘需求，找到破口',
+            'idea_id_h4_1': '核心理念',
+            'idea_id_p_1': '創新的起點不是憑空想像，而是來自於對「人」的深刻理解與對「環境」的敏銳觀察。IDEA 框架的前兩步，正是要我們從混亂的現象中提煉出真正的「洞見」，並為這個洞見找到可以發揮的「應用場景」。',
+            'idea_id_h4_2': 'I - Imagination / Input / Insight (想像/輸入/洞見)',
+            'idea_id_p_2': '此階段的核心是「同理心(Empathy)」。我們必須走進使用者的世界，去觀察、去傾聽、去感受他們的生活。目標是找出：',
+            'idea_id_li_1': '<b>顧客任務 (Customer Jobs):</b> 他們想完成什麼事？',
+            'idea_id_li_2': '<b>痛點 (Pains):</b> 在過程中，有什麼阻礙、風險或負面情緒？',
+            'idea_id_li_3': '<b>爽點 (Gains):</b> 他們期望獲得什麼好處、驚喜或渴望？',
+            'idea_id_p_3': '真正的洞見，往往藏在那些使用者自己都沒說出口，但我們卻觀察到的未滿足需求之中。',
+            'idea_id_h4_3': 'D - Domain Application (運用場景)',
+            'idea_id_p_4': '有了洞見之後，下一步是尋找創新的「空隙」。思考將一個既有的概念、技術或產品，應用到一個全新的場景中，往往能創造出巨大的價值。我們可以從三個維度來思考：',
+            'idea_id_li_4': '<b>空間 (Where):</b> 能不能用在別的地方？（如：工業用材料 -> 個人衛生用品）',
+            'idea_id_li_5': '<b>時間 (When):</b> 能不能用在別的時間點？（如：晚餐外送 -> 早餐/下午茶外送）',
+            'idea_id_li_6': '<b>物件 (What):</b> 能不能用在別的對象上？（如：給人聽的音樂 -> 給寵物聽的音樂）',
+            'quiz_ideaid_title': '洞見與場景學習成效測驗',
+            'quiz_ideaid_q1': '1. 價值主張圖(VPC)中的「顧客輪廓(Customer Profile)」主要對應 IDEA 框架的哪個階段？',
+            'quiz_ideaid_q2': '2. 將原本用於工業吸塵的「旋風分離技術」應用到家用吸塵器上，這屬於 Domain Application 中的哪一種轉移？',
+            'quiz_ideaid_q2_a': 'A. 時間 (When)',
+            'quiz_ideaid_q2_b': 'B. 物件 (What)',
+            'quiz_ideaid_q2_c': 'C. 空間 (Where)',
+            'quiz_ideaid_q2_d': 'D. 以上皆非',
+            'idea_e_title': 'E: 演化',
+            'idea_e_card_title': '系統性地讓點子進化',
+            'idea_e_h4_1': '核心理念',
+            'idea_e_p_1': '好的點子很少一次到位，它們需要被連接、被重組、被演化。此階段的目標，就是運用系統性的創新工具，對現有的方案或點子進行「破壞式重組」，強迫我們跳出思維定勢，從而產生新的、更優的解決方案。',
+            'idea_e_h4_2': 'SCAMPER - 創意的檢查表',
+            'idea_e_p_2': 'SCAMPER 是一套引導腦力激盪的動詞清單，幫助我們從七個不同角度去「折磨」一個點子：',
+            'idea_e_li_1': '<b>S (Substitute - 替代):</b> 能用什麼來取代？',
+            'idea_e_li_2': '<b>C (Combine - 結合):</b> 能跟什麼結合在一起？',
+            'idea_e_li_3': '<b>A (Adapt - 調整):</b> 能否借用別處的點子？',
+            'idea_e_li_4': '<b>M (Modify - 修改):</b> 能不能放大、縮小或改變型態？',
+            'idea_e_li_5': '<b>P (Put to another use - 他用):</b> 能不能用在別的用途？',
+            'idea_e_li_6': '<b>E (Eliminate - 消除):</b> 能不能拿掉某個部分？',
+            'idea_e_li_7': '<b>R (Reverse - 反轉):</b> 能不能把順序或結構反過來？',
+            'idea_e_h4_3': 'TRIZ - 解決矛盾的發明理論',
+            'idea_e_p_3': 'TRIZ (發明性問題解決理論) 是一套更為工程導向的創新方法。它的核心思想是，許多技術問題的本質都是「矛盾」（例如：想要產品更堅固，但重量卻會增加）。TRIZ 整理了40條「發明原則」，可以針對特定的矛盾，提供經過驗證的解決方向。例如，面對「堅固 vs. 輕量」的矛盾，TRIZ 可能會提示我們使用「複合材料」（原則40）或「多孔材料」（原則31）。',
+            'quiz_ideae_title': '演化與創新學習成效測驗',
+            'quiz_ideae_q1': '1. 將手機和相機結合，變成照相手機。這最符合 SCAMPER 中的哪個字母所代表的意義？',
+            'quiz_ideae_q2': '2. TRIZ 理論的核心精神是什麼？',
+            'quiz_ideae_q2_a': 'A. 隨機進行腦力激盪',
+            'quiz_ideae_q2_b': 'B. 識別並解決系統中的「矛盾」',
+            'quiz_ideae_q2_c': 'C. 專注於降低產品成本',
+            'quiz_ideae_q2_d': 'D. 複製市場上最成功的產品',
+            'idea_a_title': 'A: 行動',
+            'idea_a_card_title': '將創意轉化為真實價值',
+            'idea_a_h4_1': '核心理念',
+            'idea_a_p_1': '只有點子，不是創新；能被執行並創造價值的，才是創新。此階段的目標是將前面發想、演化過的成熟創意，透過結構化的方法落地，確保它不僅可行，更能與市場需求契合，並建立可持續發展的商業模式。',
+            'idea_a_h4_2': '關鍵行動工具',
+            'idea_a_li_1': '<b>設計思維 (Design Thinking):</b> 這是一套以「人」為中心的迭代流程（同理->定義->發想->原型->測試）。它強調快速做出最小可行性產品(MVP)，並透過真實用戶的回饋來不斷修正，降低開發風險，確保最終產品是市場所需的。',
+            'idea_a_li_2': '<b>價值主張圖 (Value Proposition Canvas, VPC):</b> 這是確保「產品」與「市場」適配(Fit)的利器。它將「顧客輪廓」(Jobs, Pains, Gains)與「價值地圖」(Products, Pain Relievers, Gain Creators)並列檢視，確保我們提供的方案，能真正解決顧客的痛點、創造顧客的爽點。',
+            'idea_a_li_3': '<b>商業模式圖 (Business Model Canvas, BMC):</b> 這是將創新轉化為商業的全盤計畫。它用九個格子（目標客層、價值主張、通路、顧客關係、收益流、關鍵活動、關鍵資源、關鍵夥伴、成本結構），讓我們系統性地思考如何創造、傳遞並獲取價值。',
+            'quiz_ideaa_title': '行動與價值學習成效測驗',
+            'quiz_ideaa_q1': '1. 「快速做出一個功能最簡化的產品版本，給一小群使用者測試以收集回饋」，這個行為最符合設計思維中的哪個階段？',
+            'quiz_ideaa_q1_a': 'A. 同理 (Empathize)',
+            'quiz_ideaa_q1_b': 'B. 發想 (Ideate)',
+            'quiz_ideaa_q1_c': 'C. 原型 (Prototype) & 測試 (Test)',
+            'quiz_ideaa_q1_d': 'D. 定義 (Define)',
+            'quiz_ideaa_q2': '2. 在商業模式圖(BMC)中，「我們如何賺錢？」這個問題主要對應的是哪個構成要素？',
+            'toolbox_title': 'AI 思維工具箱',
+            'toolbox_card_title': 'AI 協作，強化思考',
+            'toolbox_p_1': '在這裡，您可以選擇各種經典的系統思維與創新工具，讓 AI 成為您的專屬顧問，協助您分析問題、評估風險、發想創意，並規劃行動方案。',
+            'toolbox_select_label': '1. 請選擇您想使用的分析工具：',
+            'toolbox_optgroup_1': '系統性問題解決',
+            'toolbox_optgroup_2': '創新與策略規劃',
+            'toolbox_input_label': '2. 請在此輸入您的情境、問題或主題：',
+            'toolbox_load_example_btn': '載入範例',
+            'toolbox_submit_btn': '✨ 啟動 AI 分析',
+            'conclusion_title': '結論與討論',
+            'conclusion_map_title': '課程架構心智圖總覽',
+            'conclusion_map_zoom': '點擊放大圖片',
+            'conclusion_map_caption': '點擊圖片可在新分頁中放大檢視，方便您複習課程全貌。',
+            'conclusion_li_1': '一個系統思維整合: 邏輯思維 (左腦) 與創意思維 (右腦)',
+            'conclusion_li_2': '二個邏輯必須兼具: 演譯(左腦)與歸納(右腦)',
+            'conclusion_li_3': '三個層次: 議題層, 邏輯層, 與結論層',
+            'conclusion_li_4': '四個步驟分成 PDCA 與 IDEA 之交互並用與 AI 協作',
+            'conclusion_li_5': '五個AI強化運用應用場景: 資源/問題/風險/決策/創意',
+            'conclusion_p_1': 'AI 輔助系統思維, 會由議題層直接跳至結論層, 人能力下降, 所以要以人腦智慧為主, 人工智能AI 為輔。',
+            'download_section_title': '課程資源下載',
+            'download_button_text': '下載 PSDM Excel 範本',
+            'footer_text': '&copy; 2025 Systemic Thinking & Innovation + AI Course Material. All Rights Reserved.',
+            'alert_save_success': 'API 金鑰已儲存！您現在選擇的服務是',
+            'alert_save_endpoint_success': 'API 金鑰與 Endpoint 已儲存！您現在選擇的服務是',
+            'alert_endpoint_needed': '使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。',
+            'alert_key_needed': '請輸入有效的 API 金鑰。',
+            'alert_activate_first': '請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！',
+            'alert_activate_endpoint_first': '請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！',
+            'alert_input_needed': '請先輸入您的情境或問題！',
+            'quiz_feedback_correct': '答對了！',
+            'quiz_feedback_incorrect': '答錯了。正確答案是',
+            'quiz_feedback_no_answer': '您未選擇答案。正確答案是',
+            'quiz_score_text': '您的得分:',
+        },
+        'zh-CN': {
+            'page_title': '系统性思维与创新 + AI 课程 (互动版)',
+            'header_title': '系统性思维与创新 + AI (互动版)',
+            'nav_intro': '课程概览',
+            'nav_ai_setup': 'AI 设置',
+            'nav_foundation': '思维基石',
+            'nav_idea_id': 'ID:洞见与场景',
+            'nav_idea_e': 'E:演化',
+            'nav_idea_a': 'A:行动',
+            'nav_toolbox': 'AI思维工具箱',
+            'nav_conclusion': '结论',
+            'hero_title': '系统性思维与创新 + AI',
+            'hero_subtitle': '一门为您打造的系统性思维与 AI 协作实战课程',
+            'podcast_title': '课程 Podcast',
+            'audio_fallback': '您的浏览器不支持声音播放功能。',
+            'apikey_title': '启动 AI 互动功能',
+            'apikey_desc': '为了使用下方的 AI 实战演练，请选择您的 AI 服务并贴上对应的 API 密钥。',
+            'apikey_provider_label': '1. 选择 AI 服务提供商:',
+            'apikey_key_label': '2. 输入您的 API 密钥:',
+            'apikey_placeholder': '在此贴上您选择的服务密钥...',
+            'apikey_save_btn': '储存',
+            'apikey_endpoint_label': '3. 输入您的 Azure Endpoint:',
+            'apikey_endpoint_desc': '请确认 Endpoint 包含完整的部署名称，例如 `.../deployments/your-deployment-name`',
+            'apikey_note1': '您的密钥只会储存在您目前的浏览器中。可从 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免费取得。',
+            'apikey_note2': '请注意：部分服务在免费额度用完后，可能需要您在该平台设定付款方式或储值才能继续使用。',
+            'foundation_title': '思维基石',
+            'foundation_card_title': '建立清晰的思考结构',
+            'foundation_h4_1': '一个核心理念',
+            'foundation_p_1': '系统性思维是看見整体与部分关联的能力，它要求我们同时运用左右脑。<b>左脑</b>进行收敛、逻辑性的思考，确保严谨；<b>右脑</b>进行发散、创造性的思考，寻找可能。这一切的基础，来自于掌握两种核心逻辑与一个清晰的思考层次。',
+            'foundation_h4_2': '两种核心逻辑：左右脑的交互运作',
+            'foundation_li_1': '<b>演绎法 (Deductive Logic) - 左脑的收敛思维 (PDCA):</b> 从一般原则推导至特定结论（Top-down）。它确保计画的严谨与行动的可行性，如同 PDCA (Plan-Do-Check-Act) 循环，一步步验证与修正。这是「把事做对」的逻辑。',
+            'foundation_li_2': '<b>归纳法 (Inductive Logic) - 右脑的发散思维 (IDEA):</b> 从特定观察中总结出一般规律（Bottom-up）。它鼓励我们从现象中发掘洞见、寻找新的可能性，如同 IDEA (Insight-Domain-Evolution-Action) 框架，是「做对的事」的创新起点。',
+            'foundation_p_2': '真正的创新，始于右脑的发散归纳，终于左脑的收敛演绎，两者缺一不可。',
+            'foundation_h4_3': '三个思考层次',
+            'foundation_p_3': '任何一个论述，都可以拆解成三个层次来检视其有效性：',
+            'foundation_li_3': '<b>议题层 (Issues Layer):</b> 我们到底在讨论什么？核心议题是否清晰、精准且有讨论的必要性？',
+            'foundation_li_4': '<b>论证逻辑层 (Logic Arguments Layer):</b> 支持结论的理由是什么？论点与数据是否真实、可靠，且能有效串连议题与结论？',
+            'foundation_li_5': '<b>结论行动层 (Conclusions & Actions Layer):</b> 所以我们该怎么办？结论是否回应了议题，行动方案是否具体可行？',
+            'foundation_h4_4': '四个步骤: PDCA & IDEA',
+            'foundation_p_4': '系统性思维的实践，可以透过两种循环流程来体现：左脑的 PDCA 用于逻辑问题的处理与持续改善；右脑的 IDEA 框架则用于创意的激发与创新机会的探索。两者交互运用，形成完整的思考闭环。',
+            'foundation_h4_5': '五个运用应用场景',
+            'foundation_p_5': '在实务中，我们可以将系统思维应用于五大场景，并与 AI 协作以强化分析能力：',
+            'foundation_li_6': '<b>资源合理安排:</b> 面对复杂狀況，理清头绪、分配资源 (对应 SA: 狀況評估)。',
+            'foundation_li_7': '<b>问题有效解决:</b> 追根究柢，找到问题真因 (对应 PA: 问题分析)。',
+            'foundation_li_8': '<b>风险超前管理:</b> 预见未来风险，防范未然 (对应 PPA: 潜在问题分析)。',
+            'foundation_li_9': '<b>決策精准分析:</b> 权衡利弊，做出最佳选择 (对应 DA: 决策分析)。',
+            'foundation_li_10': '<b>创意系统开创:</b> 突破框架，寻找创新机会 (对应 CA: 创意分析)。',
+            'quiz_foundation_title': '思维基石学习成效测验',
+            'quiz_foundation_q1': '1. 「因为离婚率很高，而且房价越来越贵，所以年轻人害怕成家。」这个论述主要是在三个思考层次中的哪一个？',
+            'quiz_foundation_q1_a': 'A. 议题层',
+            'quiz_foundation_q1_b': 'B. 论证逻辑层',
+            'quiz_foundation_q1_c': 'C. 结论行动层',
+            'quiz_foundation_q1_d': 'D. 以上皆是',
+            'quiz_foundation_q2': '2. 观察到公司最近三个成功的专案，都是由跨部门团队执行的，因此提出「未来所有重要专案都应该采用跨部门合作模式」。这主要运用了哪一种思维逻辑？',
+            'quiz_foundation_q2_a': 'A. 归纳法 (Inductive)',
+            'quiz_foundation_q2_b': 'B. 演绎法 (Deductive)',
+            'quiz_foundation_q2_c': 'C. 横向思考 (Lateral)',
+            'quiz_foundation_q2_d': 'D. 批判性思考 (Critical)',
+            'quiz_submit_btn': '提交答案',
+            'idea_id_title': 'ID:洞见与场景',
+            'idea_id_card_title': '发掘需求，找到破口',
+            'idea_id_h4_1': '核心理念',
+            'idea_id_p_1': '创新的起点不是凭空想像，而是来自于对「人」的深刻理解与对「环境」的敏锐观察。IDEA 框架的前两步，正是要我们从混乱的现象中提炼出真正的「洞见」，并为这个洞见找到可以发挥的「应用场景」。',
+            'idea_id_h4_2': 'I - Imagination / Input / Insight (想像/输入/洞见)',
+            'idea_id_p_2': '此阶段的核心是「同理心(Empathy)」。我们必须走进使用者的世界，去观察、去倾听、去感受他们生活的。目标是找出：',
+            'idea_id_li_1': '<b>顾客任务 (Customer Jobs):</b> 他们想完成什么事？',
+            'idea_id_li_2': '<b>痛点 (Pains):</b> 在过程中，有什么阻碍、风险或负面情绪？',
+            'idea_id_li_3': '<b>爽点 (Gains):</b> 他们期望获得什么好处、惊喜或渴望？',
+            'idea_id_p_3': '真正的洞见，往往藏在那些使用者自己都没说出口，但我们却观察到的未满足需求之中。',
+            'idea_id_h4_3': 'D - Domain Application (运用场景)',
+            'idea_id_p_4': '有了洞见之后，下一步是寻找创新的「空隙」。思考将一个既有的概念、技术或产品，应用到一个全新的场景中，往往能创造出巨大的价值。我們可以从三个维度来思考：',
+            'idea_id_li_4': '<b>空間 (Where):</b> 能不能用在別的地方？（如：工業用材料 -> 個人衛生用品）',
+            'idea_id_li_5': '<b>時間 (When):</b> 能不能用在別的時間點？（如：晚餐外送 -> 早餐/下午茶外送）',
+            'idea_id_li_6': '<b>物件 (What):</b> 能不能用在別的對象上？（如：給人聽的音樂 -> 給寵物聽的音樂）',
+            'quiz_ideaid_title': '洞見與場景學習成效測驗',
+            'quiz_ideaid_q1': '1. 價值主張圖(VPC)中的「顧客輪廓(Customer Profile)」主要對應 IDEA 框架的哪個階段？',
+            'quiz_ideaid_q2': '2. 將原本用於工業吸塵的「旋風分離技術」應用到家用吸塵器上，這屬於 Domain Application 中的哪一種轉移？',
+            'quiz_ideaid_q2_a': 'A. 時間 (When)',
+            'quiz_ideaid_q2_b': 'B. 物件 (What)',
+            'quiz_ideaid_q2_c': 'C. 空間 (Where)',
+            'quiz_ideaid_q2_d': 'D. 以上皆非',
+            'idea_e_title': 'E: 演化',
+            'idea_e_card_title': '系统性地让点子进化',
+            'idea_e_h4_1': '核心理念',
+            'idea_e_p_1': '好的点子很少一次到位，它们需要被连接、被重组、被演化。此阶段的目标，就是运用系统性的创新工具，对现有的方案或点子进行「破坏式重组」，强迫我们跳出思维定势，从而产生新的、更优的解决方案。',
+            'idea_e_h4_2': 'SCAMPER - 创意的检查表',
+            'idea_e_p_2': 'SCAMPER 是一套引导脑力激荡的动词清单，帮助我们从七个不同角度去「折磨」一个点子：',
+            'idea_e_li_1': '<b>S (Substitute - 替代):</b> 能用什么来取代？',
+            'idea_e_li_2': '<b>C (Combine - 结合):</b> 能跟什么结合在一起？',
+            'idea_e_li_3': '<b>A (Adapt - 调整):</b> 能否借用别处的点子？',
+            'idea_e_li_4': '<b>M (Modify - 修改):</b> 能不能放大、缩小或改变型态？',
+            'idea_e_li_5': '<b>P (Put to another use - 他用):</b> 能不能用在别的用途？',
+            'idea_e_li_6': '<b>E (Eliminate - 消除):</b> 能不能拿掉某个部分？',
+            'idea_e_li_7': '<b>R (Reverse - 反转):</b> 能不能把顺序列或结构反过来？',
+            'idea_e_h4_3': 'TRIZ - 解决矛盾的发明理论',
+            'idea_e_p_3': 'TRIZ (发明性问题解决理论) 是一套更为工程导向的创新方法。它的核心思想是，许多技术问题的本质都是「矛盾」（例如：想要产品更坚固，但重量却会增加）。TRIZ 整理了40条「发明原则」，可以针对特定的矛盾，提供经过验证的解决方向。例如，面對「堅固 vs. 輕量」的矛盾，TRIZ 可能會提示我們使用「複合材料」（原則40）或「多孔材料」（原則31）。',
+            'quiz_ideae_title': '演化与创新学习成效测验',
+            'quiz_ideae_q1': '1. 将手机和相机结合，变成照相手机。这最符合 SCAMPER 中的哪个字母所代表的意义？',
+            'quiz_ideae_q2': '2. TRIZ 理论的核心精神是什么？',
+            'quiz_ideae_q2_a': 'A. 随性进行脑力激荡',
+            'quiz_ideae_q2_b': 'B. 识别并解决系统中的「矛盾」',
+            'quiz_ideae_q2_c': 'C. 专注于降低产品成本',
+            'quiz_ideae_q2_d': 'D. 复制市场上最成功的产品',
+            'idea_a_title': 'A: 行動',
+            'idea_a_card_title': '将创意转化为真实价值',
+            'idea_a_h4_1': '核心理念',
+            'idea_a_p_1': '只有点子，不是创新；能被执行并创造价值的，才是创新。此阶段的目标是将前面发想、演化过的成熟创意，透过结构化的方法落地，确保它不仅可行，更能与市场需求契合，并建立可持续发展的商业模式。',
+            'idea_a_h4_2': '關鍵行動工具',
+            'idea_a_li_1': '<b>設計思維 (Design Thinking):</b> 這是一套以「人」為中心的迭代流程（同理->定義->發想->原型->測試）。它強調快速做出最小可行性產品(MVP)，並透過真實用戶的回饋來不斷修正，降低開發風險，確保最終產品是市場所需的。',
+            'idea_a_li_2': '<b>價值主張圖 (Value Proposition Canvas, VPC):</b> 這是確保「產品」與「市場」適配(Fit)的利器。它將「顧客輪廓」(Jobs, Pains, Gains)與「價值地圖」(Products, Pain Relievers, Gain Creators)並列檢視，確保我們提供的方案，能真正解決顧客的痛點、創造顧客的爽點。',
+            'idea_a_li_3': '<b>商業模式圖 (Business Model Canvas, BMC):</b> 這是將創新轉化為商業的全盤計畫。它用九個格子（目標客層、價值主張、通路、顧客關係、收益流、關鍵活動、關鍵資源、關鍵夥伴、成本結構），讓我們系統性地思考如何創造、傳遞並獲取價值。',
+            'quiz_ideaa_title': '行動與價值學習成效測驗',
+            'quiz_ideaa_q1': '1. 「快速做出一個功能最簡化的產品版本，給一小群使用者測試以收集回饋」，這個行為最符合設計思維中的哪個階段？',
+            'quiz_ideaa_q1_a': 'A. 同理 (Empathize)',
+            'quiz_ideaa_q1_b': 'B. 發想 (Ideate)',
+            'quiz_ideaa_q1_c': 'C. 原型 (Prototype) & 測試 (Test)',
+            'quiz_ideaa_q1_d': 'D. 定義 (Define)',
+            'quiz_ideaa_q2': '2. 在商業模式圖(BMC)中，「我們如何賺錢？」這個問題主要對應的是哪個構成要素？',
+            'toolbox_title': 'AI 思維工具箱',
+            'toolbox_card_title': 'AI 協作，強化思考',
+            'toolbox_p_1': '在這裡，您可以選擇各種經典的系統思維與創新工具，讓 AI 成為您的專屬顧問，協助您分析問題、評估風險、發想創意，並規劃行動方案。',
+            'toolbox_select_label': '1. 請選擇您想使用的分析工具：',
+            'toolbox_optgroup_1': '系統性問題解決',
+            'toolbox_optgroup_2': '創新與策略規劃',
+            'toolbox_input_label': '2. 請在此輸入您的情境、問題或主題：',
+            'toolbox_load_example_btn': '載入範例',
+            'toolbox_submit_btn': '✨ 啟動 AI 分析',
+            'conclusion_title': '結論與討論',
+            'conclusion_map_title': '課程架構心智圖總覽',
+            'conclusion_map_zoom': '點擊放大圖片',
+            'conclusion_map_caption': '點擊圖片可在新分頁中放大檢視，方便您複習課程全貌。',
+            'conclusion_li_1': '一個系統思維整合: 邏輯思維 (左腦) 與創意思維 (右腦)',
+            'conclusion_li_2': '二個邏輯必須兼具: 演譯(左腦)與歸納(右腦)',
+            'conclusion_li_3': '三個層次: 議題層, 邏輯層, 與結論層',
+            'conclusion_li_4': '四個步驟分成 PDCA 與 IDEA 之交互並用與 AI 協作',
+            'conclusion_li_5': '五個AI強化運用應用場景: 資源/問題/風險/決策/創意',
+            'conclusion_p_1': 'AI 輔助系統思維, 會由議題層直接跳至結論層, 人能力下降, 所以要以人腦智慧為主, 人工智能AI 為輔。',
+            'download_section_title': '課程資源下載',
+            'download_button_text': '下載 PSDM Excel 範本',
+            'footer_text': '&copy; 2025 Systemic Thinking & Innovation + AI Course Material. All Rights Reserved.',
+            'alert_save_success': 'API 金鑰已儲存！您現在選擇的服務是',
+            'alert_save_endpoint_success': 'API 金鑰與 Endpoint 已儲存！您現在選擇的服務是',
+            'alert_endpoint_needed': '使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。',
+            'alert_key_needed': '請輸入有效的 API 金鑰。',
+            'alert_activate_first': '請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！',
+            'alert_activate_endpoint_first': '請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰與 Azure Endpoint！',
+            'alert_input_needed': '請先輸入您的情境或問題！',
+            'quiz_feedback_correct': '答對了！',
+            'quiz_feedback_incorrect': '答錯了。正確答案是',
+            'quiz_feedback_no_answer': '您未選擇答案。正確答案是',
+            'quiz_score_text': '您的得分:',
+        }
+    };
+
+    let currentLang = 'zh-TW';
+
+    // --- Tab Navigation ---
+    function showSection(sectionId) {
+        // Hide all sections
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        // Deactivate all tabs
+        document.querySelectorAll('#tab-nav .tab-button').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Show selected section and activate corresponding tab
+        document.getElementById(sectionId).classList.add('active');
+        const activeButton = document.querySelector(`#tab-nav .tab-button[onclick="showSection('${sectionId}')"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+    }
+    
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+        switchLanguage('zh-TW');
+        showSection('intro');
+    });
+
+
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+    let userEndpointUrl = ''; // For Azure/Copilot
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const endpointContainer = document.getElementById('copilot-endpoint-container');
+            if (this.value === 'copilot') {
+                endpointContainer.classList.remove('hidden');
+            } else {
+                endpointContainer.classList.add('hidden');
+            }
+        });
+    });
+
+    function saveApiKey() {
+        const keyInput = document.getElementById('api-key-input');
+        const endpointInput = document.getElementById('endpoint-url-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+
+        if (keyInput.value.trim()) {
+            userApiKey = keyInput.value.trim();
+            if (apiProvider === 'copilot') {
+                if (endpointInput.value.trim()) {
+                    userEndpointUrl = endpointInput.value.trim();
+                    alert(`${translations[currentLang].alert_save_endpoint_success} ${apiProvider.toUpperCase()}。`);
+                } else {
+                    alert(translations[currentLang].alert_endpoint_needed);
+                    return;
+                }
+            } else {
+                 alert(`${translations[currentLang].alert_save_success} ${apiProvider.toUpperCase()}。`);
+            }
+        } else {
+            alert(translations[currentLang].alert_key_needed);
+        }
+    }
+
+    // --- AI Interaction Logic (REVISED) ---
+    async function callAI(prompt, apiKey, provider, endpoint) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+        const system_prompt_content = currentLang === 'zh-CN' ? "你是一位专业的顾问，请使用简体中文回答。" : "你是一位專業的顧問，請使用繁體中文回答。";
+
+        // Configure based on the selected provider
+        switch (provider) {
+     case 'gemini':
+                    // **修正點: 移除 systemInstruction 欄位，將系統提示合併到使用者提示中**
+                    apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+                    
+                    // 將系統指令和使用者提示合併為一個 contents 元素
+                    const geminiPrompt = `${system_prompt_content}\n\n[使用者請求]\n${prompt}`;
+                    
+                    body = {
+                        contents: [{ role: "user", parts: [{ text: geminiPrompt }] }],
+                        // systemInstruction: { parts: [{ text: system_prompt }] }, // 移除此行，因為它導致 400 錯誤
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+                        ]
+                    };
+                    break;
+
+            case 'deepseek':
+                apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = { 
+                    model: "deepseek-chat", 
+                    messages: [
+                        { role: "system", content: system_prompt_content },
+                        { role: "user", content: prompt }
+                    ] 
+                };
+                break;
+
+            case 'chatgpt':
+                apiUrl = 'https://api.openai.com/v1/chat/completions';
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = { 
+                    model: "gpt-4o-mini", 
+                    messages: [
+                        { role: "system", content: system_prompt_content },
+                        { role: "user", content: prompt }
+                    ] 
+                };
+                break;
+
+            case 'copilot':
+                if (!endpoint) {
+                    return "錯誤：使用 Copilot (Azure) 時必須提供 Endpoint URL。";
+                }
+                // Azure OpenAI Endpoint 通常是 https://<resource>.openai.azure.com/openai/deployments/<deployment_name>/chat/completions?api-version=2024-02-01
+                // 假設使用者輸入的 endpoint 已經包含部署名稱
+                apiUrl = `${endpoint}/chat/completions?api-version=2024-02-01`;
+                headers['api-key'] = apiKey;
+                body = { 
+                    messages: [
+                        { role: "system", content: system_prompt_content },
+                        { role: "user", content: prompt }
+                    ] 
+                };
+                break;
+            
+            default:
+                return "錯誤：未知的 AI 服務提供商。";
+        }
+
+        try {
+            const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+            
+            if (!response.ok) {
+                let errorDetails = `API 請求失敗，狀態碼： ${response.status}`;
+                try {
+                    const errorBody = await response.json();
+                    // 為了除錯，顯示錯誤訊息的 JSON 結構
+                    errorDetails += `\n<pre class="bg-gray-200 p-2 rounded mt-2 text-sm text-left">${JSON.stringify(errorBody, null, 2)}</pre>`;
+                } catch (e) {
+                    errorDetails += `. ${await response.text()}`;
+                }
+                throw new Error(errorDetails);
+            }
+
+            const result = await response.json();
+            
+            switch (provider) {
+                case 'gemini':
+                    // Gemini 的回應路徑
+                    return result.candidates?.[0]?.content?.parts?.[0]?.text || "AI 回應格式有誤或為空。";
+                case 'deepseek':
+                case 'chatgpt':
+                case 'copilot':
+                    // OpenAI-compatible 的回應路徑
+                    return result.choices?.[0]?.message?.content || "AI 回應格式有誤或為空。";
+                default:
+                    return "抱歉，AI 回應的格式有誤，請稍後再試。";
+            }
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            return `無法連接至 AI 服務。請檢查您的網路連線或 API 金鑰是否正確。<br><br><b>錯誤詳情:</b><br>${error.message}`;
+        }
+    }
+
+    async function handleAIToolbox() {
+        if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+            alert(translations[currentLang].alert_activate_endpoint_first);
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+        if (apiProvider !== 'copilot' && !userApiKey) {
+            alert(translations[currentLang].alert_activate_first);
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const toolSelectElement = document.getElementById('ai-tool-select');
+        const inputElement = document.getElementById('toolbox-input');
+        const outputElement = document.getElementById('toolbox-output');
+        
+        const selectedTool = toolSelectElement.value;
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert(translations[currentLang].alert_input_needed);
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        let toolName = toolSelectElement.options[toolSelectElement.selectedIndex].text;
+        let langForPrompt = currentLang === 'zh-CN' ? '简体中文' : '繁體中文';
+        let basePrompt = `你是一位專業的顧問，請使用「${toolName}」方法，分析以下使用者提供的內容。請以結構化、條列式的方式呈現完整的分析報告。請用${langForPrompt}回答。\n\n使用者內容：${userInput}\n\n`;
+        let specificInstruction = '';
+
+        switch (selectedTool) {
+            case 'sa':
+                specificInstruction = '請將複雜情況拆解為具體的議題 (Issues)，評估其嚴重性(S)、緊急性(U)與未來性(G)，並建議下一步應採取的分析流程 (PA, DA, PPA, 或 CA)。';
+                break;
+            case 'pa_isisnot':
+                specificInstruction = '請先建立 IS/IS NOT 表格來釐清事實，接著透過歸納法找出差異點與變化，並透過演繹法(如魚骨圖)發想可能原因，最後辯證出最可能的原因 (Most Probable Cause)，並提出治標與治本的建議。';
+                break;
+            case 'pa_whywhy':
+                specificInstruction = '請使用 3x5 Why 分析法，從三個構面進行深入探討：1. 發生 (Occurrence) 2. 逃逸 (Escape) 3. 系統 (System)。請為每個構面都進行至少三層的 Why-Why 分析。';
+                break;
+             case 'pa_8d':
+                specificInstruction = '請引導使用者完成一份完整的 8D 報告，逐步引導思考並填寫 D1 到 D8 的內容。';
+                break;
+            case 'pa_5c':
+                specificInstruction = '你是一位資深的問題解決專家，精通業界常用的 5C 報告方法。請引導使用者，針對他提出的問題，完成一份簡潔而有效的 5C 報告。\n\n- **C1 (Characteristics - 問題描述):** 協助使用者運用 IS/IS NOT 的邏輯，精準定義問題的 What, Where, When, Extent。\n- **C2 (Containment - 圍堵措施):** 引導使用者思考並制定立即的臨時對策，防止問題擴大。\n- **C3 (Causes - 原因分析):** 協助使用者分析並找出問題的根本原因。\n- **C4 (Corrective Actions - 矯正措施):** 根據根本原因，規劃並驗證有效的永久解決方案。\n- **C5 (Closure - 結案):** 協助使用者總結如何將改善措施標準化，並防止問題再次發生。';
+                break;
+            case 'pa_dmaic':
+                specificInstruction = '你是一位六標準差大黑帶 (Six Sigma Master Black Belt)。請引導使用者，針對他提出的問題，走過完整的 DMAIC (Define, Measure, Analyze, Improve, Control) 流程。\n\n- **Define (定義):** 協助使用者明確定義問題、專案目標、範圍與關鍵品質特性 (CTQs)。\n- **Measure (衡量)::** 引導使用者思考如何衡量現有流程的績效，需要收集哪些數據。\n- **Analyze (分析):** 協助使用者分析數據，找出問題的根本原因。\n- **Improve (改善):** 根據根本原因，腦力激盪並評估改善方案。\n- **Control (控制):** 規劃如何維持改善後的成果，建立標準化流程與監控計畫。';
+                break;
+            case 'ppa':
+                specificInstruction = '請為此計畫進行風險分析。識別至少三個潛在風險，評估其嚴重性(S)、發生性(O)與難檢性(D) (1-10分)，計算 RPN，並為最高風險的項目提出預防行動 (Plan A) 與應變行動 (Plan B)。請將結果以 Markdown 表格形式呈現。';
+                break;
+            case 'da':
+                specificInstruction = '請協助做決策。請根據使用者提供的選項與加權標準，建立一個決策矩陣。先用 Musts 篩選，再用 Wants 評分(1-10分)並計算加權總分。最後，請務必分析分數最高選項的潛在風險，並給出包含風險考量的最終決策建議。請將決策矩陣以 Markdown 表格呈現。';
+                break;
+            case 'ca_pyramid':
+                specificInstruction = '請使用金字塔原理，將核心思想精煉成一個頂層結論，並發展 3 到 5 個符合 MECE 原則的主要論點來支持它，最後為每個論點展開支撐數據/事實。';
+                break;
+            case 'ca_scamper':
+                specificInstruction = '請針對 SCAMPER 的每個字母 (Substitute, Combine, Adapt, Modify, Put to other use, Eliminate, Reverse) 都提出至少一個具體想法。';
+                break;
+            case 'ca_triz':
+                specificInstruction = '請先識別其核心的「技術矛盾」(例如：想要A變好，但B卻變差了)。然後，請應用 TRIZ 的40個發明原則中的幾個，提出解決此矛盾的創新概念。';
+                break;
+            case 'ca_sixhats':
+                specificInstruction = '請分別從白帽(事實)、紅帽(情感)、黑帽(風險)、黃帽(利益)、綠帽(創意)、藍帽(流程)的角度，對此議題提出觀點或問題。';
+                break;
+            case 'ca_designthinking':
+                specificInstruction = '請引導使用者走過設計思維的五個階段：1. 同理(Empathize), 2. 定義(Define), 3. 發想(Ideate), 4. 原型(Prototype), 5. 測試(Test)。請為每個階段提出具體的引導問題或建議行動。';
+                break;
+            case 'ca_vpc':
+                specificInstruction = '請使用價值主張圖 (VPC) 的框架進行分析。請先分析「顧客輪廓」(Customer Profile)，包含顧客任務、痛點、獲益。接著，請設計「價值地圖」(Value Map)，提出對應的產品與服務、痛點解方、獲益創造者。';
+                break;
+            case 'ca_bmc':
+                specificInstruction = '請使用商業模式圖 (BMC) 的框架，為主題規劃一個完整的商業模式。請分別闡述九個構成要素：目標客層、價值主張、通路、顧客關係、收益流、關鍵活動、關鍵資源、關鍵夥伴、成本結構。';
+                break;
+        }
+        prompt = basePrompt + specificInstruction;
+        
+        const aiResponse = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+        // 使用 marked.parse 渲染 Markdown 內容
+        outputElement.innerHTML = marked.parse(aiResponse);
+    }
+
+    // --- Language Switcher Logic ---
+    function switchLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        
+        document.querySelectorAll('[data-lang-key]').forEach(element => {
+            const key = element.getAttribute('data-lang-key');
+            if (translations[lang] && translations[lang][key]) {
+                 if (element.tagName === 'OPTGROUP') {
+                    element.label = translations[lang][key];
+                }
+                else {
+                    element.innerHTML = translations[lang][key];
+                }
+            }
+        });
+
+        document.querySelectorAll('[data-lang-key-title]').forEach(element => {
+            const key = element.getAttribute('data-lang-key-title');
+             if (translations[lang] && translations[lang][key]) {
+                element.title = translations[lang][key];
+             }
+        });
+        
+        document.title = translations[lang].page_title;
+        
+        // Update active button style
+        const langTwBtn = document.getElementById('lang-tw');
+        const langCnBtn = document.getElementById('lang-cn');
+        
+        langTwBtn.classList.remove('active');
+        langCnBtn.classList.remove('active');
+        
+        if (lang === 'zh-TW') {
+            langTwBtn.classList.add('active');
+        } else if (lang === 'zh-CN') {
+            langCnBtn.classList.add('active');
+        }
+        
+        // Update placeholder after language switch
+        updatePlaceholder();
+    }
+
+    // --- New functions for placeholder and example loading ---
+    const aiToolPlaceholders = {
+        'zh-TW': {
+            'sa': '公司最近三個月的客訴案件暴增50%，尤其集中在A產品的售後服務，造成客服部門人力不堪負荷，客戶滿意度也顯著下滑。請協助進行狀況評估。',
+            'pa_isisnot': '問題：今年第一季度的網站跳出率從平均40%飆升至70%。\n發生時間：主要從一月十五日開始。\n發生地點：主要影響來自行動裝置的用戶，特別是使用iOS系統的用戶。\n問題程度：新用戶的跳出率高達85%，舊用戶則維持在45%左右。',
+            'pa_whywhy': '問題：我們新上市的App，在一個月內用戶流失率高達80%。',
+            'pa_8d': '產品型號 ABC-123 在客戶端發生無法開機的故障。',
+            'pa_5c': '問題：生產線上的產品不良率，在過去一週內從 1% 上升到 5%。',
+            'pa_dmaic': '我們的客服中心平均電話等待時間過長，目標是將平均等待時間從目前的5分鐘降低到2分鐘以內。',
+            'ppa': '我們計畫在下個季度推出一個全新的線上協作平台。',
+            'da': '公司正在考慮是否要投資一百萬美元，從目前的供應商A轉移到新的供應商B。供應商B的單價較低，但穩定性未知。\n決策標準與權重：成本(5), 品質(4), 交貨速度(3), 供應商關係(2)。',
+            'ca_pyramid': '主題：向公司管理層提議，我們應該投資開發一款新的AI客戶服務聊天機器人。',
+            'ca_scamper': '分析一個傳統的「馬克杯」。',
+            'ca_triz': '我想要設計一款更輕便的筆記型電腦，但又必須維持高電池續航力。（矛盾：減輕重量 vs. 維持電池容量）',
+            'ca_sixhats': '我們公司是否應該全面推行「週休三日」的制度？',
+            'ca_designthinking': '為經常需要獨自用餐的都市上班族，設計一款改善用餐體驗的App。',
+            'ca_vpc': '目標客群：對於環境保護有高度意識，但生活忙碌的年輕家庭。\n我們的產品：一款訂閱制的環保清潔用品補充包服務。',
+            'ca_bmc': '一個提供個人化健身計畫與營養建議的線上平台。'
+        },
+        'zh-CN': {
+            'sa': '公司最近三个月的客诉案件暴增50%，尤其集中在A产品的售后服务，造成客服部门人力不堪负荷，客户满意度也显著下滑。请协助进行状况评估。',
+            'pa_isisnot': '问题：今年第一季度的网站跳出率从平均40%飙升至70%。\n发生时间：主要从一月十五日开始。\n发生地点：主要影响来自移动装置的用户，特别是使用iOS系统的用户。\n问题程度：新用户的跳出率高达85%，旧用户则维持在45%左右。',
+            'pa_whywhy': '问题：我们新上市的App，在一个月内用户流失率高达80%。',
+            'pa_8d': '产品型号 ABC-123 在客户端发生无法开机的故障。',
+            'pa_5c': '问题：生产线上的产品不良率，在过去一周内从 1% 上升到 5%。',
+            'pa_dmaic': '我们的客服中心平均电话等待时间过长，目标是我们将平均等待时间从目前的5分钟降低到2分钟以内。',
+            'ppa': '我们计画在下个季度推出一个全新的线上协作平台。',
+            'da': '公司正在考虑是否要投资一百万美元，从目前的供应商A转移到新的供应商B。供应商B的单价较低，但稳定性未知。\n决策标准与权重：成本(5), 品质(4), 交货速度(3), 供应商关系(2)。',
+            'ca_pyramid': '主题：向公司管理层提议，我们应该投资开发一款新的AI客户服务聊天机器人。',
+            'ca_scamper': '分析一个传统的「马克杯」。',
+            'ca_triz': '我想要设计一款更轻便的笔记型电脑，但又必须维持高电池续航力。（矛盾：减轻重量 vs. 维持电池容量）',
+            'ca_sixhats': '我们公司是否应该全面推行「周休三日」的制度？',
+            'ca_designthinking': '为经常需要独自用餐的都市上班族，设计一款改善用餐体验的App。',
+            'ca_vpc': '目标客群：对于环境保护有高度意识，但生活忙碌的年轻家庭。\n我们的产品：一款订阅制的环保清洁用品补充包服务。',
+            'ca_bmc': '一个提供个人化健身计画与营养建议的线上平台。'
+        }
+    };
+    
+    function updatePlaceholder() {
+        const toolSelect = document.getElementById('ai-tool-select');
+        const textarea = document.getElementById('toolbox-input');
+        const selectedTool = toolSelect.value;
+        if (aiToolPlaceholders[currentLang] && aiToolPlaceholders[currentLang][selectedTool]) {
+            textarea.placeholder = aiToolPlaceholders[currentLang][selectedTool];
+        } else {
+            textarea.placeholder = ''; // Default or empty
+        }
+    }
+
+    function loadExample() {
+        const textarea = document.getElementById('toolbox-input');
+        textarea.value = textarea.placeholder;
+        textarea.focus();
+    }
+
+    document.getElementById('lang-tw').addEventListener('click', () => switchLanguage('zh-TW'));
+    document.getElementById('lang-cn').addEventListener('click', () => switchLanguage('zh-CN'));
+    document.getElementById('ai-tool-select').addEventListener('change', updatePlaceholder);
+
+
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'zh-TW': {
+            'q1-foundation': '這個陳述提供了「為什麼」年輕人害怕成家的理由（離婚率、房價），這屬於支持結論的論點，因此是論證邏輯層。',
+            'q2-foundation': '這是從數個「特定」的成功案例（個案），推導出一個「一般性」的結論（未來都該這樣做），屬於歸納法的應用。',
+            'q1-idea-id': '顧客輪廓（包含痛点、爽點、任務）是為了深入了解使用者，以發掘未被滿足的需求，這正是 Insight 階段的核心任務。',
+            'q2-idea-id': '這是將一個技術從「工業場域」轉移到「家庭場域」，是一個典型的空間(Where)應用轉移。',
+            'q1-idea-e': '將手機(通訊功能)與相機(拍照功能)「結合」在一起，創造出新的產品，是 Combine 的典型應用。',
+            'q2-idea-e': 'TRIZ 理論認為，創新的本質是解決系統中存在的矛盾（例如 A 變好，B 卻變差），並提供了系統化的原則來克服這些矛盾。',
+            'q1-idea-a': '原型(Prototype)和測試(Test)階段的核心就是用最低成本做出可互動的模型，快速獲得用戶回饋，以進行迭代修正。',
+            'q2-idea-a': '收益流(Revenue Streams)專門用來定義企業如何從其提供的價值中獲取現金收入，也就是回答「如何賺錢」。'
+        },
+        'zh-CN': {
+            'q1-foundation': '这个陈述提供了「为什么」年轻人害怕成家的理由（离婚率、房价），这属于支持结论的论点，因此是论证逻辑层。',
+            'q2-foundation': '这是从数个「特定」的成功案例（个案），推导出一个「一般性」的结论（未来都该这样做），属于归纳法的应用。',
+            'q1-idea-id': '顾客轮廓（包含痛点、爽点、任务）是为了深入了解使用者，以发掘未被满足的需求，这正是 Insight 阶段的核心任务。',
+            'q2-idea-id': '这是将一个技术从「工业场域」转移到「家庭场域」，是一个典型的空间(Where)应用转移。',
+            'q1-idea-e': '将手机(通讯功能)与相机(拍照功能)「结合」在一起，创造出新的产品，是 Combine 的典型应用。',
+            'q2-idea-e': 'TRIZ 理论认为，创新的本质是解决系统中存在的矛盾（例如 A 变好，B 却变差），并提供了系统化的原则来克服这些矛盾。',
+            'q1-idea-a': '原型(Prototype)和测试(Test)阶段的核心就是用最低成本做出可互动的模型，快速获得用户回馈，以进行迭代修正。',
+            'q2-idea-a': '收益流(Revenue Streams)专门用来定义企业如何从其提供的价值中获取现金收入，也就是回答「如何赚钱」。'
+        }
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('div[data-correct]');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.innerHTML = `✅ <strong>答對了！</strong> ${quizExplanations[currentLang][qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.innerHTML = `❌ <strong>答錯了。</strong>正確答案是 (${correctAnswer.toUpperCase()})。<br>${quizExplanations[currentLang][qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.innerHTML = `<strong>您未選擇答案。</strong>正確答案是 (${correctAnswer.toUpperCase()})。<br>${quizExplanations[currentLang][qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `${translations[currentLang].quiz_score_text} ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

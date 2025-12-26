@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 輔助專案管理 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; border-collapse: collapse; width: 100%; }
+        .ai-output th, .ai-output td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .ai-output th { background-color: #f3f4f6; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .load-example-btn {
+            position: absolute;
+            top: 2.5rem;
+            right: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            background-color: #e5e7eb;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            z-index: 10;
+        }
+        .load-example-btn:hover {
+            background-color: #d1d5db;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                AI 輔助專案管理 (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#overview" class="text-gray-600 hover:text-blue-500 nav-link">鳥瞰</a>
+                <a href="#initiating" class="text-gray-600 hover:text-blue-500 nav-link">起始</a>
+                <a href="#planning" class="text-gray-600 hover:text-blue-500 nav-link">規劃</a>
+                <a href="#controlling" class="text-gray-600 hover:text-blue-500 nav-link">監控</a>
+                <a href="#ai_toolbox" class="text-gray-600 hover:text-blue-500 nav-link">AI工具箱</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-500 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">專案管理與AI整合應用</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">駕馭 AI 提升專案效能，從起始、規劃到結案，全面掌握成功關鍵</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="Cliff Baby Pic by GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2026</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="Project Management and AI Integration.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- API Key Input Section -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="copilot"> Copilot (Microsoft)</label>
+                    </div>
+                </div>
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                <div id="copilot-endpoint-container" class="hidden mt-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">3. 輸入您的 Azure Endpoint:</span>
+                    <div class="flex items-center">
+                        <input type="text" id="endpoint-url-input" class="w-full p-2 border border-yellow-400 rounded-md focus:ring-2 focus:ring-yellow-500" placeholder="例如: https://your-resource.openai.azure.com/">
+                    </div>
+                    <p class="text-xs text-center text-yellow-600 mt-1">請確認 Endpoint 包含完整的部署名稱，例如 `.../deployments/your-deployment-name`</p>
+                </div>
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI/Azure</a> 免費取得。</p>
+                    <p class="font-bold">請注意：部分服務在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Course Structure Overview -->
+        <section id="overview" class="mb-24">
+            <h2 class="section-title">專案管理鳥瞰</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43zM12.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43z" /></svg>
+                    <h3 class="card-title">一個本質，兩種典型：駕馭不確定性</h3>
+                </div>
+                <div class="content-block">
+                    <h4>專案管理的本質</h4>
+                    <p>專案管理的本質在於「管理未來的不確定性」。無論是需求範疇、時程、資源還是採購，專案經理的核心任務就是在有限的資源下，引導團隊航向充滿未知的目標。</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="content-block">
+                        <h4>瀑布式 (Waterfall)</h4>
+                        <p>一種傳統的、線性的專案管理方法。它將專案分為依序進行的階段（如：需求分析、設計、開發、測試、部署）。</p>
+                        <ul>
+                            <li><b>特點：</b>計畫周詳，階段分明，每個階段完成後才能進入下一個。</li>
+                            <li><b>適用情境：</b>需求明確、變動少、技術成熟的專案，如建築工程。</li>
+                        </ul>
+                    </div>
+                    <div class="content-block">
+                        <h4>敏捷式 (Agile/Scrum)</h4>
+                        <p>一種迭代的、增量的開發方法。它強調快速交付、持續回饋和靈活應變。</p>
+                        <ul>
+                            <li><b>特點：</b>將大專案拆分為多個短週期的「衝刺 (Sprint)」，每個衝刺都產出一個可用的產品增量 (MVP)。</li>
+                            <li><b>適用情境：</b>需求不確定、變化快、需要快速回應市場的專案，如軟體開發。</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">核心觀念測驗</h3>
+                    <div id="quiz-overview" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 你的團隊正在開發一款全新的手機 App，市場需求尚不明朗，功能可能隨時需要調整。請問哪種專案管理方法更適合？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-overview" value="a"> A. 瀑布式 (Waterfall)，因為可以預先規劃好所有功能。</label>
+                                <label><input type="radio" name="q1-overview" value="b"> B. 敏捷式 (Agile)，因為可以快速迭代，並根據用戶回饋調整方向。</label>
+                                <label><input type="radio" name="q1-overview" value="c"> C. 兩種都可以，沒有差別。</label>
+                                <label><input type="radio" name="q1-overview" value="d"> D. 都不適合，應該先做市場調查一年再開始。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="c">
+                            <p>2. 在專案管理中，被稱為「三重限制 (Triple Constraint)」的三個關鍵要素是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-overview" value="a"> A. 風險、品質、溝通</label>
+                                <label><input type="radio" name="q2-overview" value="b"> B. 團隊、資源、時程</label>
+                                <label><input type="radio" name="q2-overview" value="c"> C. 範疇、時程、成本</label>
+                                <label><input type="radio" name="q2-overview" value="d"> D. 範疇、風險、利害關係人</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('overview')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-overview" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Initiating Section -->
+        <section id="initiating" class="mb-24">
+            <h2 class="section-title">起始流程 (Initiating)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 18V7.875c0-.621.504-1.125 1.125-1.125H9.75v-4.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75v4.5z" /></svg>
+                    <h3 class="card-title">專案的「出師表」：專案章程 (Project Charter)</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>起始流程是專案管理的第一步，其核心產出是「專案章程 (Project Charter)」。這是一份正式批准專案成立的文件，如同諸葛亮的《出師表》，它賦予專案經理權力，並明確定義了專案的目標、範疇、主要利害關係人等，是整個專案的最高指導原則。</p>
+                    <h4>專案章程的關鍵要素</h4>
+                    <ul>
+                        <li><b>專案緣起與目標 (Justification & Objectives):</b> 為何要做這個專案？要達成什麼商業目標？</li>
+                        <li><b>專案範疇 (Scope):</b> 專案包含什麼？不包含什麼？</li>
+                        <li><b>主要交付成果 (Deliverables):</b> 專案結束時要產出什麼？</li>
+                        <li><b>利害關係人 (Stakeholders):</b> 誰會影響專案，或被專案影響？</li>
+                        <li><b>高階風險 (High-level Risks):</b> 有哪些最主要的潛在威脅？</li>
+                        <li><b>預算與時程概估 (Budget & Milestones):</b> 大概需要多少錢？重要的時間節點為何？</li>
+                    </ul>
+                </div>
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">起始流程測驗</h3>
+                    <div id="quiz-initiating" class="quiz-container">
+                        <div class="quiz-question" data-correct="a">
+                            <p>1. 專案章程 (Project Charter) 的最主要作用是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-initiating" value="a"> A. 正式授權專案的存在，並賦予專案經理權力。</label>
+                                <label><input type="radio" name="q1-initiating" value="b"> B. 詳細列出每一個專案任務的執行步驟。</label>
+                                <label><input type="radio" name="q1-initiating" value="c"> C. 作為與供應商簽訂合約的法律文件。</label>
+                                <label><input type="radio" name="q1-initiating" value="d"> D. 記錄每日的專案會議內容。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 下列何者「不」是專案章程 (Project Charter) 通常會包含的內容？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-initiating" value="a"> A. 專案的高階目標與範疇。</label>
+                                <label><input type="radio" name="q2-initiating" value="b"> B. 已辨識出的主要利害關係人。</label>
+                                <label><input type="radio" name="q2-initiating" value="c"> C. 專案的預算概估。</label>
+                                <label><input type="radio" name="q2-initiating" value="d"> D. 詳細的工作分解結構 (WBS)。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('initiating')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-initiating" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-green-700">AI 輔助撰寫專案章程</h3>
+                    <div class="ai-card bg-green-50 border-green-200">
+                        <div class="relative">
+                            <label for="initiating-input" class="block mb-2 font-semibold text-gray-700">請簡單描述您想發起的專案：</label>
+                            <textarea id="initiating-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" rows="4" placeholder="例如：為公司導入一套新的 CRM 客戶關係管理系統，預計半年內上線..."></textarea>
+                            <button onclick="loadExample('initiating-input')" class="load-example-btn">載入範例</button>
+                        </div>
+                        <button onclick="handleAI('initiating')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 草擬章程
+                        </button>
+                        <div id="initiating-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Planning Section -->
+        <section id="planning" class="mb-24">
+            <h2 class="section-title">規劃流程 (Planning)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503-6.998l-6.878 6.878M9 15h9.75M9 6.75h9.75m0 0v-.375c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-8.25" /></svg>
+                    <h3 class="card-title">化整為零的藝術：WBS 與風險分析</h3>
+                </div>
+                <div class="content-block">
+                    <h4>工作分解結構 (Work Breakdown Structure, WBS)</h4>
+                    <p>WBS 是規劃流程的核心工具之一。它將專案的總體工作，依循 MECE (相互獨立，完全窮盡) 原則，層層分解成更小、更易於管理的工作包 (Work Package)。這有助於更準確地估算時程、成本與資源。</p>
+                </div>
+                 <div class="content-block mt-8">
+                    <h4>風險管理：潛在問題分析 (Potential Problem Analysis, PPA)</h4>
+                    <p>專案管理是管理不確定性，而風險管理就是其具體實踐。PPA 是一種「超前部署」的思維，分為 Plan A (預防行動) 和 Plan B (應變行動)。</p>
+                    <ul>
+                        <li><b>Plan A (預防行動):</b> 針對「未來可能的原因 (Likely Causes)」，採取措施降低其發生機率。</li>
+                        <li><b>Plan B (應變行動):</b> 針對「未來可能的後果 (Likely Effects)」，預先設定好觸發點 (Trigger) 與應對方案，以減輕衝擊。</li>
+                    </ul>
+                </div>
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">規劃流程測驗</h3>
+                    <div id="quiz-planning" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 在建立 WBS 時，MECE 原則指的是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-planning" value="a"> A. 越多越好，越詳細越好</label>
+                                <label><input type="radio" name="q1-planning" value="b"> B. 由上而下，由外而內</label>
+                                <label><input type="radio" name="q1-planning" value="c"> C. 相互獨立，完全窮盡 (不重複、不遺漏)</label>
+                                <label><input type="radio" name="q1-planning" value="d"> D. 最小化、效率化、集中化</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="a">
+                            <p>2. 在 PPA 風險分析中，「為可能發生的原因，預先採取預防措施」屬於哪一類行動？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-planning" value="a"> A. Plan A (預防行動)</label>
+                                <label><input type="radio" name="q2-planning" value="b"> B. Plan B (應變行動)</label>
+                                <label><input type="radio" name="q2-planning" value="c"> C. 風險轉移</label>
+                                <label><input type="radio" name="q2-planning" value="d"> D. 風險接受</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('planning')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-planning" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">AI 輔助建立 WBS</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <div class="relative">
+                            <label for="planning-wbs-input" class="block mb-2 font-semibold text-gray-700">請輸入您的專案目標，AI 將協助您分解工作：</label>
+                            <textarea id="planning-wbs-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：舉辦一場 200 人的線上技術研討會..."></textarea>
+                            <button onclick="loadExample('planning-wbs-input')" class="load-example-btn">載入範例</button>
+                        </div>
+                        <button onclick="handleAI('planning-wbs')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 分解工作
+                        </button>
+                        <div id="planning-wbs-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+                 <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">AI 輔助風險分析 (PPA)</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <div class="relative">
+                            <label for="planning-ppa-input" class="block mb-2 font-semibold text-gray-700">請描述您的專案或計畫，AI 將協助您進行 PPA 風險分析：</label>
+                            <textarea id="planning-ppa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：計畫在三個月內將公司所有伺服器遷移到雲端..."></textarea>
+                            <button onclick="loadExample('planning-ppa-input')" class="load-example-btn">載入範例</button>
+                        </div>
+                        <button onclick="handleAI('planning-ppa')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 風險分析
+                        </button>
+                        <div id="planning-ppa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Controlling Section -->
+        <section id="controlling" class="mb-24">
+            <h2 class="section-title">監控流程 (Controlling)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 100 15 7.5 7.5 0 000-15zM21 21l-5.197-5.197" /></svg>
+                    <h3 class="card-title">專案的儀表板：實獲值管理 (EVM)</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>實獲值管理 (Earned Value Management, EVM) 是一種整合範疇、時程與成本的專案績效衡量技術。它能客觀地評估專案的健康狀況，並預測未來的趨勢。</p>
+                    <h4>關鍵指標</h4>
+                    <ul>
+                        <li><b>時程變異 (SV = EV - PV):</b> 負值代表時程落後。</li>
+                        <li><b>成本變異 (CV = EV - AC):</b> 負值代表成本超支。</li>
+                        <li><b>時程績效指標 (SPI = EV / PV):</b> 小於 1 代表時程落後。</li>
+                        <li><b>成本績效指標 (CPI = EV / AC):</b> 小於 1 代表成本超支。</li>
+                    </ul>
+                    <p class="text-sm text-gray-500 mt-2">註：PV (計劃值), EV (實獲值), AC (實際成本)</p>
+                </div>
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">監控流程測驗</h3>
+                    <div id="quiz-controlling" class="quiz-container">
+                        <div class="quiz-question" data-correct="d">
+                            <p>1. 在 EVM 中，如果你的專案成本績效指標 (CPI) 為 0.8，這代表什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-controlling" value="a"> A. 專案進度超前 20%。</label>
+                                <label><input type="radio" name="q1-controlling" value="b"> B. 專案成本節省了 20%。</label>
+                                <label><input type="radio" name="q1-controlling" value="c"> C. 專案進度落後 20%。</label>
+                                <label><input type="radio" name="q1-controlling" value="d"> D. 專案成本超支了，每花 1 元只產生 0.8 元的價值。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 如果專案的時程變異 (SV) 為負值 (-10,000)，這明確表示？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-controlling" value="a"> A. 專案成本超支 10,000 元。</label>
+                                <label><input type="radio" name="q2-controlling" value="b"> B. 專案進度落後於原訂計畫。</label>
+                                <label><input type="radio" name="q2-controlling" value="c"> C. 專案進度超前於原訂計畫。</label>
+                                <label><input type="radio" name="q2-controlling" value="d"> D. 專案品質未達標。</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('controlling')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-controlling" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-yellow-700">AI 輔助 EVM 分析</h3>
+                    <div class="ai-card bg-yellow-50 border-yellow-200">
+                        <div class="relative">
+                            <label for="controlling-input" class="block mb-2 font-semibold text-gray-700">請輸入您的專案 EVM 數據：</label>
+                            <textarea id="controlling-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" rows="5" placeholder="範例格式：&#10;專案總預算 (BAC): 200萬&#10;計劃值 (PV): 140萬&#10;實獲值 (EV): 120萬&#10;實際成本 (AC): 150萬"></textarea>
+                            <button onclick="loadExample('controlling-input')" class="load-example-btn">載入範例</button>
+                        </div>
+                        <button onclick="handleAI('controlling')" class="mt-4 px-6 py-2 bg-yellow-600 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 分析與建議
+                        </button>
+                        <div id="controlling-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Toolbox Section -->
+        <section id="ai_toolbox" class="mb-24">
+            <h2 class="section-title">AI 專案助理工具箱</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 00-.12-1.03l-2.268-9.64a3.375 3.375 0 00-3.285-2.65H7.875a3.375 3.375 0 00-3.285 2.65l-2.268 9.64a4.5 4.5 0 00-.12 1.03v.228m19.5 0a3 3 0 01-3 3H5.25a3 3 0 01-3-3m19.5 0a3 3 0 00-3-3H5.25a3 3 0 00-3 3m16.5 0h.008v.008h-.008v-.008zm-3 0h.008v.008h-.008v-.008z" /></svg>
+                    <h3 class="card-title">運用 AI 處理專案管理的各項挑戰</h3>
+                </div>
+                <div class="content-block">
+                    <p>將專案管理理論與 AI 工具結合，快速產生文件、分析風險、評估績效與制定策略。這個工具箱提供多種模型，幫助您將複雜的專案任務轉化為清晰的行動方案。</p>
+                </div>
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-teal-700">AI 分析模型實戰</h3>
+                    <div class="ai-card bg-teal-50 border-teal-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析模型：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="charter" checked> 專案章程產生器</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="wbs"> WBS 產生器</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="ppa"> PPA 風險分析師</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="evm"> EVM 績效分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="analysis-type" value="stakeholder"> 利害關係人溝通策略</label>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <label id="ai_toolbox-label" for="ai_toolbox-input" class="block mb-2 font-semibold text-gray-700">請在此輸入您的分析數據或情境：</label>
+                            <textarea id="ai_toolbox-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500" rows="6" placeholder=""></textarea>
+                            <button onclick="loadExample('ai_toolbox-input')" class="load-example-btn">載入範例</button>
+                        </div>
+                        <button onclick="handleAI('ai_toolbox')" class="mt-4 px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 專案分析
+                        </button>
+                        <div id="ai_toolbox-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論與討論</h2>
+            <div class="card max-w-4xl mx-auto">
+                <div class="mb-6">
+                    <a href="Mermaid PM.png" target="_blank" title="點擊放大">
+                        <img src="Mermaid PM.png" alt="專案管理總結心智圖" class="max-w-xl mx-auto rounded-lg shadow-lg cursor-pointer" onerror="this.onerror=null;this.src='https://placehold.co/800x400/f0f0f0/999999?text=Mindmap+Not+Found';">
+                    </a>
+                    <p class="text-center text-sm text-gray-500 mt-2">課程總結心智圖 (點擊放大)</p>
+                </div>
+                <ul class="list-none space-y-3 text-left text-lg">
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>一個本質:</b> 專案管理的核心是駕馭與管理未來的不確定性。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>兩種典型:</b> 根據專案特性，靈活運用瀑布式 (Waterfall) 的詳盡規劃與敏捷式 (Agile) 的迭代彈性。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>五大流程:</b> 遵循「起始、規劃、執行、監控、結案」的 PDCA 循環，確保專案穩健推進。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>十大知識體:</b> 系統性地管理整合、範疇、時程、成本、品質、資源、溝通、風險、採購與利害關係人。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>AI 賦能:</b> 善用 AI 工具，在專案章程、WBS、風險分析(PPA)、成本控制(EVM)等環節提升效率與決策品質。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> <b>PMBOK 7 展望:</b> 新版的專案管理更強調價值交付、僕人式領導與全域思維，值得持續關注。</li>
+                </ul>
+                
+                <!-- Added Download Section -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h4 class="text-lg font-semibold text-gray-700 mb-3 text-left">課程資源下載</h4>
+                    <ul class="list-none space-y-2 text-left">
+                        <li class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                            <a href="https://github.com/drcliffwang/course-material/raw/main/Project%20Management%20%E7%B7%B4%E7%BF%92%E6%AA%94.xlsx" class="text-blue-600 hover:underline" download>Project Management 練習檔.xlsx</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800">最終目標：以人腦的策略智慧與批判性思維為主導，駕馭 AI 的強大執行與分析能力，將專案管理的挑戰轉化為組織的競爭優勢。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2026 Project Management + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+// === 全域變數與 API Key 邏輯 ===
+let userApiKey = '';
+let apiProvider = 'gemini';
+let userEndpointUrl = '';
+
+// 依目前 provider 更新 UI（Copilot 顯示 Endpoint 輸入框）
+function applyProviderUI() {
+    const radios = document.querySelectorAll('input[name="api-provider"]');
+    const endpointContainer = document.getElementById('copilot-endpoint-container');
+    radios.forEach(r => {
+        if (r.value === apiProvider) r.checked = true;
+    });
+    if (endpointContainer) {
+        if (apiProvider === 'copilot') {
+            endpointContainer.classList.remove('hidden');
+        } else {
+            endpointContainer.classList.add('hidden');
+        }
+    }
+}
+
+// DOM 載入完成後：綁定 provider 切換 & 設定工具箱 placeholder
+document.addEventListener('DOMContentLoaded', () => {
+    // 依目前勾選狀態設定 provider
+    const selectedProvider = document.querySelector('input[name="api-provider"]:checked');
+    if (selectedProvider) {
+        apiProvider = selectedProvider.value;
+    }
+
+    document.querySelectorAll('input[name="api-provider"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            apiProvider = radio.value;
+            applyProviderUI();
+        });
+    });
+
+    applyProviderUI();
+    setupAiToolboxPlaceholders();
+});
+
+// 儲存 API Key（只存在記憶體，不做任何本機儲存或測試呼叫）
+async function saveApiKey() {
+    const keyInput = document.getElementById('api-key-input');
+    const endpointInput = document.getElementById('endpoint-url-input');
+    const selected = document.querySelector('input[name="api-provider"]:checked');
+    apiProvider = selected ? selected.value : 'gemini';
+
+    if (!keyInput || !keyInput.value.trim()) {
+        alert('請輸入有效的 API 金鑰。');
+        if (keyInput) keyInput.focus();
+        return;
+    }
+
+    userApiKey = keyInput.value.trim();
+
+    if (apiProvider === 'copilot') {
+        if (!endpointInput || !endpointInput.value.trim()) {
+            alert('使用 Copilot (Azure) 時，請務必輸入您的 Endpoint URL。');
+            if (endpointInput) endpointInput.focus();
+            return;
+        }
+        userEndpointUrl = endpointInput.value.trim();
+    } else {
+        userEndpointUrl = '';
+    }
+
+    alert(`API 金鑰已暫存於本頁記憶體中（不會寫入瀏覽器或伺服器）。\n目前使用的服務為：${apiProvider.toUpperCase()}。`);
+}
+
+// === 呼叫各家 AI 服務 ===
+async function callAI(prompt, apiKey, provider, endpoint, retry = 0, usedFallback = false) {
+    let apiUrl = '';
+    let headers = { 'Content-Type': 'application/json' };
+    let body = {};
+    const system_prompt = "你是一位專業的專案管理顧問(PMP)，請使用繁體中文回答。";
+    const MAX_RETRY = 2;  // 自動重試次數上限
+
+    try {
+        switch (provider) {
+            case 'gemini': {
+                // 使用 2.5 為主，若多次過載將自動切換為 2.0 備援模型
+                const modelName = usedFallback ? 'gemini-2.0-flash' : 'gemini-2.5-flash';
+                apiUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+
+                const combinedPrompt = `${system_prompt}\n\n[使用者請求]\n${prompt}`;
+                body = {
+                    contents: [{ role: "user", parts: [{ text: combinedPrompt }] }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
+                    ]
+                };
+                break;
+            }
+            case 'deepseek': {
+                apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = {
+                    model: "deepseek-chat",
+                    messages: [
+                        { role: "system", content: system_prompt },
+                        { role: "user", content: prompt }
+                    ]
+                };
+                break;
+            }
+            case 'chatgpt': {
+                apiUrl = 'https://api.openai.com/v1/chat/completions';
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = {
+                    model: "gpt-4o-mini",
+                    messages: [
+                        { role: "system", content: system_prompt },
+                        { role: "user", content: prompt }
+                    ]
+                };
+                break;
+            }
+            case 'copilot': {
+                apiUrl = endpoint;
+                headers['api-key'] = apiKey;
+                body = {
+                    messages: [
+                        { role: "system", content: system_prompt },
+                        { role: "user", content: prompt }
+                    ]
+                };
+                break;
+            }
+            default:
+                return { success: false, error: '未知的 AI 服務提供商。' };
+        }
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+
+        // ========= 503 模型過載與自動重試 / 備援處理 =========
+        if (response.status === 503) {
+            console.warn(`AI 服務過載 (503)，provider=${provider}, retry=${retry}, usedFallback=${usedFallback}`);
+
+            // 若尚未達重試上限，先等候再重試
+            if (retry < MAX_RETRY) {
+                await new Promise(r => setTimeout(r, 1000 * (retry + 1)));
+                return await callAI(prompt, apiKey, provider, endpoint, retry + 1, usedFallback);
+            }
+
+            // 若已經重試多次仍 503，且目前是 Gemini 2.5，則切換到 2.0 備援模型再試
+            if (provider === 'gemini' && !usedFallback) {
+                console.warn("Gemini 2.5-flash 過載，切換為備援模型 gemini-2.0-flash 後再試一次。");
+                return await callAI(prompt, apiKey, provider, endpoint, 0, true);
+            }
+
+            throw new Error("AI 模型目前過載，已自動重試多次並嘗試備援模型仍失敗，請稍後再試。");
+        }
+
+        // 其他非 2xx 狀態碼
+        if (!response.ok) {
+            const errorMsg = result?.error?.message || JSON.stringify(result);
+            throw new Error(`API 請求失敗 (狀態碼 ${response.status}): ${errorMsg}`);
+        }
+
+        // ========= 回傳各家模型結果 =========
+        if (provider === 'gemini') {
+            const candidate = result?.candidates?.[0];
+            const parts = candidate?.content?.parts || [];
+            const textPart = parts.find(p => typeof p.text === 'string');
+            const text = textPart?.text || candidate?.content?.parts?.[0]?.text;
+            if (text) return { success: true, text };
+            return { success: false, error: 'AI 回應為空或格式不正確 (Gemini)。' };
+        } else {
+            const text = result?.choices?.[0]?.message?.content;
+            if (text) return { success: true, text };
+            return { success: false, error: 'AI 回應為空或格式不正確。' };
+        }
+
+    } catch (error) {
+        console.error('Error calling AI API:', error);
+        return {
+            success: false,
+            error: error.message || '無法連接至 AI 服務，請稍後再試。'
+        };
+    }
+}
+
+// === 各區塊整合的 handleAI ===
+async function handleAI(type) {
+    if (apiProvider === 'copilot' && (!userApiKey || !userEndpointUrl)) {
+        alert('請先在頁面上方輸入並儲存您的 API 金鑰與 Azure Endpoint！');
+        const keyInput = document.getElementById('api-key-input');
+        if (keyInput) keyInput.focus();
+        return;
+    }
+    if (apiProvider !== 'copilot' && !userApiKey) {
+        alert('請先在頁面上方輸入並儲存您的 API 金鑰！');
+        const keyInput = document.getElementById('api-key-input');
+        if (keyInput) keyInput.focus();
+        return;
+    }
+
+    let inputElementId = '';
+    let outputElementId = '';
+    let userInput = '';
+    let prompt = '';
+
+    const isToolbox = type === 'ai_toolbox';
+
+    if (isToolbox) {
+        const modelRadio = document.querySelector('input[name="analysis-type"]:checked');
+        const model = modelRadio ? modelRadio.value : 'charter';
+        inputElementId = 'ai_toolbox-input';
+        outputElementId = 'ai_toolbox-output';
+        const textarea = document.getElementById(inputElementId);
+        userInput = textarea ? textarea.value.trim() : '';
+
+        if (!userInput) {
+            if (textarea && textarea.placeholder) {
+                userInput = textarea.placeholder;
+                textarea.value = userInput;
+            } else {
+                alert('請先輸入您的情境或問題！');
+                return;
+            }
+        }
+
+        switch (model) {
+            case 'charter':
+                prompt = `你是一位資深的專案管理顧問(PMP)。請根據以下專案構想，草擬一份一頁式「專案章程 (Project Charter)」草稿，包含：專案緣起與商業目標、可量化專案目標、專案範疇（包含與不包含）、主要交付成果、主要利害關係人、高階風險、重要里程碑與預算概估。請以 Markdown 條列呈現。\n\n【學員專案構想】\n${userInput}`;
+                break;
+            case 'wbs':
+                prompt = `你是一位資深的專案管理顧問(PMP)。請根據以下專案目標，建立階層式「工作分解結構 (WBS)」，至少分解到第 3 層，並符合 MECE（不重複、不遺漏）原則。請用 Markdown 的巢狀清單格式呈現。\n\n【專案目標】\n${userInput}`;
+                break;
+            case 'ppa':
+                prompt = `你是一位資深的風險管理顧問。請對下列專案進行「潛在問題分析 (PPA)」，至少列出 3 個重要風險事件，並針對每一項說明：可能原因 (Likely Causes)、預防行動 (Plan A)、觸發點 (Trigger)、應變行動 (Plan B)。請以 Markdown 表格呈現。\n\n【專案敘述】\n${userInput}`;
+                break;
+            case 'evm':
+                prompt = `你是一位專案控制 (Controlling) 專家。請閱讀下列 EVM 輸入資料（包含 BAC / PV / EV / AC），協助學員計算：SV、CV、SPI、CPI，並用簡單文字說明專案在「時程」與「成本」上的健康狀況，最後給出 3–5 點具體改善建議。請以 Markdown 條列與表格呈現。\n\n【EVM 資料】\n${userInput}`;
+                break;
+            case 'stakeholder':
+                prompt = `你是一位專案利害關係人管理顧問。請根據以下情境，先整理出主要利害關係人清單（含角色、影響力/關心程度），再提出溝通策略與行動建議，特別強調如何處理衝突與建立信任。請以 Markdown 表格與條列方式呈現。\n\n【利害關係人情境】\n${userInput}`;
+                break;
+            default:
+                prompt = userInput;
+        }
+    } else {
+        // 個別章節的 AI 區塊
+        switch (type) {
+            case 'initiating':
+                inputElementId = 'initiating-input';
+                outputElementId = 'initiating-output';
+                prompt = `你是一位資深的專案管理顧問(PMP)。請根據下列專案構想，協助學員產出一份精簡但完整的「專案章程 (Project Charter)」草稿，內容包含：專案緣起與商業目標、SMART 目標、範疇（包含 / 不包含）、主要交付成果、關鍵利害關係人、高階風險、重要里程碑與預算概估。請用 Markdown 條列樣式呈現。\n\n【學員輸入的專案構想】\n`;
+                break;
+            case 'planning-wbs':
+                inputElementId = 'planning-wbs-input';
+                outputElementId = 'planning-wbs-output';
+                prompt = `你是一位專案規劃顧問。請根據下列專案目標，協助學員建立「工作分解結構 (WBS)」，至少分解至第 3 層，並標示各工作包所屬的主要知識領域（如範疇、時程、成本、風險）。請用 Markdown 巢狀清單呈現。\n\n【專案目標】\n`;
+                break;
+            case 'planning-ppa':
+                inputElementId = 'planning-ppa-input';
+                outputElementId = 'planning-ppa-output';
+                prompt = `你是一位專案風險管理顧問。請對下列專案描述進行「潛在問題分析 (PPA)」，至少列出 5 個潛在問題，並針對每一項填寫：可能原因、預防行動 (Plan A)、觸發點、應變行動 (Plan B)。建議以 Markdown 表格呈現，表格欄位包含：潛在問題、可能原因、Plan A、Trigger、Plan B。\n\n【專案描述】\n`;
+                break;
+            case 'controlling':
+                inputElementId = 'controlling-input';
+                outputElementId = 'controlling-output';
+                prompt = `你是一位專案控制與 EVM 專家。請依據下列資料（BAC / PV / EV / AC），協助學員計算 SV、CV、SPI、CPI，並用簡單語言解釋代表意義，以及對專案的影響。最後以條列方式提出時程與成本改善建議。請以 Markdown 呈現。\n\n【EVM 數據】\n`;
+                break;
+            default:
+                console.warn('未知的 AI 區塊類型：', type);
+                return;
+        }
+
+        const textarea = document.getElementById(inputElementId);
+        userInput = textarea ? textarea.value.trim() : '';
+        if (!userInput) {
+            if (textarea && textarea.placeholder) {
+                userInput = textarea.placeholder;
+                textarea.value = userInput;
+            } else {
+                alert('請先輸入描述，再啟動 AI 功能。');
+                return;
+            }
+        }
+        prompt = prompt + userInput;
+    }
+
+    const outputElement = document.getElementById(outputElementId);
+    if (!outputElement) return;
+
+    // 顯示載入動畫
+    outputElement.classList.remove('hidden');
+    outputElement.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-4">
+            <div class="loader"></div>
+            <p class="mt-2 text-sm text-gray-500">AI 分析中，通常需要 3–10 秒，請稍候。如遇 Gemini 模型過載，系統會自動重試數次並嘗試備援模型。</p>
+        </div>
+    `;
+
+    const result = await callAI(prompt, userApiKey, apiProvider, userEndpointUrl);
+
+    if (result.success) {
+        if (window.marked && typeof window.marked.parse === 'function') {
+            outputElement.innerHTML = window.marked.parse(result.text);
+        } else if (window.marked && typeof window.marked === 'function') {
+            // 兼容舊版 marked
+            outputElement.innerHTML = window.marked(result.text);
+        } else {
+            outputElement.textContent = result.text;
+        }
+    } else {
+        outputElement.innerHTML = `
+            <div class="p-4 bg-red-100 border border-red-300 rounded-md text-sm text-red-800">
+                <p class="font-bold">發生錯誤</p>
+                <p class="mt-2 whitespace-pre-wrap">${result.error}</p>
+            </div>
+        `;
+    }
+}
+
+// === 載入範例 ===
+function loadExample(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+    if (textarea.value.trim()) return; // 已經有內容就不覆蓋
+    let value = textarea.placeholder || '';
+    value = value.replace(/^範例格式：\s*/,'').replace(/^例如：\s*/,'');
+    textarea.value = value.trim();
+}
+
+// === 測驗邏輯 ===
+const quizExplanations = {
+    'q1-overview': '開發新 App、需求易變時，敏捷式 (Agile/Scrum) 較能快速迭代並回應市場。',
+    'q2-overview': '三重限制為範疇 (Scope)、時程 (Time)、成本 (Cost)，三者互相牽動。',
+    'q1-initiating': '專案章程是正式授權專案存在並賦予專案經理權限的文件。',
+    'q2-initiating': '詳細 WBS 屬於規劃文件，不會放在高階的 Project Charter 裡。',
+    'q1-planning': 'MECE 指「Mutually Exclusive, Collectively Exhaustive」：不重複、不遺漏。',
+    'q2-planning': 'Plan A 是預防行動，事先降低風險發生機率；Plan B 是風險發生後的應變方案。',
+    'q1-controlling': 'CPI = 0.8 表示每花 1 元只產生 0.8 元價值，代表成本效率不佳、已超支。',
+    'q2-controlling': 'SV 為負值代表實獲值小於計畫值，顯示時程落後。'
+};
+
+function submitQuiz(type) {
+    const container = document.getElementById(`quiz-${type}`);
+    if (!container) return;
+    const questions = container.querySelectorAll('.quiz-question');
+    let score = 0;
+
+    questions.forEach(question => {
+        const correct = question.getAttribute('data-correct');
+        const options = question.querySelectorAll('input[type="radio"]');
+        const feedback = question.querySelector('.quiz-feedback');
+        if (!feedback || options.length === 0) return;
+
+        feedback.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+        const name = options[0].name;
+        let selectedValue = null;
+        options.forEach(opt => {
+            if (opt.checked) selectedValue = opt.value;
+        });
+
+        const explanation = quizExplanations[name] || '';
+
+        if (!selectedValue) {
+            feedback.textContent = `您尚未作答。正確答案是 (${correct.toUpperCase()})。${explanation ? ' ' + explanation : ''}`;
+            feedback.classList.add('feedback-incorrect');
+        } else if (selectedValue === correct) {
+            score++;
+            feedback.textContent = `答對了！${explanation ? ' ' + explanation : ''}`;
+            feedback.classList.add('feedback-correct');
+        } else {
+            feedback.textContent = `可惜答錯了，正確答案是 (${correct.toUpperCase()})。${explanation ? ' ' + explanation : ''}`;
+            feedback.classList.add('feedback-incorrect');
+        }
+    });
+
+    const scoreEl = document.getElementById(`score-${type}`);
+    if (scoreEl) {
+        scoreEl.textContent = `您的得分：${score} / ${questions.length}`;
+    }
+}
+
+// === AI 工具箱 placeholder 設定 ===
+function setupAiToolboxPlaceholders() {
+    const analysisRadios = document.querySelectorAll('input[name="analysis-type"]');
+    const analysisInput = document.getElementById('ai_toolbox-input');
+    if (!analysisInput || analysisRadios.length === 0) return;
+
+    const placeholders = {
+        charter: "請輸入您的專案構想，例如：\n為公司導入一套新的 CRM 系統，目標是在 6 個月內提升成交轉換率 20%。",
+        wbs: "請輸入您的專案目標，例如：\n完成一場 200 人的線上技術研討會，包含報名、行銷宣傳、直播與會後問卷。",
+        ppa: "請描述您的專案計畫，例如：\n三個月內將公司所有伺服器遷移至雲端平台，同時確保系統不中斷服務。",
+        evm: "請輸入您的 EVM 數據，例如：\n專案總預算 (BAC): 500 萬\n計劃值 (PV): 300 萬\n實獲值 (EV): 250 萬\n實際成本 (AC): 320 萬",
+        stakeholder: "請描述您的利害關係人情境，例如：\n專案目前超支 15%，財務長強烈質疑專案價值，現場工程團隊則認為需求頻繁變更才是主因。"
+    };
+
+    function updateAnalysisUI() {
+        const selected = document.querySelector('input[name="analysis-type"]:checked');
+        const value = selected ? selected.value : 'charter';
+        analysisInput.placeholder = placeholders[value];
+        analysisInput.value = '';
+    }
+
+    analysisRadios.forEach(r => {
+        r.addEventListener('change', updateAnalysisUI);
+    });
+
+    updateAnalysisUI();
+}
+</script>
+
+</body>
+</html>

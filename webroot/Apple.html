@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Inc. 損益表視覺化</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- D3.js will be loaded dynamically by the script at the end of the body -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            width: 100%;
+            max-width: 1200px; /* Max width for larger screens */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem; /* Spacing between charts */
+        }
+        .chart-section {
+            width: 100%;
+            overflow-x: auto; /* Allow horizontal scrolling on small screens if needed */
+        }
+        .chart-title {
+            font-size: 1.75rem; /* text-3xl */
+            font-weight: 600; /* font-semibold */
+            color: #1a202c; /* text-gray-900 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            padding: 0.5rem;
+            background: #333;
+            color: white;
+            border-radius: 0.5rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 0.875rem;
+            z-index: 1000; /* Ensure tooltip is on top */
+        }
+        /* Waterfall Chart Styles */
+        .bar.increase { fill: #4CAF50; } /* Green for increase */
+        .bar.decrease { fill: #F44336; } /* Red for decrease */
+        .bar.total { fill: #2196F3; } /* Blue for total */
+        .line { stroke: #607D8B; stroke-width: 1px; stroke-dasharray: 4 2; }
+        .axis text { font-size: 0.875rem; fill: #4A5568; }
+        .axis line, .axis path { stroke: #CBD5E0; }
+
+        /* Pie Chart Styles */
+        .arc text {
+            font-size: 0.875rem;
+            fill: #333;
+            pointer-events: none;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+
+        /* KPI Dashboard Styles */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid, wider for two years */
+            gap: 1.5rem; /* Gap between KPI cards */
+            margin-top: 1.5rem;
+        }
+        .kpi-card {
+            background-color: #f8fafc; /* Lightest gray */
+            border-radius: 0.75rem; /* Rounded corners */
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px; /* Ensure consistent height for two years */
+        }
+        .kpi-label {
+            font-size: 1rem; /* text-base */
+            color: #4A5568; /* text-gray-600 */
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .kpi-value-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .kpi-value {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #1A202C; /* text-gray-900 */
+        }
+        .kpi-change {
+            font-size: 1rem; /* text-base */
+            font-weight: 500; /* font-medium */
+            margin-top: 0.25rem;
+        }
+        .kpi-change.positive { color: #2F855A; } /* Green for positive change */
+        .kpi-change.negative { color: #C53030; } /* Red for negative change */
+
+        .selector-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+        .selector {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #CBD5E0;
+            background-color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chart-section" id="kpi-dashboard-section">
+            <h1 class="chart-title" id="kpi-dashboard-title">Apple Inc. 關鍵績效指標 (KPI) 儀表板 - 年度比較 (所有單位均為 百萬美元)</h1>
+            <div id="kpi-dashboard" class="kpi-grid"></div>
+        </div>
+
+        <div class="selector-container">
+            <label for="year-select" class="text-gray-700 font-medium">選擇年度:</label>
+            <select id="year-select" class="selector rounded-lg">
+                <option value="2024年度">2024 年度 (截至 9 月 28 日)</option>
+                <option value="2023年度">2023 年度 (截至 9 月 30 日)</option>
+            </select>
+        </div>
+
+        <div class="chart-section" id="waterfall-chart-section">
+            <h1 class="chart-title" id="waterfall-chart-title">Apple Inc. 損益表瀑布圖 - 2024 年度 (所有單位均為 百萬美元)</h1>
+            <div id="waterfall-chart"></div>
+        </div>
+
+        <div class="chart-section" id="pie-chart-section">
+            <h1 class="chart-title" id="pie-chart-title">Apple Inc. 各項費用佔營業收入比例 - 2024 年度 (所有單位均為 百萬美元)</h1>
+            <div id="pie-chart" class="flex flex-col md:flex-row items-center justify-center">
+                <div id="pie-chart-svg-container"></div>
+                <div id="pie-chart-legend" class="mt-4 md:mt-0 md:ml-8"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initializeApp() {
+            // Apple Inc. 損益表數據 (單位為百萬美元，保持原始數據)
+            const financialData = {
+                "2024年度": { // Twelve Months Ended September 28, 2024
+                    "總淨銷售額": 391035,
+                    "產品淨銷售額": 294866,
+                    "服務淨銷售額": 96169,
+                    "產品銷售成本": 185233,
+                    "服務銷售成本": 25119,
+                    "總銷售成本": 210352,
+                    "毛利": 180683,
+                    "研發費用": 31370,
+                    "銷售、一般及行政費用": 26097,
+                    "總營運費用": 57467,
+                    "營運收入": 123216,
+                    "其他收入/(費用), 淨額": 269,
+                    "稅前收入": 123485,
+                    "所得稅費用": 29749,
+                    "淨收入": 93736,
+                    "基本每股盈餘": 6.11,
+                    "稀釋每股盈餘": 6.08
+                },
+                "2023年度": { // Twelve Months Ended September 30, 2023
+                    "總淨銷售額": 383285,
+                    "產品淨銷售額": 298085,
+                    "服務淨銷售額": 85200,
+                    "產品銷售成本": 189282,
+                    "服務銷售成本": 24855,
+                    "總銷售成本": 214137,
+                    "毛利": 169148,
+                    "研發費用": 29915,
+                    "銷售、一般及行政費用": 24932,
+                    "總營運費用": 54847,
+                    "營運收入": 114301,
+                    "其他收入/(費用), 淨額": -565, // Negative value
+                    "稅前收入": 113736,
+                    "所得稅費用": 16741,
+                    "淨收入": 96995,
+                    "基本每股盈餘": 6.16,
+                    "稀釋每股盈餘": 6.13
+                }
+            };
+
+            // --- Common Tooltip ---
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip");
+
+            // --- Global State ---
+            const yearSelect = d3.select("#year-select");
+            let currentYear = yearSelect.property("value");
+
+            // --- Event Listeners ---
+            yearSelect.on("change", function() {
+                currentYear = this.value;
+                updateAllCharts();
+            });
+
+            // Helper function to format money values (no currency unit)
+            const formatMoney = (value) => `${d3.format(",.0f")(value)}`;
+            const formatMoneyShort = (value) => {
+                const format = d3.format(".2s");
+                return format(value).replace('G', 'B'); // Use B for Billions
+            };
+
+            // --- Draw KPI Dashboard ---
+            function drawKPIDashboard() {
+                const kpiDashboardContainer = d3.select("#kpi-dashboard");
+                kpiDashboardContainer.html(""); // Clear existing KPI cards
+
+                const kpiDefinitions = [
+                    { label: "總淨銷售額", field: "總淨銷售額", format: "money" },
+                    { label: "毛利", field: "毛利", format: "money" },
+                    { label: "營運收入", field: "營運收入", format: "money" },
+                    { label: "淨收入", field: "淨收入", format: "money" },
+                    { label: "基本每股盈餘", field: "基本每股盈餘", format: "eps" },
+                    { label: "毛利率", field: "毛利率", format: "percentage" },
+                    { label: "營運收入率", field: "營運收入率", format: "percentage" },
+                    { label: "淨利率", field: "淨利率", format: "percentage" }
+                ];
+
+                kpiDefinitions.forEach(kpiDef => {
+                    const valueCurrentYearData = financialData["2024年度"];
+                    const valuePreviousYearData = financialData["2023年度"];
+
+                    let valueCurrentYear, valuePreviousYear;
+
+                    // Handle percentage calculations
+                    if (kpiDef.format === "percentage") {
+                        valueCurrentYear = (kpiDef.field === "毛利率") ? (valueCurrentYearData["毛利"] / valueCurrentYearData["總淨銷售額"]) * 100 :
+                                          (kpiDef.field === "營運收入率") ? (valueCurrentYearData["營運收入"] / valueCurrentYearData["總淨銷售額"]) * 100 :
+                                          (valueCurrentYearData["淨收入"] / valueCurrentYearData["總淨銷售額"]) * 100;
+
+                        valuePreviousYear = (kpiDef.field === "毛利率") ? (valuePreviousYearData["毛利"] / valuePreviousYearData["總淨銷售額"]) * 100 :
+                                          (kpiDef.field === "營運收入率") ? (valuePreviousYearData["營運收入"] / valuePreviousYearData["總淨銷售額"]) * 100 :
+                                          (valuePreviousYearData["淨收入"] / valuePreviousYearData["總淨銷售額"]) * 100;
+                    } else {
+                        valueCurrentYear = valueCurrentYearData[kpiDef.field];
+                        valuePreviousYear = valuePreviousYearData[kpiDef.field];
+                    }
+
+                    let formattedValueCurrentYear, formattedValuePreviousYear, changeText = '';
+                    let changeClass = '';
+
+                    if (kpiDef.format === "money") {
+                        formattedValueCurrentYear = formatMoney(valueCurrentYear);
+                        formattedValuePreviousYear = formatMoney(valuePreviousYear);
+                    } else if (kpiDef.format === "percentage") {
+                        formattedValueCurrentYear = `${valueCurrentYear.toFixed(2)}%`;
+                        formattedValuePreviousYear = `${valuePreviousYear.toFixed(2)}%`;
+                    } else if (kpiDef.format === "eps") {
+                        formattedValueCurrentYear = valueCurrentYear.toFixed(2);
+                        formattedValuePreviousYear = valuePreviousYear.toFixed(2);
+                    }
+
+                    if (valuePreviousYear !== 0) {
+                        const percentageChange = ((valueCurrentYear - valuePreviousYear) / valuePreviousYear) * 100;
+                        changeText = `${percentageChange > 0 ? '↑' : '↓'} ${Math.abs(percentageChange).toFixed(2)}%`;
+                        changeClass = percentageChange > 0 ? 'positive' : 'negative';
+                    }
+
+                    const kpiCard = kpiDashboardContainer.append("div")
+                        .attr("class", "kpi-card");
+
+                    kpiCard.append("div")
+                        .attr("class", "kpi-label")
+                        .text(kpiDef.label);
+
+                    const valueGroup = kpiCard.append("div")
+                        .attr("class", "kpi-value-group");
+
+                    valueGroup.append("div")
+                        .attr("class", "kpi-value")
+                        .text(`2024年度: ${formattedValueCurrentYear}`);
+
+                    valueGroup.append("div")
+                        .attr("class", "kpi-value")
+                        .text(`2023年度: ${formattedValuePreviousYear}`);
+
+                    if (changeText) {
+                        valueGroup.append("div")
+                            .attr("class", `kpi-change ${changeClass}`)
+                            .text(`變化: ${changeText}`);
+                    }
+                });
+            }
+
+            // --- Draw Waterfall Chart ---
+            function drawWaterfallChart(year) {
+                const currentFinancialData = financialData[year];
+                const waterfallContainer = d3.select("#waterfall-chart");
+                waterfallContainer.select("svg").remove(); // Clear existing chart
+
+                d3.select("#waterfall-chart-title").text(`Apple Inc. 損益表瀑布圖 - ${year} (所有單位均為 百萬美元)`);
+
+                const waterfallRawData = [
+                    { name: "總淨銷售額", value: currentFinancialData["總淨銷售額"] },
+                    { name: "總銷售成本", value: -currentFinancialData["總銷售成本"] },
+                    { name: "毛利", isTotal: true },
+                    { name: "研發費用", value: -currentFinancialData["研發費用"] },
+                    { name: "銷售、一般及行政費用", value: -currentFinancialData["銷售、一般及行政費用"] },
+                    { name: "營運收入", isTotal: true },
+                    { name: "其他收入/(費用), 淨額", value: currentFinancialData["其他收入/(費用), 淨額"] },
+                    { name: "所得稅費用", value: -currentFinancialData["所得稅費用"] },
+                    { name: "淨收入", isTotal: true }
+                ];
+
+                let cumulative = 0;
+                const waterfallChartData = waterfallRawData.map(d => {
+                    const base = cumulative;
+                    if (d.isTotal) {
+                        d.value = cumulative;
+                        return { name: d.name, start: 0, end: cumulative, class: 'total' };
+                    }
+                    cumulative += d.value;
+                    return { name: d.name, start: base, end: cumulative, class: d.value >= 0 ? 'increase' : 'decrease', value: d.value };
+                });
+
+                const containerWidth = waterfallContainer.node().getBoundingClientRect().width;
+                const margin = { top: 30, right: 20, bottom: 100, left: 80 };
+                const width = containerWidth - margin.left - margin.right;
+                const height = 400 - margin.top - margin.bottom;
+
+                const x = d3.scaleBand()
+                    .domain(waterfallChartData.map(d => d.name))
+                    .range([0, width])
+                    .padding(0.3);
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(waterfallChartData, d => d.end)])
+                    .nice()
+                    .range([height, 0]);
+
+                const svg = waterfallContainer.append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                svg.append("g")
+                    .attr("class", "x-axis axis")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(x))
+                    .selectAll("text")
+                    .attr("transform", "rotate(-45)")
+                    .style("text-anchor", "end");
+
+                svg.append("g")
+                    .attr("class", "y-axis axis")
+                    .call(d3.axisLeft(y).tickFormat(formatMoneyShort));
+
+                const bars = svg.selectAll(".bar")
+                    .data(waterfallChartData)
+                    .enter().append("rect")
+                    .attr("class", d => `bar ${d.class}`)
+                    .attr("x", d => x(d.name))
+                    .attr("y", d => y(Math.max(d.start, d.end)))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => Math.abs(y(d.start) - y(d.end)));
+
+                bars.on("mouseover", function(event, d) {
+                        tooltip.style("opacity", 1)
+                            .html(`<strong>${d.name}</strong><br>金額: ${formatMoney(d.value || d.end)}`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+                    });
+
+                svg.selectAll(".connector")
+                    .data(waterfallChartData.filter(d => !d.isTotal && d.name !== "淨收入"))
+                    .enter().append("line")
+                    .filter((d, i, nodes) => i < nodes.length -1 && !waterfallChartData[i+1].isTotal)
+                    .attr("class", "line connector")
+                    .attr("x1", d => x(d.name) + x.bandwidth())
+                    .attr("y1", d => y(d.end))
+                    .attr("x2", (d, i) => x(waterfallChartData[i + 1].name))
+                    .attr("y2", d => y(d.end));
+            }
+
+            // --- Draw Pie Chart ---
+            function drawPieChart(year) {
+                const currentFinancialData = financialData[year];
+                const pieSvgContainer = d3.select("#pie-chart-svg-container");
+                pieSvgContainer.select("svg").remove();
+                d3.select("#pie-chart-legend").html("");
+
+                d3.select("#pie-chart-title").text(`Apple Inc. 各項費用佔營業收入比例 - ${year} (所有單位均為 百萬美元)`);
+
+                const operatingRevenue = currentFinancialData["總淨銷售額"];
+                const expenseData = [
+                    { name: "總銷售成本", value: currentFinancialData["總銷售成本"] },
+                    { name: "研發費用", value: currentFinancialData["研發費用"] },
+                    { name: "銷售、一般及行政費用", value: currentFinancialData["銷售、一般及行政費用"] },
+                    { name: "所得稅費用", value: currentFinancialData["所得稅費用"] }
+                ];
+
+                const pieWidth = 350, pieHeight = 350, radius = Math.min(pieWidth, pieHeight) / 2 - 10;
+                
+                const svg = pieSvgContainer.append("svg")
+                    .attr("width", pieWidth)
+                    .attr("height", pieHeight)
+                    .append("g")
+                    .attr("transform", `translate(${pieWidth / 2},${pieHeight / 2})`);
+
+                const color = d3.scaleOrdinal(d3.schemeCategory10);
+                const pie = d3.pie().value(d => d.value).sort(null);
+                const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+                const path = svg.selectAll("path")
+                    .data(pie(expenseData))
+                    .enter().append("path")
+                    .attr("d", arc)
+                    .attr("fill", d => color(d.data.name));
+                
+                path.on("mouseover", function(event, d) {
+                        const percentage = (d.data.value / operatingRevenue * 100).toFixed(2);
+                        tooltip.style("opacity", 1)
+                            .html(`<strong>${d.data.name}</strong><br>金額: ${formatMoney(d.data.value)}<br>佔營業收入: ${percentage}%`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+                    });
+
+                const legend = d3.select("#pie-chart-legend");
+                expenseData.forEach(d => {
+                    const percentage = (d.value / operatingRevenue * 100).toFixed(2);
+                    legend.append("div")
+                        .attr("class", "legend-item")
+                        .html(`<div class="legend-color" style="background-color: ${color(d.name)};"></div><span>${d.name}: ${formatMoney(d.value)} (${percentage}%)</span>`);
+                });
+            }
+
+            // --- Update All Charts ---
+            function updateAllCharts() {
+                drawKPIDashboard();
+                drawWaterfallChart(currentYear);
+                drawPieChart(currentYear);
+            }
+
+            // Initial drawing of all charts
+            updateAllCharts();
+
+            // Listen for window resize to redraw all charts
+            window.addEventListener('resize', updateAllCharts);
+        }
+
+        // Use a robust script loader to ensure D3.js is ready
+        function loadScript(url, callback) {
+            const script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+            script.onload = callback;
+            script.onreadystatechange = function() {
+                if (this.readyState == 'complete') {
+                    callback();
+                }
+            }
+            document.head.appendChild(script);
+        }
+
+        // Start the application after D3.js is loaded
+        loadScript('https://d3js.org/d3.v7.min.js', initializeApp);
+    </script>
+</body>
+</html>

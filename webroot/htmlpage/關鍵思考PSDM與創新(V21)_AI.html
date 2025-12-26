@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關鍵思考與創新 PSDM + AI 課程 (互動版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .section-title {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #111827;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        .card-title {
+            font-size: 1.5rem; /* 24px */
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        .card-subtitle {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #3b82f6;
+            transform: scale(1.05);
+        }
+        .icon {
+            width: 3rem;
+            height: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        .ai-interactive-section, .quiz-section {
+            margin-top: 2rem;
+            border-top: 2px dashed #d1d5db;
+            padding-top: 2rem;
+        }
+        .ai-card {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .ai-output {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .ai-output table { margin-top: 1rem; margin-bottom: 1rem; }
+        .ai-output h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .ai-output ul { list-style-type: disc; padding-left: 1.5rem; }
+        .ai-output ol { list-style-type: decimal; padding-left: 1.5rem; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-block {
+            margin-bottom: 2rem;
+        }
+        .content-block h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            border-left: 4px solid #3b82f6;
+            padding-left: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .content-block ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            color: #374151;
+        }
+        .quiz-container {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .quiz-question {
+            margin-bottom: 1.5rem;
+        }
+        .quiz-question p {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .quiz-options label {
+            display: block;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quiz-options label:hover {
+            background-color: #e5e7eb;
+        }
+        .quiz-feedback {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .feedback-correct {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation Bar -->
+    <header class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl text-gray-800">
+                關鍵思考與創新 PSDM + AI (互動版)
+            </div>
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="#intro" class="text-gray-600 hover:text-blue-500 nav-link">前言</a>
+                <a href="#sa" class="text-gray-600 hover:text-blue-500 nav-link">SA</a>
+                <a href="#pa" class="text-gray-600 hover:text-blue-500 nav-link">PA</a>
+                <a href="#ppa" class="text-gray-600 hover:text-blue-500 nav-link">PPA</a>
+                <a href="#da" class="text-gray-600 hover:text-blue-500 nav-link">DA</a>
+                <a href="#ca" class="text-gray-600 hover:text-blue-500 nav-link">CA</a>
+                <a href="#conclusion" class="text-gray-600 hover:text-blue-500 nav-link">結論</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Hero Section -->
+        <section id="intro" class="text-center mb-24">
+            <h1 class="text-4xl md:text-6xl font-bold text-blue-600 mb-4 leading-tight">關鍵思考與創新 PSDM + AI</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">一門為您打造的系統性思維PSDM與 AI 協作實戰課程</p>
+            
+            <div class="mt-6 flex justify-center items-center space-x-4">
+                <img src="https://raw.githubusercontent.com/drcliffwang/course-material/6f8e0dad1a7128a900c460b570e7588b7b33fc5b/Cliff%20Baby%20Pic%20by%20GPT.png" alt="講師照片" class="rounded-full w-20 h-20 object-cover shadow-md">
+                <div>
+                    <p class="text-lg font-semibold text-gray-700 text-left">Cliff Wang, Ph.D.</p>
+                    <p class="text-sm text-gray-500 text-left">dr.cliffwang@a2psdm.com</p>
+                    <p class="text-xs text-gray-400 mt-1 text-left">Copyright &copy; 2025</p>
+                </div>
+            </div>
+
+            <div class="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
+                <h4 class="font-semibold text-gray-700 mb-2">課程 Podcast</h4>
+                <audio controls src="https://github.com/drcliffwang/course-material/raw/refs/heads/main/freecompress%20Critical%20Thinking%20and%20Innovation%20with%20AI.mp3" type="audio/mpeg">
+                    您的瀏覽器不支援聲音播放功能。
+                </audio>
+            </div>
+        </section>
+
+        <!-- ### UPDATED API KEY INPUT SECTION ### -->
+        <section class="mb-12">
+            <div class="max-w-2xl mx-auto p-6 bg-yellow-100 border-2 border-yellow-300 rounded-lg">
+                <h3 class="text-xl font-bold text-yellow-800 text-center mb-4">啟動 AI 互動功能</h3>
+                <p class="text-center text-yellow-700 mb-4">為了使用下方的 AI 實戰演練，請選擇您的 AI 服務並貼上對應的 API 金鑰。</p>
+                
+                <div class="mb-4">
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">1. 選擇 AI 服務提供商:</span>
+                    <div class="flex justify-center flex-wrap gap-x-6 gap-y-2">
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="gemini" checked> Google Gemini</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="deepseek"> Deepseek</label>
+                        <label class="cursor-pointer"><input class="mr-1" type="radio" name="api-provider" value="chatgpt"> ChatGPT (OpenAI)</label>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="block mb-2 font-semibold text-gray-700 text-center">2. 輸入您的 API 金鑰:</span>
+                    <div class="flex items-center">
+                        <input type="password" id="api-key-input" class="w-full p-2 border border-yellow-400 rounded-l-md focus:ring-2 focus:ring-yellow-500" placeholder="在此貼上您選擇的服務金鑰...">
+                        <button onclick="saveApiKey()" class="px-4 py-2 bg-yellow-500 text-white font-semibold rounded-r-md hover:bg-yellow-600">儲存</button>
+                    </div>
+                </div>
+                <div class="text-xs text-center text-yellow-600 mt-2 space-y-1">
+                    <p>您的金鑰只會儲存在您目前的瀏覽器中。可從 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-yellow-800">Google AI Studio</a>, <a href="https://platform.deepseek.com/api_keys" target="_blank" class="underline hover:text-yellow-800">Deepseek</a>, 或 <a href="https://platform.openai.com/api-keys" target="_blank" class="underline hover:text-yellow-800">OpenAI Platform</a> 免費取得。</p>
+                    <p class="font-bold">請注意：ChatGPT 與 Deepseek 在免費額度用完後，可能需要您在該平台設定付款方式或儲值才能繼續使用。</p>
+                </div>
+            </div>
+        </section>
+        <!-- ### END OF API KEY INPUT SECTION ### -->
+
+
+        <!-- 5 Modules Overview -->
+        <section class="mb-24">
+            <h2 class="section-title">五大系統思考應用模塊</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6 text-center">
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-blue-600">SA 狀況評估</h3>
+                    <p class="text-5xl mb-2">廣!</p><p>掌握大局</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-green-600">PA 問題分析</h3>
+                    <p class="text-5xl mb-2">細!</p><p>問題解決</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-purple-600">PPA 潛在問題分析</h3>
+                    <p class="text-5xl mb-2">遠!</p><p>超前部署</p>
+                </div>
+                <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-yellow-600">DA 決策分析</h3>
+                    <p class="text-5xl mb-2">準!</p><p>正確決策</p>
+                </div>
+                 <div class="p-6 bg-white rounded-lg shadow-lg">
+                    <h3 class="font-bold text-xl mb-2 text-red-600">CA 創意分析</h3>
+                    <p class="text-5xl mb-2">變!</p><p>突破框架</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SA Section -->
+        <section id="sa" class="mb-24">
+            <h2 class="section-title">SA: Situation Appraisal (狀況評估)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43zM12.036 12.322a1.012 1.012 0 010-.639l4.43-4.43a1.012 1.012 0 011.431 0l4.43 4.43a1.012 1.012 0 010 1.278l-4.43 4.43a1.012 1.012 0 01-1.431 0l-4.43-4.43z" /></svg>
+                    <h3 class="card-title">掌握大局，理清頭緒</h3>
+                </div>
+                
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>當面對一團混亂、千頭萬緒的狀況時，SA 提供一個系統性的方法來拆解複雜情境，確立優先順序，並決定下一步的行動方向。它是所有分析的起點，幫助我們從「見樹不見林」的困境中跳脫，看清全局。</p>
+                </div>
+
+                <div class="content-block">
+                    <h4>關鍵步驟解析</h4>
+                    <ul>
+                        <li><b>1. 規劃議題 (Plan - 審問):</b> 將腦中所有待辦事項、擔憂、問題全部列出。接著運用 <b>MECE 原則 (相互獨立，完全窮盡)</b> 進行分類與歸納，將雜亂的關注點整理成幾個清晰、獨立的議題大項。</li>
+                        <li><b>2. 輕重緩急 (Do - 慎思):</b> 資源有限，不可能所有事都做。針對每個議題，從<b>嚴重性(S)</b>、<b>緊急性(U)</b>、<b>未來性(G)</b>三個維度進行評估，找出真正需要優先處理的關鍵少數。</li>
+                        <li><b>3. 決定流程 (Check - 明辨):</b> 針對高優先級的議題，判斷其問題屬性。這一步是關鍵的「分流站」：
+                            <ul>
+                                <li>- 如果是「原因不明的偏差」，則進入 <b>PA (問題分析)</b>。</li>
+                                <li>- 如果是「需要做出選擇」，則進入 <b>DA (決策分析)</b>。</li>
+                                <li>- 如果是「未來可能發生的風險」，則進入 <b>PPA (潛在問題分析)</b>。</li>
+                            </ul>
+                        </li>
+                        <li><b>4. 當責行動 (Action - 篤行):</b> 將分析轉化為行動。明確定義「誰(Who)」、「在何時(When)」、「做什麼(What)」，並啟動對應的分析流程。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for SA -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">SA 學習成效測驗</h3>
+                    <div id="quiz-sa" class="quiz-container">
+                        <!-- Question 1 -->
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 狀況評估(SA)最主要的核心目的是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-sa" value="a"> A. 找到問題的唯一真因</label>
+                                <label><input type="radio" name="q1-sa" value="b"> B. 預防所有未來可能發生的風險</label>
+                                <label><input type="radio" name="q1-sa" value="c"> C. 拆解複雜情況，理清頭緒並決定優先順序</label>
+                                <label><input type="radio" name="q1-sa" value="d"> D. 產生最多樣化的創意點子</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <!-- Question 2 -->
+                        <div class="quiz-question" data-correct="a">
+                            <p>2. 在SA中，使用MECE原則是為了達成什麼效果？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-sa" value="a"> A. 確保議題的劃分不重疊、不遺漏</label>
+                                <label><input type="radio" name="q2-sa" value="b"> B. 確保每個議題都同樣重要</label>
+                                <label><input type="radio" name="q2-sa" value="c"> C. 確保只找出最緊急的議題</label>
+                                <label><input type="radio" name="q2-sa" value="d"> D. 確保所有議題都有解決方案</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('sa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-sa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for SA -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-blue-700">SA 實戰演練</h3>
+                    <div class="ai-card">
+                        <label for="sa-input" class="block mb-2 font-semibold text-gray-700">請在此描述您面臨的複雜情況：</label>
+                        <textarea id="sa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="例如：公司產品線過多，資源分散，不知從何處著手優化..."></textarea>
+                        <button onclick="handleAI('sa')" class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 狀況評估
+                        </button>
+                        <div id="sa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PA Section -->
+        <section id="pa" class="mb-24">
+            <h2 class="section-title">PA: Problem Analysis (問題分析)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                    <h3 class="card-title">追根究柢，找到真因</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>當發生「實際」與「應有」的偏差 (Deviation)，且原因不明時，PA 提供一套嚴謹的邏輯工具。其精髓在於「比較」，透過系統性地比對「是(IS)」與「不是(IS NOT)」之間的差異，從而找出導致問題的「獨特變化」，鎖定真因。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵步驟解析</h4>
+                    <ul>
+                        <li><b>1. 定義問題 (Plan - 審問):</b> 精準描述問題（物件＋偏差），並利用 <b>IS/IS NOT 表格</b>，從 What, Where, When, Extent 四個構面，鉅細靡遺地收集「事實」，而非意見或猜測。</li>
+                        <li><b>2. 推理原因 (Do - 慎思):</b> 雙管齊下尋找可能原因。<b>演繹法</b>：從經驗出發，使用魚骨圖等工具發想。<b>歸納法</b>：專注於 IS/IS NOT 表格中的「差異點」和「變化點」，這是最客觀的線索來源。</li>
+                        <li><b>3. 辯證原因 (Check - 明辨):</b> 這是最關鍵的驗證步驟。將上一步找出的「最可能原因(MPC)」，拿來解釋 IS/IS NOT 表格中的每一項事實。如果這個原因能完美解釋「為何發生在 IS，而未發生在 IS NOT」，那它很可能就是真因。</li>
+                        <li><b>4. 決策執行 (Act - 篤行):</b> 透過實驗或觀察來最終確認真因。確認後，立即採取<b>治標行動 (Containment)</b> 防止災情擴大，並規劃<b>治本行動 (Corrective)</b> 根除問題。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for PA -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">PA 學習成效測驗</h3>
+                    <div id="quiz-pa" class="quiz-container">
+                        <div class="quiz-question" data-correct="b">
+                            <p>1. 在問題分析(PA)中，「IS / IS NOT」分析的主要作用是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-pa" value="a"> A. 評估問題的嚴重性</label>
+                                <label><input type="radio" name="q1-pa" value="b"> B. 透過比較來縮小可能原因的範圍</label>
+                                <label><input type="radio" name="q1-pa" value="c"> C. 決定由誰來負責解決問題</label>
+                                <label><input type="radio" name="q1-pa" value="d"> D. 提出創新的解決方案</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="d">
+                            <p>2. 當你找到一個「最可能原因(MPC)」時，下一步應該做什麼來驗證它？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-pa" value="a"> A. 馬上投入資源解決它</label>
+                                <label><input type="radio" name="q2-pa" value="b"> B. 尋找更多可能的原因</label>
+                                <label><input type="radio" name="q2-pa" value="c"> C. 忽略它，專注於治標行動</label>
+                                <label><input type="radio" name="q2-pa" value="d"> D. 用它來解釋IS/IS NOT表格中的所有事實，看是否吻合</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('pa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-pa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- ### UPDATED Interactive AI Section for PA ### -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-green-700">PA 實戰演練</h3>
+                    <div class="ai-card bg-green-50 border-green-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析方法：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="isisnot" checked> IS/IS NOT 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="whywhy"> Why-Why 分析</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="pa-method" value="pmanalysis"> PM 分析</label>
+                            </div>
+                        </div>
+                        <label for="pa-input" class="block mb-2 font-semibold text-gray-700">請在此描述您遇到的問題：</label>
+                        <textarea id="pa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500" rows="4" placeholder="選擇 IS/IS NOT 時，請盡量包含 IS 和 IS NOT 的資訊。選擇 Why-Why 或 PM 分析時，請描述問題的最終現象。"></textarea>
+                        <button onclick="handleAI('pa')" class="mt-4 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 問題分析
+                        </button>
+                        <div id="pa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PPA Section -->
+        <section id="ppa" class="mb-24">
+            <h2 class="section-title">PPA: Potential Problem Analysis (潛在問題分析)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" /></svg>
+                    <h3 class="card-title">超前部署，防範未然</h3>
+                </div>
+                 <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>任何計畫或行動都伴隨著風險。PPA 是一套將「被動救火」轉為「主動防災」的系統化方法。它讓我們在行動前，先系統性地思考「哪裡可能出錯？」，並預先制定「預防」與「應變」計畫，大幅提高計畫的成功率。</p>
+                </div>
+                 <div class="content-block">
+                    <h4>關鍵步驟解析</h4>
+                    <ul>
+                        <li><b>1. 識別風險 (Plan):</b> 針對計畫的每個步驟，腦力激盪所有可能發生的潛在問題。</li>
+                        <li><b>2. 優先次序 (Do):</b> 對每個風險進行量化評估。<b>RPN (風險優先數) = S (嚴重性) x O (發生率) x D (難檢測度)</b>。這個分數能幫助我們客觀地找出最需要關注的高風險項目。</li>
+                        <li><b>3. 分析原因 (Check):</b> 針對 RPN 最高的風險，進一步分析可能導致它發生的原因 (Likely Causes)。</li>
+                        <li><b>4. 制定對策 (Action):</b> 這是 PPA 的行動核心，分為兩個層面：
+                            <ul>
+                                <li>- <b>預防行動 (Prevention - Plan A):</b> 針對「原因」下手，採取措施來降低風險的「發生率(O)」。例如：增加教育訓練、建立防呆機制。</li>
+                                <li>- <b>應變行動 (Contingency - Plan B):</b> 假設風險不幸發生，預先準備好對策以降低「嚴重性(S)」。例如：準備備用零件、建立緊急聯絡網。同時也要思考如何提高「檢測度(D)」，例如增加警報器。</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for PPA -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">PPA 學習成效測驗</h3>
+                    <div id="quiz-ppa" class="quiz-container">
+                        <div class="quiz-question" data-correct="d">
+                            <p>1. 在PPA中，RPN (風險優先數) 是由哪三個因素相乘得出的？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-ppa" value="a"> A. 嚴重性、緊急性、未來性</label>
+                                <label><input type="radio" name="q1-ppa" value="b"> B. 成本、時間、品質</label>
+                                <label><input type="radio" name="q1-ppa" value="c"> C. 可能性、影響力、可控性</label>
+                                <label><input type="radio" name="q1-ppa" value="d"> D. 嚴重性(S)、發生率(O)、難檢測度(D)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="a">
+                            <p>2. 「為新設備準備備用零件」是屬於PPA中的哪一種行動？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-ppa" value="a"> A. 應變行動 (Contingency - Plan B)</label>
+                                <label><input type="radio" name="q2-ppa" value="b"> B. 預防行動 (Prevention - Plan A)</label>
+                                <label><input type="radio" name="q2-ppa" value="c"> C. 治本行動 (Corrective Action)</label>
+                                <label><input type="radio" name="q2-ppa" value="d"> D. 治標行動 (Containment Action)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('ppa')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-ppa" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for PPA -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-purple-700">PPA 實戰演練</h3>
+                    <div class="ai-card bg-purple-50 border-purple-200">
+                        <label for="ppa-input" class="block mb-2 font-semibold text-gray-700">請在此描述您的計畫或專案：</label>
+                        <textarea id="ppa-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500" rows="4" placeholder="例如：我們計畫在下一季導入新的 CRM 系統，預計三個月內上線..."></textarea>
+                        <button onclick="handleAI('ppa')" class="mt-4 px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 風險分析
+                        </button>
+                        <div id="ppa-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DA Section -->
+        <section id="da" class="mb-24">
+            <h2 class="section-title">DA: Decision Analysis (決策分析)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M21.75 12h-2.25m-1.666 5.834L16.5 16.5M4.5 12H2.25m1.666-5.834L5.5 7.5M12 21.75V19.5" /></svg>
+                    <h3 class="card-title">權衡利弊，做出最佳選擇</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>將決策過程從「直覺」和「感覺」提升到「系統」和「計算」。DA 提供了一個結構化、透明化的流程，將複雜的選擇題拆解為可評估的標準，讓團隊或個人能客觀地權衡利弊，並對最終選擇的風險有清晰的認識。</p>
+                </div>
+                <div class="content-block">
+                    <h4>關鍵步驟解析</h4>
+                    <ul>
+                        <li><b>1. 規劃需求 (Plan):</b> 這是決策的基礎。清楚定義決策的目的，並將評估標準分為兩類：
+                            <ul>
+                                <li>- <b>Musts (必要條件):</b> 非有不可的門檻，用來「篩選」選項，不滿足者直接淘汰。</li>
+                                <li>- <b>Wants (想要條件):</b> 多多益善的加分項，用來「評分」。必須給予每個 Want 不同的「權重(Weight)」，以體現其相對重要性。</li>
+                            </ul>
+                        </li>
+                        <li><b>2. 發展選項 (Do):</b> 進行評分與計算。先用 Musts 篩掉不合格的選項。然後為剩下的選項，根據 Wants 逐項評分 (1-10分)，再將分數乘以權重，得出每個選項的加權總分。</li>
+                        <li><b>3. 了解風險 (Check):</b> 分數不是一切。針對分數最高的幾個選項，必須冷靜地分析其潛在的負面風險 (Adverse Consequences)。一個高分但風險極大的選項，未必是最佳選擇。</li>
+                        <li><b>4. 執行決策 (Action):</b> 做出最終選擇。理想的選擇是「加權分數最高」且「風險可控」的選項。一旦做出決定，就要為可能的風險制定應對計畫。</li>
+                    </ul>
+                </div>
+
+                <!-- Quiz Section for DA -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">DA 學習成效測驗</h3>
+                    <div id="quiz-da" class="quiz-container">
+                        <div class="quiz-question" data-correct="c">
+                            <p>1. 在決策分析(DA)中，「Musts (必要條件)」的主要作用是什麼？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-da" value="a"> A. 用來為選項加權計分</label>
+                                <label><input type="radio" name="q1-da" value="b"> B. 評估選項的潛在風險</label>
+                                <label><input type="radio" name="q1-da" value="c"> C. 作為篩選門檻，快速淘汰不合格的選項</label>
+                                <label><input type="radio" name="q1-da" value="d"> D. 比較不同選項的優點</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. 為何在DA中要為「Wants (想要條件)」設定權重(Weight)？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-da" value="a"> A. 讓計算過程更複雜</label>
+                                <label><input type="radio" name="q2-da" value="b"> B. 體現不同標準的相對重要性</label>
+                                <label><input type="radio" name="q2-da" value="c"> C. 確保所有選項得分都一樣</label>
+                                <label><input type="radio" name="q2-da" value="d"> D. 這是隨機設定的數字</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('da')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-da" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for DA -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-yellow-700">DA 實戰演練</h3>
+                    <div class="ai-card bg-yellow-50 border-yellow-200">
+                        <label for="da-input" class="block mb-2 font-semibold text-gray-700">請在此描述您需要做的決策 (包含選項、評估標準 Wants 及權重)：</label>
+                        <textarea id="da-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" rows="4" placeholder="例如：我想選擇雲端供應商。選項有 AWS, GCP, Azure。評估標準與權重為：成本(10), 技術支援(8), 生態系完整度(7)..."></textarea>
+                        <button onclick="handleAI('da')" class="mt-4 px-6 py-2 bg-yellow-500 text-white font-semibold rounded-lg shadow-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 決策分析
+                        </button>
+                        <div id="da-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CA Section -->
+        <section id="ca" class="mb-24">
+            <h2 class="section-title">CA: Creativity Analysis (創意分析)</h2>
+            <div class="card">
+                <div class="flex items-start md:items-center mb-4 flex-col md:flex-row">
+                    <svg class="icon text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a15.045 15.045 0 01-7.5 0C4.508 19.64 2.25 15.223 2.25 10.5 2.25 5.806 6.31 2 11.25 2s9 3.806 9 8.5c0 4.723-2.258 9.14-6.75 9.811z" /></svg>
+                    <h3 class="card-title">突破框架，系統創新</h3>
+                </div>
+                <div class="content-block">
+                    <h4>核心理念</h4>
+                    <p>創新並非少數天才的專利，而是人人皆可學習的方法。CA 提供了一套系統化的 IDEA 框架，引導我們將發散的「點子(Idea)」轉化為有市場價值的「創新(Innovation)」。它教我們如何從客戶需求出發，透過系統工具演化點子，並最終打造出成功的商業模式。</p>
+                </div>
+                <div class="content-block">
+                    <h4>IDEA 創新框架解析</h4>
+                    <ul>
+                        <li><b>I - Imagination / Input / Insight (想像/輸入/洞見):</b> 創新的起點。透過同理心(Empathy)觀察，深入了解客戶的痛點(Pains)與爽點(Gains)，從中發掘未被滿足的需求。</li>
+                        <li><b>D - Domain Application (運用場景):</b> 尋找創新的「空隙」。思考將現有的技術或產品，應用到新的時間、空間或物件上。例如，將工業用纖維棉應用到個人衛生領域，誕生了衛生棉。</li>
+                        <li><b>E - Evolution / Evaluation (連接演化):</b> 系統性地讓點子「進化」。運用 <b>SCAMPER</b> (替代/結合/調整/修改/他用/消除/重排) 或 <b>TRIZ (發明性問題解決理論)</b> 等工具，對現有方案進行破壞式重組，產生新的可能性。</li>
+                        <li><b>A - Action (創新行動方案):</b> 將成熟的創意落地。使用<b>設計思維(Design Thinking)</b>來快速迭代原型，透過<b>價值主張圖(VPC)</b>確保產品與市場契合，最後用<b>商業模式圖(BMC)</b>規劃出可持續獲利的模式。</li>
+                    </ul>
+                </div>
+                
+                <!-- Quiz Section for CA -->
+                <div class="quiz-section">
+                    <h3 class="card-subtitle text-gray-800">CA 學習成效測驗</h3>
+                    <div id="quiz-ca" class="quiz-container">
+                        <div class="quiz-question" data-correct="d">
+                            <p>1. 在IDEA創新框架中，哪一個階段最著重於透過同理心來了解客戶的痛點與爽點？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q1-ca" value="a"> A. D (Domain Application)</label>
+                                <label><input type="radio" name="q1-ca" value="b"> B. E (Evolution)</label>
+                                <label><input type="radio" name="q1-ca" value="c"> C. A (Action)</label>
+                                <label><input type="radio" name="q1-ca" value="d"> D. I (Insight)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <div class="quiz-question" data-correct="b">
+                            <p>2. SCAMPER工具中的「C」代表什麼意思？</p>
+                            <div class="quiz-options">
+                                <label><input type="radio" name="q2-ca" value="a"> A. 複製 (Copy)</label>
+                                <label><input type="radio" name="q2-ca" value="b"> B. 結合 (Combine)</label>
+                                <label><input type="radio" name="q2-ca" value="c"> C. 挑戰 (Challenge)</label>
+                                <label><input type="radio" name="q2-ca" value="d"> D. 改變 (Change)</label>
+                            </div>
+                            <div class="quiz-feedback hidden"></div>
+                        </div>
+                        <button onclick="submitQuiz('ca')" class="mt-4 px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700">提交答案</button>
+                        <div id="score-ca" class="mt-4 font-bold"></div>
+                    </div>
+                </div>
+
+                <!-- Interactive AI Section for CA -->
+                <div class="ai-interactive-section">
+                    <h3 class="card-subtitle text-red-700">CA 實戰演練</h3>
+                    <div class="ai-card bg-red-50 border-red-200">
+                        <div class="mb-4">
+                            <span class="block mb-2 font-semibold text-gray-700">請選擇分析方法：</span>
+                            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="scamper" checked> SCAMPER</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="triz"> TRIZ</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="sixhats"> 六頂思考帽</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="designthinking"> 設計思維</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="vpc"> 價值主張圖 (VPC)</label>
+                                <label class="cursor-pointer"><input class="mr-1" type="radio" name="ca-method" value="bmc"> 商業模式圖 (BMC)</label>
+                            </div>
+                        </div>
+                        <label for="ca-input" class="block mb-2 font-semibold text-gray-700">請在此輸入您想創新的主題或產品：</label>
+                        <textarea id="ca-input" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500" rows="4" placeholder="例如：傳統的雨傘、辦公室的會議..."></textarea>
+                        <button onclick="handleAI('ca')" class="mt-4 px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                            ✨ 啟動 AI 創意分析
+                        </button>
+                        <div id="ca-output" class="ai-output hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="text-center">
+            <h2 class="section-title">結論與討論</h2>
+            <div class="card max-w-4xl mx-auto">
+                <ul class="list-none space-y-3 text-left text-lg">
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> 一個關鍵思考整合：邏輯思維 (左腦) 與創意思維 (右腦) 的交互運作。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> 二個邏輯必須兼具：演繹法與歸納法。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> 三個層次檢視：議題層、論證邏輯層、結論行動層。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> 四個步驟循環：以 PDCA 處理邏輯問題，以 IDEA 框架激發創新。</li>
+                    <li class="flex items-start"><span class="text-blue-500 font-bold mr-3">✓</span> 五個 AI 應用場景：在 SA, PA, PPA, DA, CA 中，善用 AI 作為輔助工具。</li>
+                </ul>
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <p class="font-bold text-xl text-gray-800">最終目標：以人腦的智慧與判斷力為主導，駕馭 AI 的強大算力與知識庫，成為未來職場中無可取代的關鍵人才。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 Critical Thinking & Innovation + AI Course Material. All Rights Reserved.</p>
+    </footer>
+
+<script>
+    // --- API Key Logic ---
+    let userApiKey = '';
+    let apiProvider = 'gemini'; // Default provider
+
+    function saveApiKey() {
+        const input = document.getElementById('api-key-input');
+        apiProvider = document.querySelector('input[name="api-provider"]:checked').value;
+        if (input.value.trim()) {
+            userApiKey = input.value.trim();
+            alert(`API 金鑰已儲存！您現在選擇的服務是 ${apiProvider.toUpperCase()}。`);
+            input.value = ''; // Clear for security
+        } else {
+            alert('請輸入有效的 API 金鑰。');
+        }
+    }
+
+    // --- AI Interaction Logic ---
+
+    // Generic function to call the selected AI API
+    async function callAI(prompt, apiKey, provider) {
+        let apiUrl = '';
+        let headers = { 'Content-Type': 'application/json' };
+        let body = {};
+
+        // Prepare the request based on the provider
+        if (provider === 'gemini') {
+            apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            body = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+        } else if (provider === 'deepseek') {
+            apiUrl = 'https://api.deepseek.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "deepseek-chat",
+                messages: [
+                    { role: "system", content: "你是一位專業的顧問，請使用繁體中文回答。" },
+                    { role: "user", content: prompt }
+                ]
+            };
+        } else if (provider === 'chatgpt') {
+            apiUrl = 'https://api.openai.com/v1/chat/completions';
+            headers['Authorization'] = `Bearer ${apiKey}`;
+            body = {
+                model: "gpt-3.5-turbo",
+                messages: [
+                    { role: "system", content: "You are a helpful assistant. Please respond in Traditional Chinese." },
+                    { role: "user", content: prompt }
+                ]
+            };
+        }
+
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`API 請求失敗，狀態碼： ${response.status}. ${errorBody}`);
+            }
+
+            const result = await response.json();
+            
+            // Parse the response based on the provider
+            if (provider === 'gemini') {
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+            } else if (provider === 'deepseek' || provider === 'chatgpt') {
+                if (result.choices && result.choices[0]?.message?.content) {
+                    return result.choices[0].message.content;
+                }
+            }
+            
+            // Handle unexpected structures or errors
+            console.error("Unexpected API response structure:", result);
+            if (result.error) return `發生錯誤：${result.error.message}`;
+            if (result.promptFeedback?.blockReason) return `您的請求被阻擋，原因：${result.promptFeedback.blockReason}.`;
+            return "抱歉，AI 回應的格式有誤，請稍後再試。";
+
+        } catch (error) {
+            console.error("Error calling AI API:", error);
+            return `無法連接至 AI 服務。請檢查您的網路連線或 API 金鑰是否正確。\n錯誤詳情: ${error.message}`;
+        }
+    }
+
+    // Main handler for single-turn AI interactions
+    async function handleAI(type) {
+        if (!userApiKey) {
+            alert('請先在頁面上方的「啟動 AI 互動功能」區塊輸入並儲存您的 API 金鑰！');
+            document.getElementById('api-key-input').focus();
+            return;
+        }
+
+        const inputElement = document.getElementById(`${type}-input`);
+        const outputElement = document.getElementById(`${type}-output`);
+        const userInput = inputElement.value.trim();
+
+        if (!userInput) {
+            alert("請先輸入您的情境或問題！");
+            return;
+        }
+
+        outputElement.innerHTML = '<div class="loader"></div>';
+        outputElement.classList.remove('hidden');
+
+        let prompt = '';
+        switch (type) {
+            case 'sa':
+                prompt = `你是一位頂尖的管理顧問，請使用 SA (Situation Appraisal) 的 MECE 原則，將以下複雜情況拆解為具體的議題 (Issues) 與關注點 (Concerns)。請將結果以條列式清單呈現，並為每個議題評估其嚴重性、緊急性與未來性。請用繁體中文回答。\n\n使用者情境：${userInput}`;
+                break;
+            case 'pa':
+                const selectedPaMethod = document.querySelector('input[name="pa-method"]:checked').value;
+                if (selectedPaMethod === 'isisnot') {
+                    prompt = `你是一位經驗豐富的品管專家，請使用 Kepner-Tregoe 的 IS/IS NOT 方法，分析以下問題描述。請根據提供的資訊，歸納出最可能的根本原因 (Most Probable Cause)，並詳細解釋你的推理過程。請用繁體中文回答。\n\n使用者問題描述：${userInput}`;
+                } else if (selectedPaMethod === 'whywhy') {
+                    prompt = `你是一位經驗豐富的根本原因分析(RCA)專家。請針對以下問題，使用 3x5 Why 分析法，從三個構面進行深入探討：\n1. 發生 (Occurrence): 為什麼問題會發生？(探討物理或技術原因)\n2. 逃逸 (Escape): 為什麼問題沒有在發生點被偵測到或預防？(探討控制或檢測系統的失效)\n3. 系統 (System): 為什麼我們的管理系統或流程允許這個問題發生？(探討流程、標準或管理上的根本原因)\n請為每個構面都進行至少三層的 Why-Why 分析，並以結構化的方式呈現結果。請用繁體中文回答。\n\n使用者問題描述：${userInput}`;
+                } else if (selectedPaMethod === 'pmanalysis') {
+                    prompt = `你是一位精通 PM 分析 (Physical Mechanical Analysis) 的設備工程專家。請針對以下使用者描述的重複性故障問題，引導他完成 PM 分析的六個步驟：\n1. 明確故障現象\n2. 物理原理分析\n3. 成立條件探討\n4. 多角度原因列舉 (4M1E)\n5. 主因驗證方法建議\n6. 改善方案建議\n請以結構化的方式，引導使用者思考並提供分析。請用繁體中文回答。\n\n使用者問題描述：${userInput}`;
+                }
+                break;
+            case 'ppa':
+                prompt = `你是一位資深的風險管理師，請使用 PPA (Potential Problem Analysis) / FMEA 方法，為以下計畫進行風險分析。請識別至少三個潛在風險，評估其嚴重性(S)、發生性(O)與難檢性(D) (1-10分)，計算 RPN，並為最高風險的項目提出預防行動 (Plan A) 與應變行動 (Plan B)。請將結果以 Markdown 表格形式呈現。請用繁體中文回答。\n\n使用者計畫：${userInput}`;
+                break;
+            case 'da':
+                prompt = `你是一位理性的決策分析專家，請使用 DA (Decision Analysis) 方法，協助我做決定。請根據我提供的選項與加權標準，建立一個決策矩陣，為每個選項評分(1-10分)，計算加權總分，並分析高分選項的潛在風險，最後給我一個明確的決策建議。請將決策矩陣以 Markdown 表格呈現。請用繁體中文回答。\n\n使用者決策情境：${userInput}`;
+                break;
+            case 'ca':
+                const selectedCaMethod = document.querySelector('input[name="ca-method"]:checked').value;
+                if (selectedCaMethod === 'scamper') {
+                    prompt = `你是一位充滿創意的創新顧問，請使用 SCAMPER 方法，針對以下主題，發想創新的點子或商業模式。請針對 SCAMPER 的每個字母 (Substitute, Combine, Adapt, Modify, Put to other use, Eliminate, Reverse) 都提出至少一個想法。請用繁體中文回答。\n\n使用者主題：${userInput}`;
+                } else if (selectedCaMethod === 'triz') {
+                    prompt = `你是一位精通 TRIZ (發明性問題解決理論) 的創新專家。針對以下主題，請先識別其核心的「技術矛盾」(例如：想要A變好，但B卻變差了)。然後，請應用 TRIZ 的40個發明原則中的幾個，提出解決此矛盾的創新概念。請用繁體中文回答。\n\n使用者主題：${userInput}`;
+                } else if (selectedCaMethod === 'sixhats') {
+                    prompt = `你是一位熟練的主持人，請使用愛德華·德·波諾的「六頂思考帽」方法，引導我對以下議題進行全面探討。請分別從白帽(事實)、紅帽(情感)、黑帽(風險)、黃帽(利益)、綠帽(創意)、藍帽(流程)的角度，提出觀點或問題。請將分析結果以結構化的方式呈現。請用繁體中文回答。\n\n使用者議題：${userInput}`;
+                } else if (selectedCaMethod === 'designthinking') {
+                    prompt = `你是一位專業的設計思維(Design Thinking)引導師。請針對以下主題，引導我走過設計思維的五個階段：1. 同理(Empathize), 2. 定義(Define), 3. 發想(Ideate), 4. 原型(Prototype), 5. 測試(Test)。請為每個階段提出具體的引導問題或建議行動，幫助我發展出以使用者為中心的創新方案。請用繁體中文回答。\n\n使用者主題：${userInput}`;
+                } else if (selectedCaMethod === 'vpc') {
+                    prompt = `你是一位市場策略專家，請使用價值主張圖 (Value Proposition Canvas) 的框架，針對以下主題進行分析。請先分析右側的「顧客輪廓」(Customer Profile)，包含：\n1. 顧客任務 (Customer Jobs)\n2. 痛點 (Pains)\n3. 獲益 (Gains)\n\n接著，請設計左側的「價值地圖」(Value Map)，提出對應的解決方案，包含：\n1. 產品與服務 (Products & Services)\n2. 痛點解方 (Pain Relievers)\n3. 獲益創造者 (Gain Creators)\n請以結構化、條列式的方式呈現完整的分析。請用繁體中文回答。\n\n使用者主題：${userInput}`;
+                } else if (selectedCaMethod === 'bmc') {
+                    prompt = `你是一位商業模式顧問，請使用商業模式圖 (Business Model Canvas) 的框架，為以下主題規劃一個完整的商業模式。請分別闡述九個構成要素：\n1. 目標客層 (Customer Segments)\n2. 價值主張 (Value Propositions)\n3. 通路 (Channels)\n4. 顧客關係 (Customer Relationships)\n5. 收益流 (Revenue Streams)\n6. 關鍵活動 (Key Activities)\n7. 關鍵資源 (Key Resources)\n8. 關鍵合作夥伴 (Key Partnerships)\n9. 成本結構 (Cost Structure)\n請以結構化、條列式的方式呈現完整的分析。請用繁體中文回答。\n\n使用者主題：${userInput}`;
+                }
+                break;
+        }
+        
+        const aiResponse = await callAI(prompt, userApiKey, apiProvider);
+        outputElement.innerHTML = marked.parse(aiResponse);
+    }
+
+    // --- Quiz Logic ---
+    const quizExplanations = {
+        'q1-sa': 'SA的核心是面對複雜情況時，先進行系統性的拆解與排序，以掌握全局，而非直接跳入解決方案。',
+        'q2-sa': 'MECE (Mutually Exclusive, Collectively Exhaustive) 意思是「相互獨立，完全窮盡」，是確保邏輯結構嚴謹的黃金法則。',
+        'q1-pa': 'PA的精髓在於透過比較「發生(IS)」與「未發生(IS NOT)」的各項條件，找出其中的「差異」，這些差異點就是找到根本原因的關鍵線索。',
+        'q2-pa': '找到最可能原因(MPC)後，必須用它來反向驗證，看它是否能合理解釋所有已知的事實(IS/IS NOT)，通過驗證才能確認為真因。',
+        'q1-ppa': 'RPN是風險管理的量化工具，透過綜合評估風險的嚴重性、發生可能性與被檢測的難易度，來客觀地排出風險的優先級。',
+        'q2-ppa': 'Plan B (應變行動) 的目的是，當風險不幸真的發生時，能有預案來降低其造成的損害或衝擊。準備備用零件就是典型的Plan B。',
+        'q1-da': 'Musts是決策的硬性門檻，任何選項若不滿足Musts，無論在Wants上得分多高，都應直接淘汰，這能有效率地縮小選擇範圍。',
+        'q2-da': '不同的決策標準其重要性也不同。設定權重是為了讓最終的總分能真實反映出我們對不同標準的重視程度。',
+        'q1-ca': 'IDEA框架的第一步是從洞察(Insight)開始，這需要我們深入使用者情境，用同理心去感受他們的痛點與爽點，這是所有創新的源頭。',
+        'q2-ca': 'SCAMPER是一個腦力激盪的檢查表，C代表Combine(結合)，鼓勵我們思考能否將不同的事物、功能或點子結合在一起，創造出新的價值。'
+    };
+
+    function submitQuiz(type) {
+        const quizContainer = document.getElementById(`quiz-${type}`);
+        const questions = quizContainer.querySelectorAll('.quiz-question');
+        let score = 0;
+        
+        questions.forEach((question, index) => {
+            const qName = `q${index + 1}-${type}`;
+            const selectedOption = question.querySelector(`input[name="${qName}"]:checked`);
+            const feedbackEl = question.querySelector('.quiz-feedback');
+            const correctAnswer = question.dataset.correct;
+
+            feedbackEl.classList.remove('hidden', 'feedback-correct', 'feedback-incorrect');
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    score++;
+                    feedbackEl.textContent = `答對了！ ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-correct');
+                } else {
+                    feedbackEl.textContent = `答錯了。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                    feedbackEl.classList.add('feedback-incorrect');
+                }
+            } else {
+                feedbackEl.textContent = `您未選擇答案。正確答案是 (${correctAnswer.toUpperCase()})。 ${quizExplanations[qName]}`;
+                feedbackEl.classList.add('feedback-incorrect');
+            }
+        });
+
+        const scoreEl = document.getElementById(`score-${type}`);
+        scoreEl.textContent = `您的得分: ${score} / ${questions.length}`;
+    }
+
+</script>
+
+</body>
+</html>

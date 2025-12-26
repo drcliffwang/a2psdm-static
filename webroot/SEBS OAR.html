@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>吸油率 (OAR) 優化資訊圖表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 800px;
+        }
+        .flowchart-arrow::after {
+            content: '➔';
+            font-size: 2rem;
+            line-height: 1;
+            color: #D95D39;
+            margin: 0 1rem;
+        }
+        .flowchart-arrow:last-child::after {
+            content: '';
+        }
+    </style>
+</head>
+<body class="bg-[#F9F9F9] text-[#333333]">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#3E84A8] mb-2">吸油率 (OAR) 優化</h1>
+            <p class="text-xl md:text-2xl text-[#D95D39] font-semibold">從相關性分析到因果關係建模的策略藍圖</p>
+        </header>
+
+        <main class="space-y-12">
+
+            <section id="challenge" class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#3E84A8] text-center mb-6">問題核心：不穩定的製程表現</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="text-center">
+                        <p class="text-lg text-gray-600 mb-2">因 OAR < 1.8 目標而受影響的產量</p>
+                        <p class="text-8xl font-bold text-[#D95D39]">198</p>
+                        <p class="text-2xl font-semibold text-[#3E84A8]">公噸 (MT)</p>
+                        <p class="mt-4 text-gray-700">吸油率數據頻繁波動，不僅構成巨大的不合格品風險，也導致顯著的產能損失。</p>
+                    </div>
+                    <div>
+                        <p class="text-center text-lg font-semibold text-gray-700 mb-2">品質目標達成狀況</p>
+                        <div class="chart-container h-64 md:h-80">
+                            <canvas id="oarStatusChart"></canvas>
+                        </div>
+                        <p class="mt-4 text-center text-gray-700">初步分析顯示，大量的生產批次處於品質目標的邊緣地帶，突顯了製程穩定性的不足。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="process" class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#3E84A8] text-center mb-6">解構製程：從乾燥器到精密的相轉換反應器</h2>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-700">成功的優化始於思維的轉變。汽提器不僅是移除溶劑的設備，它更是一個複雜的反應器，透過三種主要的物理化學機制，精密地建構出產品的微觀多孔結構。</p>
+                <div class="flex flex-col md:flex-row justify-center items-center text-center flex-wrap">
+                    <div class="p-4 flowchart-arrow">
+                        <h3 class="text-xl font-bold text-[#44B3C2]">NIPS</h3>
+                        <p class="text-sm">非溶劑誘導相分離</p>
+                    </div>
+                    <div class="p-4 flowchart-arrow">
+                        <h3 class="text-xl font-bold text-[#44B3C2]">TIPS</h3>
+                        <p class="text-sm">熱誘導相分離</p>
+                    </div>
+                    <div class="p-4 flowchart-arrow">
+                        <h3 class="text-xl font-bold text-[#44B3C2]">EIPS</h3>
+                        <p class="text-sm">蒸發誘導相分離</p>
+                    </div>
+                </div>
+                 <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="border-l-4 border-[#3E84A8] bg-[#F9F9F9] p-4 rounded-r-lg">
+                        <h3 class="text-xl font-bold text-[#3E84A8]">水量 (RW) 作為非溶劑</h3>
+                        <p class="mt-2 text-gray-600">控制熱力學「淬火速率」，直接影響孔隙大小與互連性，是 <strong class="text-[#44B3C2]">NIPS</strong> 的主要驅動力。</p>
+                    </div>
+                    <div class="border-l-4 border-[#3E84A8] bg-[#F9F9F9] p-4 rounded-r-lg">
+                        <h3 class="text-xl font-bold text-[#3E84A8]">蒸汽 (STM) 作為熱/質傳媒介</h3>
+                        <p class="mt-2 text-gray-600">同時影響反應溫度與溶劑移除速率，驅動 <strong class="text-[#44B3C2]">TIPS</strong> 與 <strong class="text-[#44B3C2]">EIPS</strong>。</p>
+                    </div>
+                    <div class="border-l-4 border-[#3E84A8] bg-[#F9F9F9] p-4 rounded-r-lg">
+                        <h3 class="text-xl font-bold text-[#3E84A8]">固含量 (TS%) 作為初始條件</h3>
+                        <p class="mt-2 text-gray-600">定義反應的起始點與溶液黏度，高黏度可能減緩相分離動力學，導致孔隙結構發展不完全。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="methodology-critique" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-[#D95D39] text-center mb-4">現行方法的侷限</h3>
+                    <p class="text-center mb-6 text-gray-700">分析歷史操作數據僅能揭示表面關聯，無法指導真正的優化。</p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start"><span class="text-[#D95D39] font-bold text-2xl mr-3">✗</span><div><strong class="text-gray-800">干擾變數：</strong>無法確定觀察到的影響是否僅來自單一變數的改變。</div></li>
+                        <li class="flex items-start"><span class="text-[#D95D39] font-bold text-2xl mr-3">✗</span><div><strong class="text-gray-800">缺乏交互作用分析：</strong>無法捕捉變數間的協同或拮抗效應，例如水量在高固含量下的效果可能與低固含量時完全不同。</div></li>
+                        <li class="flex items-start"><span class="text-[#D95D39] font-bold text-2xl mr-3">✗</span><div><strong class="text-gray-800">無法模擬曲率：</strong>只能識別線性趨勢（如「越多越好」），卻錯過了曲線峰值的真正最佳點。</div></li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                    <h3 class="text-2xl font-bold text-[#3E84A8] text-center mb-4">被忽略的關鍵變數：切粒速度</h3>
+                     <p class="text-center mb-4 text-gray-700">最終的 OAR 測試結果不僅取決於內部的孔隙，還受到膠粒表面的極大影響。</p>
+                    <div class="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center p-4">
+                        <div class="w-40 h-40 rounded-full bg-[#44B3C2] flex items-center justify-center relative shadow-inner">
+                             <div class="w-32 h-32 rounded-full bg-[#F9F9F9] flex items-center justify-center text-center p-2 text-sm text-gray-700" style="background-image: repeating-linear-gradient(45deg, #EAEAEA, #EAEAEA 10px, #F9F9F9 10px, #F9F9F9 20px);">
+                                優良的內部多孔結構
+                            </div>
+                            <div class="absolute inset-0 rounded-full border-[10px] border-[#D95D39] opacity-70"></div>
+                             <p class="absolute -bottom-8 text-center text-xs text-[#D95D39] font-semibold">次佳的切粒參數可能形成一層緻密的「表皮」，封閉內部孔隙，阻礙油的吸收。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="solution" class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                <h2 class="text-3xl font-bold text-[#3E84A8] text-center mb-2">前進之路：統計實驗設計 (DOE)</h2>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-700">採用反應曲面法 (RSM) 中的 Box-Behnken 設計 (BBD)，能以最有效率的方式系統性地探索製程空間，量化變數間的交互作用，並找到真正的最佳操作窗口。</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <p class="text-center text-lg font-semibold text-gray-700 mb-2">實驗效率比較：四因子三水平設計</p>
+                        <div class="chart-container h-64 md:h-80">
+                           <canvas id="doeEfficiencyChart"></canvas>
+                        </div>
+                         <p class="mt-4 text-center text-gray-700">BBD 設計能以不到全因子實驗三分之一的運行次數，獲得更豐富、更可靠的製程資訊。</p>
+                    </div>
+                    <div class="bg-[#EAEAEA] p-6 rounded-lg">
+                        <h4 class="text-xl font-bold text-center text-[#3E84A8] mb-4">建議的 BBD 實驗因子</h4>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b-2 border-[#3E84A8]">
+                                    <th class="p-2">因子</th>
+                                    <th class="p-2">代碼</th>
+                                    <th class="p-2">單位</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-300">
+                                    <td class="p-2 font-semibold">固含量</td>
+                                    <td class="p-2">A: TS%</td>
+                                    <td class="p-2">%</td>
+                                </tr>
+                                <tr class="border-b border-gray-300">
+                                    <td class="p-2 font-semibold">蒸汽流量</td>
+                                    <td class="p-2">B: STM</td>
+                                    <td class="p-2">kg/hr</td>
+                                </tr>
+                                <tr class="border-b border-gray-300">
+                                    <td class="p-2 font-semibold">水流量</td>
+                                    <td class="p-2">C: RW</td>
+                                    <td class="p-2">L/hr</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 font-semibold">SDU 轉速</td>
+                                    <td class="p-2">D: SDU</td>
+                                    <td class="p-2">RPM</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="optimization" class="bg-white rounded-lg shadow-lg p-6 md:p-8">
+                 <h2 class="text-3xl font-bold text-[#3E84A8] text-center mb-2">視覺化製程響應：尋找 OAR 最佳點</h2>
+                <p class="text-center max-w-3xl mx-auto mb-8 text-gray-700">RSM 的最終輸出是一個預測模型，可以視覺化為 3D 響應曲面。這使我們能夠直觀地看到不同參數組合如何影響 OAR，並精確定位性能曲線的峰值——即穩健的最佳操作窗口。</p>
+                <div class="chart-container h-[500px] md:h-[600px]">
+                    <div id="surfacePlot"></div>
+                </div>
+                <p class="mt-4 text-center text-xs text-gray-500">此圖為示意圖，展示了 OAR 如何隨蒸汽量和水量的變化而呈現非線性、具有交互作用的曲面。真實數據將透過 BBD 實驗取得。</p>
+            </section>
+
+             <footer class="text-center mt-12 py-6 border-t border-gray-300">
+                <p class="text-gray-600">本資訊圖表基於 OAR 優化專案的內部技術審查報告。</p>
+                <p class="text-sm text-gray-500 mt-1">目標：建立一個數據驅動、科學導向的優化文化，實現卓越的製程管制與產品品質。</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const palette = {
+                primary: '#3E84A8',
+                secondary: '#44B3C2',
+                accent1: '#F19C79',
+                accent2: '#D95D39',
+                lightGray: '#EAEAEA',
+                darkGray: '#333333'
+            };
+
+            const chartTooltipConfig = {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const item = tooltipItems[0];
+                                let label = item.chart.data.labels[item.dataIndex];
+                                if (Array.isArray(label)) {
+                                  return label.join(' ');
+                                } else {
+                                  return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            function wrapLabel(str, maxWidth) {
+                if (typeof str !== 'string' || str.length <= maxWidth) {
+                    return str;
+                }
+                const words = str.split(' ');
+                let lines = [];
+                let currentLine = '';
+                words.forEach(word => {
+                    if ((currentLine + word).length > maxWidth) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    currentLine += word + ' ';
+                });
+                lines.push(currentLine.trim());
+                return lines;
+            }
+
+            function initOarStatusChart() {
+                const ctx = document.getElementById('oarStatusChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['OAR ≥ 1.8 (合格)', 'OAR < 1.8 (風險)'],
+                        datasets: [{
+                            label: '生產批次分佈',
+                            data: [70, 30],
+                            backgroundColor: [palette.primary, palette.accent2],
+                            borderColor: '#FFFFFF',
+                            borderWidth: 4,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 14 }
+                                }
+                            },
+                             tooltip: chartTooltipConfig.plugins.tooltip
+                        }
+                    }
+                });
+            }
+
+            function initDoeEfficiencyChart() {
+                const ctx = document.getElementById('doeEfficiencyChart').getContext('2d');
+                const labels = ['全因子實驗 (Full Factorial)', 'Box-Behnken 設計 (BBD)'];
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.map(label => wrapLabel(label, 16)),
+                        datasets: [{
+                            label: '所需實驗運行次數',
+                            data: [81, 27],
+                            backgroundColor: [palette.secondary, palette.primary],
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '運行次數'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                             tooltip: chartTooltipConfig.plugins.tooltip
+                        }
+                    }
+                });
+            }
+
+            function initSurfacePlot() {
+                const x = [];
+                const y = [];
+                const z = [];
+                const steps = 30;
+                const STM_min = 580, STM_max = 720;
+                const RW_min = 10000, RW_max = 25000;
+
+                for (let i = 0; i < steps; i++) {
+                    x.push(STM_min + (STM_max - STM_min) * i / (steps - 1));
+                    y.push(RW_min + (RW_max - RW_min) * i / (steps - 1));
+                }
+
+                for (let i = 0; i < steps; i++) {
+                    const temp_z = [];
+                    for (let j = 0; j < steps; j++) {
+                        const r_x = -1 + 2 * i / (steps - 1);
+                        const r_y = -1 + 2 * j / (steps - 1);
+                        
+                        // A plausible mathematical function for OAR response surface
+                        // Z = Base + MainEffect_X + MainEffect_Y + Interaction_XY + Curvature_X + Curvature_Y
+                        const val = 1.85 - 0.1 * r_x - 0.05 * r_y - 0.15 * r_x * r_y - 0.25 * r_x * r_x - 0.15 * r_y * r_y;
+                        temp_z.push(Math.max(1.6, val)); 
+                    }
+                    z.push(temp_z);
+                }
+
+                const data = [{
+                    z: z,
+                    x: x,
+                    y: y,
+                    type: 'surface',
+                    colorscale: [
+                        [0, palette.accent2],
+                        [0.5, palette.accent1],
+                        [1, palette.primary]
+                    ],
+                    colorbar: {
+                        title: 'OAR',
+                        titleside: 'right'
+                    }
+                }];
+
+                const layout = {
+                    title: {
+                        text: 'OAR 響應曲面（示意圖）',
+                        font: {
+                            family: 'Noto Sans TC, sans-serif',
+                            size: 20,
+                            color: palette.darkGray
+                        }
+                    },
+                    scene: {
+                        xaxis: { title: '蒸汽流量 (STM)' },
+                        yaxis: { title: '水流量 (RW)' },
+                        zaxis: { title: '吸油率 (OAR)', range: [1.6, 2.2] }
+                    },
+                    autosize: true,
+                    margin: { l: 40, r: 40, b: 40, t: 80 }
+                };
+                
+                Plotly.newPlot('surfacePlot', data, layout, {responsive: true});
+            }
+
+            initOarStatusChart();
+            initDoeEfficiencyChart();
+            initSurfacePlot();
+        });
+    </script>
+</body>
+</html>
