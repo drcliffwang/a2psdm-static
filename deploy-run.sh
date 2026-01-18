@@ -23,7 +23,10 @@ rsync -av --delete --compress --human-readable \
   ./webroot/ \
   "${VM_USER}@${VM_IP}:${VM_WEBROOT}/"
 
-echo "==> 4) Find nginx container on VM (if not specified)"
+echo "==> 4) Fix file permissions on VM (ensure nginx can read files)"
+ssh "${VM_USER}@${VM_IP}" "chmod -R 755 '${VM_WEBROOT}'"
+
+echo "==> 5) Find nginx container on VM (if not specified)"
 if [[ -z "${NGINX_CONTAINER}" ]]; then
   NGINX_CONTAINER="$(ssh "${VM_USER}@${VM_IP}" \
     "docker ps --format '{{.Names}} {{.Image}}' | egrep -i 'nginx' | head -n 1 | awk '{print \$1}'" || true)"
@@ -35,7 +38,7 @@ if [[ -z "${NGINX_CONTAINER}" ]]; then
   exit 1
 fi
 
-echo "==> 5) Reload nginx in container: ${NGINX_CONTAINER}"
+echo "==> 6) Reload nginx in container: ${NGINX_CONTAINER}"
 ssh "${VM_USER}@${VM_IP}" "docker exec '${NGINX_CONTAINER}' nginx -t && docker exec '${NGINX_CONTAINER}' nginx -s reload"
 
 echo "==> Deploy done ✅"
